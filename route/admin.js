@@ -24,7 +24,7 @@ const File=mongoose.model('File');
 
 
 router.get('/',function(req,res,next){
-	res.render('admin/admin', {
+	res.render('admin', {
 		title: '',
 	});
 })
