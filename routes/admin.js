@@ -1,14 +1,15 @@
 "use strict";
 //后台管理路由
-const express = require('express');
+import express from 'express'
+import path from 'path'
+import fs from 'fs'
+import async from 'async'
+import multer from 'multer'  //上传文件中间件 multer
+import md5 from 'md5'
+import _ from 'underscore'
+import mongoose from 'mongoose'
+
 const router = express.Router();
-const path = require('path');
-const fs = require('fs');
-const async = require('async');
-const multer = require ('multer');  //上传文件中间件 multer
-const md5 = require('md5');
-const _=require('underscore');
-const mongoose=require('mongoose');
 const tool=require('../utility/tool');
 
 //数据模型
@@ -79,7 +80,7 @@ router.get('/loadData',function(req,res,next){
 	});
 });
 
-module.exports = router;
+export default router;
 
 
 

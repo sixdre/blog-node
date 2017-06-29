@@ -1,14 +1,7 @@
 "use strict";
-const express = require('express');
-const router = express.Router();
-//引入数据模型  
-const mongoose=require('mongoose');
-const User = mongoose.model('User');				//用户
-const async = require('async');					
-const events = require('events');				//事件处理模块
-
-//控制器
+import express from 'express'
 import UserCtrl from '../controllers/user.controller'
+const router = express.Router();
 
 //登陆页面
 router.get('/login',function(req,res,next){
@@ -40,7 +33,7 @@ router.get('/admin_logout',UserCtrl.admin_logout)
 
 
 
-module.exports = router;
+export default router;
 
 
 

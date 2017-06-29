@@ -13,7 +13,7 @@ const File = mongoose.model('File');
 const Banner=mongoose.model("Banner");
 
 //控制器
-const FileCtrl=require('../controllers/file.controller');
+import FileCtrl from '../controllers/file.controller'
 
 const storage = multer.diskStorage({
     //设置上传文件路径,以后可以扩展成上传至七牛,文件服务器等等

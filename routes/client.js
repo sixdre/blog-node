@@ -1,24 +1,26 @@
 "use strict";
-const express = require('express');
+import express from 'express'
+import async from 'async'
+import events from 'events'		
+import path from 'path'
+import tool from '../utility/tool'
+import mongoose from 'mongoose'
+
+import Auth from '../middleware/auth'
+
 const router = express.Router();
-const async = require('async');
-const events = require('events');				//事件处理模块
-const path = require('path');
-const tool =require('../utility/tool');
-const mongoose=require('mongoose');
 //数据模型
-const Article = mongoose.model('Article');			//文章
-const Category=mongoose.model("Category");			//类型
-const Banner = mongoose.model('Banner');			//轮播图
-const User = mongoose.model('User');				//用户
-const Word = mongoose.model('Word');				//留言
-const Friend=mongoose.model("Friend");			//友链
-const Comment=mongoose.model('Comment');		//评论
+const Article = mongoose.model('Article');			
+const Category=mongoose.model("Category");			
+const Banner = mongoose.model('Banner');			
+const User = mongoose.model('User');				
+const Word = mongoose.model('Word');				
+const Friend=mongoose.model("Friend");			
+const Comment=mongoose.model('Comment');		
 
 //公用数据
 const Common=require('../middleware/common');
 //验证
-import Auth from '../middleware/auth'
 
 const BaseQuery=require('../models/dbHelper'),
 	  aQuery=BaseQuery.ArticlesQuery;
@@ -263,5 +265,5 @@ router.get('/about',function(req,res,next){
 })
 
 
-module.exports = router;
+export default router;
 

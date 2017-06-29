@@ -10,7 +10,7 @@ import TagCtrl from '../controllers/tag.controller'
 import WordCtrl from '../controllers/word.controller'
 import FriendCtrl from '../controllers/friend.controller'
 import UserCtrl from '../controllers/user.controller'
-const FileCtrl=require('../controllers/file.controller');
+import FileCtrl from '../controllers/file.controller'
 //验证中间件
 import Auth from '../middleware/auth'
 
@@ -100,4 +100,4 @@ router.get('/download', FileCtrl.download);
 
 
 
-module.exports = router;
+export default router;

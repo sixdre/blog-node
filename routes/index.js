@@ -1,15 +1,16 @@
 "use strict";
 
 //api接口
-const apiRouter=require('./api');
+import apiRouter from './api'
 //后台
-const adminRouter=require('./admin');
+import adminRouter from './admin'
 
 //网站
-const indexRouter=require('./client');
-const userRouter=require('./user');
+import indexRouter from './client'
+import userRouter from './user'
 const uploadRouter=require('./upload');
 import Auth from '../middleware/auth'
+
 module.exports=function(app){
 	
 	app.use(function(req,res,next){
