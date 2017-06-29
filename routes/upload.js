@@ -6,15 +6,13 @@ import fs from 'fs'
 import path from 'path'
 import multer from 'multer'
 import mongoose from 'mongoose'
+import FileCtrl from '../controllers/file.controller'
 
 const tool=require('../utility/tool');
 const router = express.Router();
 //数据模型
 const File = mongoose.model('File');			
 const Banner=mongoose.model("Banner");
-
-//控制器
-import FileCtrl from '../controllers/file.controller'
 
 const storage = multer.diskStorage({
     //设置上传文件路径,以后可以扩展成上传至七牛,文件服务器等等

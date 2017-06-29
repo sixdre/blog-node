@@ -3,12 +3,11 @@ import express from 'express'
 import async from 'async'
 import events from 'events'		
 import path from 'path'
-import tool from '../utility/tool'
 import mongoose from 'mongoose'
 
+import tool from '../utility/tool'
 import Auth from '../middleware/auth'
-//公用数据
-import loadCommonData from '../middleware/common'
+import loadCommonData from '../middleware/common'	//公用数据
 
 const router = express.Router();
 //数据模型
