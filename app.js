@@ -107,7 +107,7 @@ app.use("/ueditor/ue", ueditor(path.join(__dirname, 'public'), function (req, re
 }));
 
 //页面路由控制
-const routes = require('./route/route.js');				
+const routes = require('./routes');
 routes(app);	
 
 // catch 404 and forward to error handler

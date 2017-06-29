@@ -1,9 +1,12 @@
 {
-  "name": "xhblog",
+  "name": "blog-node",
   "version": "0.0.1",
+  "description": "博客系统node服务端",
   "private": true,
+  "author": "xuhao",
+  "license": "ISC",
   "scripts": {
-    "start": "node bin/www"
+    "start": "nodemon bin/www"
   },
   "dependencies": {
     "art-template": "^4.8.2",
