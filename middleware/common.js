@@ -6,15 +6,16 @@ import events from 'events' //事件处理模块
 import path from 'path'
 
 const tool = require('../utility/tool');
-const Article = mongoose.model('Article'); //文章
-const Category = mongoose.model("Category"); //类型
-const Friend = mongoose.model("Friend"); //友链
+const ArticleModel = mongoose.model('Article'); //文章
+const CategoryModel = mongoose.model("Category"); //类型
+const FriendModel = mongoose.model("Friend"); //友链
 
 
 /*
  * 加载网站公共的数据（页面导航，友情链接 
  */
-exports.loadCommonData = function(req, res, next) {
+
+export default (req,res,next) => {
 	//查询不同类型文章的数量new
 	let categorys = [];
 	let obj;
@@ -22,7 +23,7 @@ exports.loadCommonData = function(req, res, next) {
 	let myEventEmitter = new events.EventEmitter();
 	async.auto({
 		friends: function(cb) {
-			Friend.find({}).sort({'sort': -1}).exec(function(err, friends) {
+			FriendModel.find({}).sort({'sort': -1}).exec(function(err, friends) {
 				if(err){
 					return cb(err);
 				}
@@ -30,7 +31,7 @@ exports.loadCommonData = function(req, res, next) {
 			});
 		},
 		types: function(cb) {
-			Article.aggregate([{$match:{'isDeleted':false,'isDraft':false}},
+			ArticleModel.aggregate([{$match:{'isDeleted':false,'isDraft':false}},
 					{$group: {_id: "$category",total: {$sum: 1}}}])
 			.exec(function(err, types) {
 				if(err){
@@ -45,7 +46,7 @@ exports.loadCommonData = function(req, res, next) {
 				return ;
 			}
 			async.eachSeries(results.types,function(type,cb){
-				Category.findById(type._id).exec(function(err, cate) {
+				CategoryModel.findById(type._id).exec(function(err, cate) {
 					if(err){
 						return cb(err);
 					}
@@ -60,7 +61,7 @@ exports.loadCommonData = function(req, res, next) {
 				cb(null,categorys)
 			})
 //			results.types.forEach(function(type) {
-//				Category.findOne({_id: type._id}).exec(function(err, cate) {
+//				CategoryModel.findOne({_id: type._id}).exec(function(err, cate) {
 //					if(err){
 //						cb(err);
 //					}else if(cate){
@@ -81,15 +82,16 @@ exports.loadCommonData = function(req, res, next) {
 //			}
 //			myEventEmitter.on('next', addResult);
 		}]
-}, function(err, results) {
-		if(err){
-			return res.status(500).json({
-				message:'获取网站基本数据出错'
-			})
-		}
-		app.locals.friends = results.friends; //友链
-		app.locals.categorys = results.categorys; //根据文章类型同计数量
-		app.locals.settings = CONFIG; //获取网站设置
-		next();
-	})
+	}, function(err, results) {
+			if(err){
+				return res.status(500).json({
+					message:'获取网站基本数据出错'
+				})
+			}
+			app.locals.friends = results.friends; //友链
+			app.locals.categorys = results.categorys; //根据文章类型同计数量
+			app.locals.settings = CONFIG; //获取网站设置
+			next();
+		})
 }
+

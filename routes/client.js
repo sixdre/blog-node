@@ -7,6 +7,8 @@ import tool from '../utility/tool'
 import mongoose from 'mongoose'
 
 import Auth from '../middleware/auth'
+//公用数据
+import loadCommonData from '../middleware/common'
 
 const router = express.Router();
 //数据模型
@@ -18,12 +20,10 @@ const Word = mongoose.model('Word');
 const Friend=mongoose.model("Friend");			
 const Comment=mongoose.model('Comment');		
 
-//公用数据
-const Common=require('../middleware/common');
-//验证
 
 const BaseQuery=require('../models/dbHelper'),
 	  aQuery=BaseQuery.ArticlesQuery;
+
 
 //首页面初始化
 function init(currentPage,cb){
@@ -66,9 +66,9 @@ function init(currentPage,cb){
 	})
 }
 
-//router.get("*",Common.loadCommonData);
+//router.get("*",loadCommonData);
 
-router.get('/',Common.loadCommonData,function(req,res,next){
+router.get('/',loadCommonData,function(req,res,next){
 	let currentPage=1;
 	init(currentPage,function(results){
 		res.render('www/index', {
@@ -84,7 +84,7 @@ router.get('/',Common.loadCommonData,function(req,res,next){
 	});
 })
 
-router.get('/page/:page',Common.loadCommonData,function(req,res,next){
+router.get('/page/:page',loadCommonData,function(req,res,next){
 	let page=parseInt(req.params["page"]);
 	let pageSize=parseInt(CONFIG.PageSize);
 	let query=aQuery();
@@ -103,7 +103,7 @@ router.get('/page/:page',Common.loadCommonData,function(req,res,next){
 
 
 
-//router.get('/page/:page',Common.loadCommonData,function(req,res,next){
+//router.get('/page/:page',loadCommonData,function(req,res,next){
 //	let currentPage=parseInt(req.params["page"]);
 //	init(currentPage,function(results){
 //		res.render('www/new', {
@@ -122,7 +122,7 @@ router.get('/page/:page',Common.loadCommonData,function(req,res,next){
 
 
 //文章详情页面
-router.get('/article/:bId',Common.loadCommonData,function(req,res,next){
+router.get('/article/:bId',loadCommonData,function(req,res,next){
 	const bid=req.params["bId"];
 	async.auto({			//智能控制
 		doc:function(callback){
@@ -223,7 +223,7 @@ router.get('/category/:name',function(req,res,next){
 
 
 //搜索文章
-router.get('/search',Common.loadCommonData,function(req,res,next){
+router.get('/search',loadCommonData,function(req,res,next){
 	let title=req.query.wd;
 	async.waterfall([
 		function(callback){

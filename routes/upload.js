@@ -1,13 +1,14 @@
 "use strict";
-const express = require('express');
-const router = express.Router();
-const events = require('events');	
-const fs = require('fs');
-const path = require('path');
-const multer = require ('multer');  //上传文件中间件 multer
-const mongoose=require('mongoose');
-const tool=require('../utility/tool');
+import express from 'express'
 
+import events from 'events'
+import fs from 'fs'
+import path from 'path'
+import multer from 'multer'
+import mongoose from 'mongoose'
+
+const tool=require('../utility/tool');
+const router = express.Router();
 //数据模型
 const File = mongoose.model('File');			
 const Banner=mongoose.model("Banner");
@@ -96,8 +97,6 @@ router.post('/addBanner',upload.single('banner'),function(req,res,next){
 })
 
 
+export default router;
 
-
-
-module.exports = router;
 

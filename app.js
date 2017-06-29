@@ -22,9 +22,8 @@ global.validator =validator;
 
 //配置文件
 global.CONFIG=JSON.parse(fs.readFileSync('./config/settings.json').toString());
-//数据库连接
-const mongoose=require('./config/mongoose.js');
-const db=mongoose();
+////数据库连接
+const db=require('./config/db.js')();
 
 const app = global.app= express();
 
@@ -107,7 +106,7 @@ app.use("/ueditor/ue", ueditor(path.join(__dirname, 'public'), function (req, re
 }));
 
 //页面路由控制
-const routes = require('./routes');
+const routes =require('./routes');
 routes(app);	
 
 // catch 404 and forward to error handler

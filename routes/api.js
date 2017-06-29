@@ -1,10 +1,9 @@
 "use strict";
 //后台管理路由
-const express = require('express');
-const router = express.Router();
-const multer = require('multer'); //上传文件中间件 multer
+import express  from 'express' 
+import multer from 'multer'		//上传文件中间件 multer
 
-const ArticleCtrl=require('../controllers/article.controller');
+import ArticleCtrl from '../controllers/article.controller'
 import CategoryCtrl from '../controllers/category.controller'
 import TagCtrl from '../controllers/tag.controller'
 import WordCtrl from '../controllers/word.controller'
@@ -13,6 +12,8 @@ import UserCtrl from '../controllers/user.controller'
 import FileCtrl from '../controllers/file.controller'
 //验证中间件
 import Auth from '../middleware/auth'
+
+const router = express.Router();
 
 
 //文件上传multer配置

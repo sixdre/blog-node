@@ -2,14 +2,12 @@
 
 //api接口
 import apiRouter from './api'
-//后台
-import adminRouter from './admin'
 
-//网站
+import adminRouter from './admin'
 import indexRouter from './client'
 import userRouter from './user'
-const uploadRouter=require('./upload');
-import Auth from '../middleware/auth'
+import uploadRouter from './upload'
+
 
 module.exports=function(app){
 	
