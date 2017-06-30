@@ -348,14 +348,14 @@ class ArticleObj{
 							})
 						}
 						value.likes.push(user._id);
-						//await comment.save();	//
-						comment.save();
-						res.json({
-							code:1,
-							message:'点赞更新成功'
-						});
 					}
-				})
+				});
+				
+				await comment.save();	
+				res.json({
+					code:1,
+					message:'点赞更新成功'
+				});
 			}
 		}catch(err){
 			console.log('评论点赞出错:'+err);

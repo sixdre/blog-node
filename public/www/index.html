@@ -1,10 +1,98 @@
-<!DOCTYPE html>
-<html>
-	<head>
-		<meta charset="UTF-8">
-		<title></title>
-	</head>
-	<body>
-		<p>1223</p>
-	</body>
-</html>
+
+	<%include ./layout/head.html%>
+
+	<div class="container index">
+		<div class="row">
+			<!--banner-->
+			<!--<div class="slider-wrapper col-xs-12">
+			    <div id="slider" class="nivoSlider theme-default">
+			    	<%banners.forEach(function(banner){%>
+			    		 <img src="<%=banner.imgAdress%>" alt=""> 
+			    	<%})%>
+			    </div>
+			</div>-->
+			<!--/banner-->
+			<div class="col-sm-8 col-xs-12 main">
+				<%include ./blocks/category.html%>
+				<!--文章列表-->
+				<div class="article_list_container">
+					<ul class="article_list" id="article_list" data-pagesize="<%=pagesize%>" data-total="<%=total%>" data-curp="<%=currentpage%>">
+						<%articles.forEach(function(value,i){%>
+							<%var cls=''%>
+							<%if(value.img&&value.img.length){%>
+								<%cls='have-img'%>
+							<%}%>
+						<li class="<%=cls%>">
+							<%if(value.img&&value.img.length){%>
+							<a class="wrap-img" href="/article/<%=value.bId%>">
+						      <img src="<%=value.img%>" class="img-responsive">
+						    </a>
+						  	<%}%>
+						    <div class="content">
+								<div class="author">
+									<div class="name">
+										<a class="blue-link" href="javascript:;"><%=value.author%></a>
+										<span class="time"><%=moment(value.create_time).format('YYYY-MM-DD')%></span>
+									</div>
+								</div>
+								<a class="title" href="/article/<%=value.bId%>"><%=value.title%></a>
+								<p class="abstract">
+									<%-value.content.substring(0,100)%>...
+								</p>
+								<div class="meta">
+									<%if(value.category){%>
+									<a class="art_category" href="/category/<%=value.category.name%>"><%=value.category.name%></a>
+									<%}%>
+									<a class="fa fa-eye"> <%=value.pv%></a> 
+									<a class="fa fa-thumbs-o-up"> <%=value.likeNum%></a>
+								</div>
+							</div>
+						</li>
+						<%})%>
+					</ul>
+				</div>
+				<p class="loading text-center">
+					<i class="fa fa-spinner fa-pulse fa-3x fa-fw margin-bottom"></i>
+				</p>
+				<!--<a data-page="3" href="/" class="load-more">阅读更多</a>-->
+				
+				<!--<div class="page_box" style="text-align: center;">
+					<ul class="pagination" id="pagination" data-pagesize="<%=pagesize%>" data-total="<%=total%>" data-curp="<%=currentpage%>"></ul>
+				</div>-->
+
+				<!--/ 文章列表-->
+			</div>
+			
+			<!--右侧-->
+			<div class="col-sm-3 col-sm-offset-1 aside hidden-xs">
+				<!--友情链接-->
+				<div class="friend" id="friend_wrapper">
+					
+				</div>
+				<!--/ 友情链接-->
+			</div>
+			<!--/ 右侧-->
+		</div>
+	</div>
+	
+	<script id="firend_list_tpl" type="text/html">
+		<div class="title">
+			<span>友情链接</span>
+			<div class="reload">
+				<div class="page-count" data-cp="{{current_page}}" data-allpage="{{allPage}}">{{current_page}}/{{allPage}}</div>
+				<div class="page-change">
+					<a class="prev"><i class="fa fa-arrow-left"></i></a>
+					<a class="next"><i class="fa fa-arrow-right"></i></a>
+				</div>
+			</div>
+		</div>
+		<ul class="friend_list">
+			{{each friends friend i}}
+				<li><a href="{{friend.url}}">{{friend.title}}</a></li>
+			{{/each}}
+		</ul>
+	</script>
+	<script src="/javascripts/require.js" type="text/javascript" defer async="true"  charset="utf-8"></script>
+	<script src="/javascripts/require.js" data-main="/javascripts/home" type="text/javascript" ></script>
+	<%include ./layout/foot.html%>
+	
