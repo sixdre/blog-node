@@ -1,6 +1,7 @@
 "use strict";
 import express from 'express'
 import UserCtrl from '../controllers/user.controller'
+
 const router = express.Router();
 
 //登陆页面

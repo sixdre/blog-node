@@ -8,7 +8,7 @@ import multer from 'multer' //上传文件中间件 multer
 import mongoose from 'mongoose'
 
 //数据模型
-const FileModel = mongoose.model("File");
+import FileModel from '../models/file.model'	
 
 class FileObj{
 	constructor(){

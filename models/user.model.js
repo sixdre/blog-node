@@ -1,6 +1,6 @@
 "use strict";
-const mongoose = require('mongoose'),
-	Schema = mongoose.Schema,
+import mongoose from 'mongoose'
+const	Schema = mongoose.Schema,
 	ObjectId = Schema.ObjectId;
 
 //用户
@@ -36,4 +36,6 @@ UserSchema.statics.findByName = function(name) {
 		.exec();
 }
 
-mongoose.model('User', UserSchema);
+const User = mongoose.model('User', UserSchema);
+
+export default User

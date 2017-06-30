@@ -1,6 +1,7 @@
 'use strict';
-const mongoose = require('mongoose'),
-	Schema = mongoose.Schema,
+import mongoose from 'mongoose'
+
+const Schema = mongoose.Schema,
 	ObjectId = Schema.Types.ObjectId;
 
 const CategorySchema = new Schema({
@@ -32,4 +33,6 @@ CategorySchema.pre('save', function(next) {
 	next()
 });
 
-mongoose.model('Category', CategorySchema);
+const Category = mongoose.model('Category', CategorySchema);
+
+export default Category

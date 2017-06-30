@@ -1,7 +1,8 @@
 "use strict";
 //后台管理路由
 import express  from 'express' 
-import multer from 'multer'		//上传文件中间件 multer
+import multer from 'multer'		
+import moment from 'moment'
 
 import ArticleCtrl from '../controllers/article.controller'
 import CategoryCtrl from '../controllers/category.controller'

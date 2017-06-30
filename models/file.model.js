@@ -1,6 +1,7 @@
 'use strict';
-const mongoose = require('mongoose')  
-    , Schema = mongoose.Schema  
+import mongoose from 'mongoose'
+
+const Schema = mongoose.Schema  
     , ObjectId = Schema.ObjectId;
     
 const FileSchema=new Schema({ 
@@ -13,5 +14,7 @@ const FileSchema=new Schema({
     }
 })
 
-mongoose.model("File",FileSchema);
+const File = mongoose.model("File",FileSchema);
+
+export default File
 

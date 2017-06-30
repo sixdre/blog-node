@@ -1,6 +1,6 @@
 'use strict';
-const mongoose = require('mongoose')  
-    , Schema = mongoose.Schema  
+import mongoose from 'mongoose'
+const  Schema = mongoose.Schema  
     , ObjectId = Schema.ObjectId;
     
 const FriendSchema=new Schema({
@@ -36,7 +36,9 @@ FriendSchema.pre("save",function(next){
 	next();
 })
 
+const Friend = mongoose.model("Friend",FriendSchema);
 
-mongoose.model("Friend",FriendSchema);
+
+export default Friend
 
 

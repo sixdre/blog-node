@@ -11,9 +11,8 @@ import userRouter from './user'
 import uploadRouter from './upload'
 import ue from './ue' 
 
-console.log(ue)
 
-module.exports=function(app){
+export default app => {
 	
 	app.use(function(req,res,next){
 		let _user=req.session['User'];

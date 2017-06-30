@@ -1,6 +1,7 @@
 'use strict';
 import mongoose from 'mongoose'
 import autoIncrement from 'mongoose-auto-increment' //自增ID 模块	
+import validator from 'validator'
 
 const Schema = mongoose.Schema,
 	ObjectId = Schema.ObjectId;
@@ -86,13 +87,6 @@ ArticleSchema.path('source').validate(function(value){
 
 
 
-
-
-/*const categorySchema = mongoose.Schema({
-  name: String
-}*/
-//Schema.method( 'say', function(){console.log('hello');} ) 	//这样Model和Entity的实例就能使用这个方法了
-
 //查找所有
 ArticleSchema.statics.findAll = function(callback) {
 	let query = aQuery();
@@ -111,7 +105,6 @@ ArticleSchema.statics.findAll = function(callback) {
 			}
 		});
 }
-
 
 //查找最新的
 ArticleSchema.statics.findNew = function(limit, callback) {
@@ -260,38 +253,12 @@ ArticleSchema.statics.findBybIdUpdate = function(id, callback) {
 		});
 }
 
-/* var CounterSchema = Schema({
- 	_id: {
- 		type: String,
- 		required: true
- 	},
- 	seq: {
- 		type: Number,
- 		default: 0
- 	}
- });
- var counter = mongoose.model('counter', CounterSchema);*/
-/*ArticleSchema.pre('save', function(next) {
-	var doc = this;
-	counter.findByIdAndUpdate({
-		_id: 'entityId'
-	}, {
-		$inc: {
-			seq: 1
-		}
-	}, function(error, counter) {
-		if(error)
-			return next(error);
-		doc.testvalue = counter.seq;
-		next();
-	});
-});*/
 
 ArticleSchema.plugin(autoIncrement.plugin, {
 	model: 'Article', //数据模块，需要跟同名 x.model("Books", BooksSchema);
-	field: 'bId', //字段名
-	startAt: 1, //开始位置，自定义
-	incrementBy: 1 //每次自增数量
+	field: 'bId', 	   //字段名
+	startAt: 1,      //开始位置，自定义
+	incrementBy: 1   //每次自增数量
 });
 ArticleSchema.pre('save', function(next) {
 	this.likeNum=this.likes.length;
@@ -300,13 +267,12 @@ ArticleSchema.pre('save', function(next) {
 	} else {
 		this.update_time = Date.now()
 	}
-
-	next()
+	next();
 });
 
 const Article = mongoose.model('Article', ArticleSchema);
 
-
+export default Article
 
 
 

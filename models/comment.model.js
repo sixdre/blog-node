@@ -1,7 +1,8 @@
 'use strict';
-const mongoose = require('mongoose'),
-	Schema = mongoose.Schema,
+import mongoose from 'mongoose'
+const  Schema = mongoose.Schema,
 	ObjectId = Schema.Types.ObjectId;
+	
 const CommentSchema = new Schema({
 	articleId: { type: ObjectId, ref: 'Article' },
 	from: { type: ObjectId, ref: 'User' }, //谁评论
@@ -59,4 +60,6 @@ CommentSchema.statics = {
 
 }
 
-mongoose.model('Comment', CommentSchema);
+const Comment = mongoose.model('Comment', CommentSchema);
+
+export default Comment

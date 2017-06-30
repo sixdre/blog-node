@@ -1,6 +1,6 @@
 'use strict';
-const mongoose = require('mongoose')  
-    , Schema = mongoose.Schema  
+import mongoose from 'mongoose'
+const  Schema = mongoose.Schema  
     , ObjectId = Schema.ObjectId;
     
 const WordSchema=new Schema({
@@ -54,6 +54,8 @@ WordSchema.statics.findAllReply=function(){
 }
 
 
-mongoose.model("Word",WordSchema);
+const Word = mongoose.model("Word",WordSchema);
+
+export default Word
 
 

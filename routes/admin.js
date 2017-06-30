@@ -8,19 +8,15 @@ import multer from 'multer'  //上传文件中间件 multer
 import md5 from 'md5'
 import _ from 'underscore'
 import mongoose from 'mongoose'
+//数据模型
+import ArticleModel from '../models/article.model'
+import CategoryModel from "../models/category.model"
+import TagModel from '../models/tag.model'	
+import WordModel from '../models/word.model'	
 
 const router = express.Router();
 const tool=require('../utility/tool');
 
-//数据模型
-const Article = mongoose.model('Article');			//文章
-const Category=mongoose.model("Category");
-const Tag=mongoose.model('Tag');
-const Banner=mongoose.model("Banner");		
-const Friend=mongoose.model("Friend");
-const User = mongoose.model('User');
-const Word = mongoose.model('Word');
-const File=mongoose.model('File');
 
 
 
@@ -35,7 +31,7 @@ router.get('/',function(req,res,next){
 router.get('/loadData',function(req,res,next){
 	async.parallel({
 		words:function(callback){
-			Word.find({"state.isRead":false}).populate('user','username').exec(function(err,words){
+			WordModel.find({"state.isRead":false}).populate('user','username').exec(function(err,words){
 				if(err){
 					callback(err);
 				}
@@ -43,7 +39,7 @@ router.get('/loadData',function(req,res,next){
 			})
 		},
 		articleTotal:function(callback){
-			Article.count({}).exec(function(err,total){
+			ArticleModel.count({}).exec(function(err,total){
 				if(err){
 					callback(err);
 				}
@@ -51,7 +47,7 @@ router.get('/loadData',function(req,res,next){
 			})
 		},
 		categorys:function(callback){
-			Category.find({}).exec(function(err,categorys){
+			CategoryModel.find({}).exec(function(err,categorys){
 				if(err){
 					callback(err);
 				}
@@ -59,7 +55,7 @@ router.get('/loadData',function(req,res,next){
 			})
 		},
 		tags:function(callback){
-			Tag.find({}).exec(function(err,tags){
+			TagModel.find({}).exec(function(err,tags){
 				if(err){
 					callback(err);
 				}

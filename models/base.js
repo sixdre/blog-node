@@ -12,4 +12,5 @@ const base = new Schema({
     //更新时间或修改时间
     update_time: {type: Date, default: Date.now() }
 });
+
 exports.base = base;

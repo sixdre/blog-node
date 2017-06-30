@@ -1,6 +1,6 @@
 'use strict';
-const mongoose = require('mongoose'),
-	Schema = mongoose.Schema,
+import mongoose from 'mongoose'
+const	Schema = mongoose.Schema,
 	ObjectId = Schema.Types.ObjectId;
 
 const TagSchema = new Schema({
@@ -21,4 +21,6 @@ TagSchema.pre('save', function(next) {
 	next()
 });
 
-mongoose.model('Tag', TagSchema);
+const Tag = mongoose.model('Tag', TagSchema);
+
+export default Tag
