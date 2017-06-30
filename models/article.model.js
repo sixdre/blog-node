@@ -1,10 +1,10 @@
 'use strict';
-const mongoose = require('mongoose'),
-	Schema = mongoose.Schema,
-	ObjectId = Schema.ObjectId,
-	base = require('./base');
+import mongoose from 'mongoose'
+import autoIncrement from 'mongoose-auto-increment' //自增ID 模块	
 
-const autoIncrement = require('mongoose-auto-increment'); //自增ID 模块		http://www.pinterspace.com/2015/mongoose-定义自增字段.html
+const Schema = mongoose.Schema,
+	ObjectId = Schema.ObjectId;
+
 autoIncrement.initialize(mongoose.connection);
 
 const BaseQuery = require('../models/dbHelper'),
@@ -304,4 +304,11 @@ ArticleSchema.pre('save', function(next) {
 	next()
 });
 
-mongoose.model('Article', ArticleSchema);
+const Article = mongoose.model('Article', ArticleSchema);
+
+
+
+
+
+
+

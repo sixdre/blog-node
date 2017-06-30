@@ -1,13 +1,17 @@
 "use strict";
 
+import path from 'path'
+import ueditor from "ueditor"
+
 //api接口
 import apiRouter from './api'
-
 import adminRouter from './admin'
 import indexRouter from './client'
 import userRouter from './user'
 import uploadRouter from './upload'
+import ue from './ue' 
 
+console.log(ue)
 
 module.exports=function(app){
 	
@@ -20,6 +24,8 @@ module.exports=function(app){
 		}	
 		next();
 	});
+	
+	app.use("/ueditor/ue", ue)
 	
 	app.use('/',indexRouter);
 	app.use('/',userRouter);

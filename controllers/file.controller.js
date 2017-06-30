@@ -22,7 +22,6 @@ class FileObj{
 	}
 	
 	async addFile(req,res,next){
-		let {filename,size,filepath} = req.file;
 		if(!req.file){
 			res.json({
 				code:-2,
@@ -30,12 +29,13 @@ class FileObj{
 			});
 			return ;
 		}
+		let {filename,size,path} = req.file;
+
 		const newfile=new FileModel({
 			filename:filename,
 			filesize:size,
-			filepath:filepath.substring(6)
+			filepath:path.substring(6)
 		});
-		
 		try{
 			await newfile.save();
 			res.json({
