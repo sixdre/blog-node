@@ -1,15 +1,9 @@
 "use strict";
-
-import path from 'path'
-import ueditor from "ueditor"
-
-//api接口
 import apiRouter from './api'
 import adminRouter from './admin'
 import indexRouter from './client'
 import userRouter from './user'
 import ue from './ue' 
-
 
 export default app => {
 	
@@ -22,13 +16,11 @@ export default app => {
 		}	
 		next();
 	});
-	
-	app.use("/ueditor/ue", ue)
-	
+
+	app.use("/ueditor/ue",ue)
 	app.use('/',indexRouter);
 	app.use('/',userRouter);
-	
 	app.use('/admin',adminRouter)
-//	app.all('/api/*',Auth.checkAdmin);
 	app.use('/api',apiRouter);
+//	app.all('/api/*',Auth.checkAdmin);
 }

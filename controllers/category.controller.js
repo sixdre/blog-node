@@ -67,7 +67,6 @@ class CategoryObj{
 			return;
 		}
 		
-		
 		try{
 			const newCategory = new CategoryModel({
 				name:name

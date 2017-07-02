@@ -12,6 +12,7 @@ import moment from 'moment'
 import config from './config/config'
 import db from './config/db.js';
 import router from './routes'
+import ueditor from "ueditor"
 
 global.CONFIG = JSON.parse(fs.readFileSync('./config/settings.json').toString());
 
