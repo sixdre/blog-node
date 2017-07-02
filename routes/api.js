@@ -18,7 +18,7 @@ const router = express.Router();
 
 //文件上传multer配置
 const storage = multer.diskStorage({
-	destination: "public/upload/cover/" + moment(Date.now()).format('YYYY-MM'),
+	destination: "public/upload/",
 	limits: {
 		fileSize: 100000000
 	},
@@ -94,6 +94,11 @@ router.post('/word',Auth.checkLoginByAjax,WordCtrl.add);
 router.post('/word/reply', Auth.checkAdmin,WordCtrl.reply);
 
 
+
+//添加文件
+router.post('/upload/addFile', upload.single('file'), FileCtrl.addFile);
+//添加banner
+router.post('/upload/addBanner', upload.single('banner'),FileCtrl.addBanner)
 //获取所有文件
 router.get('/allFiles', Auth.checkAdmin, FileCtrl.getFiles);
 //下载文件

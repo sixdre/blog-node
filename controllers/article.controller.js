@@ -6,7 +6,7 @@ import path from 'path'
 import fs from 'fs'
 import _  from 'underscore'
 import mongoose  from 'mongoose'
-import baseComponent from './base'
+import UploadComponent from '../prototype/upload'
 //数据模型
 import ArticleModel from '../models/article.model'
 import CategoryModel from "../models/category.model"
@@ -14,10 +14,11 @@ import CommentModel from '../models/comment.model'
 
 const tool = require('../utility/tool');
 
-class ArticleObj extends baseComponent{
+class ArticleObj extends UploadComponent{
 	constructor() {
 		super()
 		this.publish = this.publish.bind(this)
+		this.update = this.update.bind(this)
 	}
 	async getArticles(req,res,next){
 		let{currentPage=1,limit=5,title="",flag=0} = req.query;
@@ -94,29 +95,15 @@ class ArticleObj extends baseComponent{
 	
 	
 	async publish(req,res,next){
-//		let imgpp =await this.upload(req)
-//		console.log(this);
-		
 		let article = req.body.article;
 			article['author'] = req.session["manager"].username || '未知用户';
-		
-		if(req.file) {
-			let nameArray = req.file.originalname.split('.')
-			let type = nameArray[nameArray.length - 1];
-			if(!tool.checkUploadImg(type)) {
-				return res.json({
-					code: -2,
-					message: '文章封面格式错误'
-				});
-			}
-			if(req.file.path) {
-				article.img = req.file.path.substring(6);
-			}
-		}
-		
-		let newarticle = new ArticleModel(article);
 		try{
-			let article = await newarticle.save();
+			if(req.file) {
+				let imgurl =await this.upload(req);
+				article.img = imgurl;
+			}
+			let newarticle = new ArticleModel(article);
+			article = await newarticle.save();
 			const categoryId = article.category;
 			await CategoryModel.update({ _id: categoryId}, {'$addToSet': {"articles": article._id}});
 			res.json({
@@ -132,21 +119,11 @@ class ArticleObj extends baseComponent{
 	
 	async update(req,res,next){
 		let newArticle = req.body.article;
-		if(req.file) {
-			let nameArray = req.file.originalname.split('.')
-			let type = nameArray[nameArray.length - 1];
-			if(!tool.checkUploadImg(type)) {
-				return res.json({
-					code: -2,
-					message: '文章封面格式错误'
-				})
-			}
-			if(req.file.path) {
-				newArticle.img = req.file.path.substring(6);
-			}
-		}
-		
 		try{
+			if(req.file) {
+				let imgurl =await this.upload(req);
+				newArticle.img = imgurl;
+			}
 			let article = await ArticleModel.findById(newArticle._id);
 			let _article = _.extend(article, newArticle);
 			await _article.save();

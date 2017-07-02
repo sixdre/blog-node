@@ -8,7 +8,6 @@ import apiRouter from './api'
 import adminRouter from './admin'
 import indexRouter from './client'
 import userRouter from './user'
-import uploadRouter from './upload'
 import ue from './ue' 
 
 
@@ -32,5 +31,4 @@ export default app => {
 	app.use('/admin',adminRouter)
 //	app.all('/api/*',Auth.checkAdmin);
 	app.use('/api',apiRouter);
-	app.use('/api/upload',uploadRouter);
 }
