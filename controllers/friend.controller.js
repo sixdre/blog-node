@@ -18,6 +18,7 @@ class FriendObj{
 		let {page=1,limit=parseInt(CONFIG.FriendLimit)} = req.query;
 		
 		limit=parseInt(limit);
+		page=parseInt(page);
 		
 		try{
 			const total = await FriendModel.count({});

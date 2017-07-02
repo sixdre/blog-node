@@ -16,16 +16,32 @@ class TagObj{
 	}
 	
 	async getTags(req,res,next){
+		let {skip=0,limit=0} = req.query;
+		skip = parseInt(skip);
+		limit = parseInt(limit);
+		
 		try{
-			let tags=await TagModel.find({});
+			const total = await	TagModel.count();
+			if(!total){
+				res.json({ 	
+					code: -1,
+					message: 'no more'
+				});
+				return ;
+			}
+			const tags = await TagModel.find({})
+					.skip(skip)
+				     .limit(limit);
 			res.json({
-				code:1,
-				tags:tags
-			})
+				code: 1,
+				tags,
+				total
+			});	
 		}catch(err){
-			console.log('获取标签失败');
-			throw new Error(err);
+			console.log('获取标签列表出错:' + err);
+			next(err);
 		}
+		
 	}
 	
 	async add(req,res,next){

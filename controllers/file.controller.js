@@ -22,6 +22,7 @@ class FileObj{
 	}
 	
 	async addFile(req,res,next){
+		console.log(req.file);
 		if(!req.file){
 			res.json({
 				code:-2,

@@ -3,9 +3,16 @@ import express from 'express'
 import multer from 'multer'
 import mongoose from 'mongoose'
 import moment from 'moment'
+import qiniu from 'qiniu'
+import path from 'path'
+import fs from 'fs'
+import bytes from 'bytes'
+//import config from '../config/config'
+
 
 import BannerModel from '../models/banner.model'
 import FileCtrl from '../controllers/file.controller'
+import Base from '../controllers/base'
 
 const tool = require('../utility/tool');
 const router = express.Router();
@@ -33,11 +40,17 @@ const upload = multer({
 	storage: storage,
 })
 
+//console.log(Base.uptoken())
+
+
 //上传文件
 router.post('/addFile', upload.single('file'), FileCtrl.addFile);
+//router.post('/addFile',Base.upload());
+
 
 //首页banner图的添加
 router.post('/addBanner', upload.single('banner'), function(req, res, next) {
+	
 	if(!req.file) {
 		res.json({
 			code: -2

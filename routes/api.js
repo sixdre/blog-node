@@ -100,5 +100,4 @@ router.get('/allFiles', Auth.checkAdmin, FileCtrl.getFiles);
 router.get('/download', FileCtrl.download);
 
 
-
 export default router;

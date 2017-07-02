@@ -15,15 +15,30 @@ class CategoryObj{
 		
 	}
 	async getCategories(req,res,next){
+		let {skip=0,limit=0} = req.query;
+		skip = parseInt(skip);
+		limit = parseInt(limit);
 		try{
-			let categories=await CategoryModel.find({})
+			const total = await	CategoryModel.count();
+			if(!total){
+				res.json({ 	//没有更多文章
+					code: -1,
+					message: 'no more'
+				});
+				return ;
+			}
+			const categorys = await CategoryModel.find({})
+					.skip(skip)
+				     .limit(limit);
 			res.json({
 				code: 1,
-				categorys: categories
-			});
+				categorys,
+				total
+			});	
 		}catch(err){
-			next(err)
-		}	
+			console.log('获取分类列表出错:' + err);
+			next(err);
+		}
 	}
 	
 	async add(req,res,next){

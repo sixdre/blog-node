@@ -6,7 +6,7 @@ import path from 'path'
 import fs from 'fs'
 import _  from 'underscore'
 import mongoose  from 'mongoose'
-
+import baseComponent from './base'
 //数据模型
 import ArticleModel from '../models/article.model'
 import CategoryModel from "../models/category.model"
@@ -14,22 +14,22 @@ import CommentModel from '../models/comment.model'
 
 const tool = require('../utility/tool');
 
-class ArticleObj{
-	constructor(props) {
-
+class ArticleObj extends baseComponent{
+	constructor() {
+		super()
+		this.publish = this.publish.bind(this)
 	}
 	async getArticles(req,res,next){
 		let{currentPage=1,limit=5,title="",flag=0} = req.query;
+		
 		currentPage = parseInt(currentPage) - 1;
 		limit = parseInt(limit);
 		flag = parseInt(flag);
-
 		let queryObj = {
 			title: {
 				'$regex': title
 			},
 		}
-		
 		switch(flag) {
 			case 1: //有效
 				queryObj.isDeleted = false;
@@ -47,7 +47,7 @@ class ArticleObj{
 		try{
 			const total = await	ArticleModel.count(queryObj);
 			if(!total){
-				res.json({ //没有更多文章
+				res.json({ 	//没有更多文章
 					code: -1,
 					message: '没有更多文章'
 				});
@@ -58,8 +58,8 @@ class ArticleObj{
 				    .limit(limit).populate('category', 'name');
 			res.json({
 				code: 1,
-				articles: articles,
-				total: total
+				articles,
+				total
 			});	
 		}catch(err){
 			console.log('获取文章列表出错:' + err);
@@ -82,9 +82,9 @@ class ArticleObj{
 			let article = await ArticleModel.findById(id).populate('category').populate('tags');
 			res.json({
 				code: 1,
-				article: article,
+				article,
 				message: 'success'
-			})
+			});
 		}catch(err){
 			res.status(500).json({
 				message: '查询出错'
@@ -94,6 +94,9 @@ class ArticleObj{
 	
 	
 	async publish(req,res,next){
+//		let imgpp =await this.upload(req)
+//		console.log(this);
+		
 		let article = req.body.article;
 			article['author'] = req.session["manager"].username || '未知用户';
 		
@@ -104,7 +107,7 @@ class ArticleObj{
 				return res.json({
 					code: -2,
 					message: '文章封面格式错误'
-				})
+				});
 			}
 			if(req.file.path) {
 				article.img = req.file.path.substring(6);
@@ -118,7 +121,7 @@ class ArticleObj{
 			await CategoryModel.update({ _id: categoryId}, {'$addToSet': {"articles": article._id}});
 			res.json({
 				code: 1,
-				article: article,
+				article,
 				message: '发布成功'
 			});
 		}catch(err){
@@ -149,7 +152,6 @@ class ArticleObj{
 			await _article.save();
 			res.json({
 				code: 1,
-				article: rs,
 				message: '更新成功'
 			});
 		}catch(err){
@@ -231,7 +233,7 @@ class ArticleObj{
 	}
     
     async addLikes(req,res,next){		//待开发
-    	console.log(req.params['id'])
+    		console.log(req.params['id']);
 		res.json({
 			code:1
 		})

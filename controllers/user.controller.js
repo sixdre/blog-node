@@ -17,17 +17,32 @@ class UserObj{
 		
 	}
 	async getUsers(req,res,next){
+		let {skip=0,limit=0} = req.query;
+		skip = parseInt(skip);
+		limit = parseInt(limit);
 		try{
-			let users = await UserModel.findAll();
+			const total = await	UserModel.count();
+			if(!total){
+				res.json({ 	
+					code: -1,
+					message: 'no more'
+				});
+				return ;
+			}
+			const users = await UserModel.find({})
+					.skip(skip)
+				     .limit(limit);
 			res.json({
 				code: 1,
-				users: users,
+				users,
+				total,
 				message: '获取用户列表成功'
-			});
+			});	
 		}catch(err){
 			console.log('查询用户列表出错:' + err);
 			next(err);
 		}
+		
 	}
 	
 	async regist(req,res,next){
