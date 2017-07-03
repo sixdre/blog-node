@@ -2,15 +2,6 @@
 
 import path from 'path'
 import ueditor from "ueditor"
-//{
-//	qn: {
-//      accessKey: 'hM5qMEJfJNy2thESXZB2MMAx6H83mGGaeMAwyFfb',
-//      secretKey: 'bNVNnsynNTyY9wbVS5KIybQrCSnNvs5g1WeZybaa',
-//      bucket: 'myblog',
-////	        origin: 'http://up-z1.qiniu.com/'
-//  }
-//}
-
 export default ueditor(path.join(__dirname,'../')+'public',(req, res, next) => {
 		let ActionType = req.query.action;
 		if(ActionType === 'uploadimage' || ActionType === 'uploadfile' || ActionType === 'uploadvideo') {

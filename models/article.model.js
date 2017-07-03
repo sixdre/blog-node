@@ -25,16 +25,30 @@ const ArticleSchema = new Schema({
 		type: ObjectId,
 		ref: 'Tag'
 	}],
-	content: String, //内容
+	content: String, 	//内容
 	tagcontent: String, //带格式的内容
-	img: String, 	//封面
-	source: { 	  //文章来源(出处)
+	img: String, 		//封面
+	source: { 	  		//文章来源(出处)
 		type: String
 	},
 	likes: [{ 	//点赞用户
 		type: ObjectId,
 		ref: 'User'
 	}], 
+	nums:{
+		cmtNum:{ //评论数
+			type: Number,
+			default: 0
+		},
+		likeNum:{	//点赞数
+			type: Number,
+			default: 0
+		},
+		pv: {		//浏览量
+			type: Number,
+			default: 0
+		}
+	},
 	likeNum:{		//点赞数
 		type: Number,
 		default: 0
@@ -201,7 +215,7 @@ ArticleSchema.statics.findByHot = function(limit, callback) {
 	return this.model('Article')
 		.find(query)
 		.sort({
-			views: -1
+			'nums.pv': -1
 		})
 		.limit(limit)
 		.exec(function(error, hot) {
@@ -241,7 +255,7 @@ ArticleSchema.statics.findBybIdUpdate = function(id, callback) {
 			bId: id
 		}, {
 			'$inc': {
-				pv: 1
+				'nums.pv': 1
 			}
 		})
 		.exec(function(error) {
@@ -261,7 +275,7 @@ ArticleSchema.plugin(autoIncrement.plugin, {
 	incrementBy: 1   //每次自增数量
 });
 ArticleSchema.pre('save', function(next) {
-	this.likeNum=this.likes.length;
+	this.nums.likeNum=this.likes.length;
 	if(this.isNew) {
 		this.create_time = this.update_time = Date.now()
 	} else {

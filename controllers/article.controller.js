@@ -6,6 +6,7 @@ import path from 'path'
 import fs from 'fs'
 import _ from 'underscore'
 import mongoose from 'mongoose'
+import events from 'events'
 import UploadComponent from '../prototype/upload'
 //数据模型
 import ArticleModel from '../models/article.model'
@@ -57,6 +58,7 @@ class ArticleObj extends UploadComponent {
 			const articles = await ArticleModel.find(queryObj)
 				.sort({ "create_time": -1 }).skip(limit * currentPage)
 				.limit(limit).populate('category', 'name');
+
 			res.json({
 				code: 1,
 				articles,
@@ -240,8 +242,10 @@ class ArticleObj extends UploadComponent {
 		}
 		try {
 			const comments = await CommentModel.find({ articleId: articleId })
-				.populate('from')
-				.populate('reply.from reply.to')
+				.populate({
+					path:'from reply.from reply.to',
+					select:'username '
+				})
 				.sort(sort);
 			if(comments) {
 				res.render("www/blocks/comment_list", {
@@ -256,6 +260,7 @@ class ArticleObj extends UploadComponent {
 
 	async addComment(req, res, next) {
 		let _comment = req.body;
+		const articleId=req.params['id'];
 		_comment.from = req.session["User"];
 		if(_comment.cId) {
 			let reply = {
@@ -266,24 +271,26 @@ class ArticleObj extends UploadComponent {
 			};
 			try {
 				await CommentModel.update({ _id: _comment.cId }, { $addToSet: { "reply": reply } });
+				await ArticleModel.update({_id:articleId},{'$inc':{'nums.cmtNum':1}});
 				res.json({
 					code: 1
 				});
 			} catch(err) {
 				next(err);
-				console.log(err);
+				console.log('评论出错:' + err);
 			}
 		} else {
 			_comment.create_time = new Date();
 			let newcomment = new CommentModel(_comment);
 			try {
 				await newcomment.save();
+				await ArticleModel.update({_id:articleId},{'$inc':{'nums.cmtNum':1}});
 				res.json({
 					code: 1
 				});
 			} catch(err) {
 				next(err);
-				console.log('评论报错出错:' + err);
+				console.log('评论出错:' + err);
 			}
 		}
 	}

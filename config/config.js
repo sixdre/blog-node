@@ -13,10 +13,10 @@ const config={
 		}
 	},
 	qiniu_config:{
-        accessKey:'',		//youself accessKey
-        secretKey:'',		//youself secretKey
-        bucket: '',			//bucket 空间名
-        origin: '',			//地址
+        accessKey:'hM5qMEJfJNy2thESXZB2MMAx6H83mGGaeMAwyFfb',
+        secretKey:'bNVNnsynNTyY9wbVS5KIybQrCSnNvs5g1WeZybaa',
+        bucket: 'myblog',
+        origin: 'http://osf6cl53d.bkt.clouddn.com/'
     }
 }
 

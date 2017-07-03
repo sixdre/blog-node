@@ -29,7 +29,7 @@ class UserObj{
 				});
 				return ;
 			}
-			const users = await UserModel.find({})
+			const users = await UserModel.find({},'-password')	//回传值中不含有password
 					.skip(skip)
 				     .limit(limit);
 			res.json({
