@@ -57,37 +57,38 @@ class FileObj extends UploadComponent{
 	async addBanner(req,res,next){
 		if(!req.file) {
 			res.json({
-				code: -2
+				code: -2,
+				message:'请选择上传图片'
 			});
 			return;
 		}
-		let banner = BannerModel({
-			dec: req.body.dec,
-			url: req.body.link,
-			weight: req.body.weight,
-			imgAdress: req.file.path.substring(6)
-			//			imgAdress:req.file.destination.substring(6)+"/"+req.file.filename
-		});
-	
+		console.log(req.file,req.body)
 		let nameArray = req.file.originalname.split('.')
 		let type = nameArray[nameArray.length - 1];
-	
 		let typeArray = ["jpg", "png", "gif", "jpeg"];
-	
-		if(tool.contain(typeArray, "jpg") && tool.checkUrl(req.body.link) && req.body.dec.length) {
-	
-			banner.save(function(err, doc) {
-				if(err) {
-					return console.log("banner save err:", err);
-				}
+		if(tool.contain(typeArray, type) && tool.checkUrl(req.body.link)) {
+			try{
+				let imgurl = await this.upload(req);
+				console.log(imgurl)
+				let banner = new BannerModel({
+					dec: req.body.dec,
+					url: req.body.link,
+					weight: req.body.weight,
+					imgAdress: imgurl
+				});
+				await banner.save();
 				res.json({
 					code: 1,
 					message: '添加成功'
 				});
-			})
+			}catch(err){
+				console.log("banner save err:", err);
+				next(err);
+			}
 		} else {
 			res.json({
 				code: -1,
+				type: 'FORM_DATA_ERROR',
 				message: '添加失败'
 			});
 		}

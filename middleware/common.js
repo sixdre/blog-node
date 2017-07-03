@@ -6,9 +6,9 @@ import events from 'events' //事件处理模块
 import path from 'path'
 
 const tool = require('../utility/tool');
-const ArticleModel = mongoose.model('Article'); //文章
-const CategoryModel = mongoose.model("Category"); //类型
-const FriendModel = mongoose.model("Friend"); //友链
+import ArticleModel from '../models/article.model'
+import CategoryModel from "../models/category.model" 
+import FriendModel from "../models/friend.model" 
 
 
 /*

@@ -98,6 +98,14 @@ class ArticleObj extends UploadComponent {
 		article['author'] = req.session["manager"].username || '未知用户';
 		try {
 			if(req.file) {
+				let nameArray = req.file.originalname.split('.')
+				let type = nameArray[nameArray.length - 1];
+				if(!tool.checkUploadImg(type)) {
+					return res.json({
+						code: -2,
+						message: '文章封面格式错误'
+					})
+				}
 				let imgurl = await this.upload(req);
 				article.img = imgurl;
 			}
@@ -120,6 +128,14 @@ class ArticleObj extends UploadComponent {
 		let newArticle = req.body.article;
 		try {
 			if(req.file) {
+				let nameArray = req.file.originalname.split('.')
+				let type = nameArray[nameArray.length - 1];
+				if(!tool.checkUploadImg(type)) {
+					return res.json({
+						code: -2,
+						message: '文章封面格式错误'
+					})
+				}
 				let imgurl = await this.upload(req);
 				newArticle.img = imgurl;
 			}
