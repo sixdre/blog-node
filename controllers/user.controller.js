@@ -123,10 +123,10 @@ class UserObj{
 					code:-1,
 					message:"该用户没有注册！"
 				})
-			}else if(user&&user.password!==md5(password)){
+			}else if(user.password!==md5(password)){
 				res.json({
 					code:0,
-					message:"用户密码不正确！"
+					message:"密码不正确！"
 				})
 			}else{
 				req.session["User"] = user;

@@ -46,10 +46,11 @@ class WordObj{
 	}
 	
 	async reply(req,res,next){
-		let	{_id,replyContent}=req.body;
+		const id = req.params['id'];
+		let	replyContent = req.body;
 		
 		try{
-			await WordModel.update({_id: _id},{
+			await WordModel.update({_id: id},{
 					$set: {
 						"reply.user": req.session['manager']._id,
 						"reply.content": replyContent,

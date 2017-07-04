@@ -42,7 +42,7 @@ class CategoryObj{
 	}
 	
 	async add(req,res,next){
-		let {name}=req.body.category;
+		let {name}=req.body;
 		if(!name|| !name.length){
 			res.send({
 				code: 0,
@@ -86,9 +86,10 @@ class CategoryObj{
 	}
 	
 	async update(req,res,next){
-		let {_id,name}=req.body.category;
+		const id = req.params['category_id'];
+		let {name}=req.body;
 		
-		if(!name|| !name.length||!_id){
+		if(!name.length){
 			res.json({
 				code: 0,
 				type: 'ERROR_PARAMS',
@@ -113,7 +114,7 @@ class CategoryObj{
 		}
 		
 		try{
-			await CategoryModel.update({_id: _id}, {name: name})
+			await CategoryModel.update({_id: id}, {name: name})
 			res.json({
 				code: 1,
 				message: '更新成功'
@@ -126,7 +127,7 @@ class CategoryObj{
 	}
 	
 	async remove(req,res,next){
-		let id = req.params['id'];
+		let id = req.params['category_id'];
 		if(!id){
 			res.send({
 				code: 0,

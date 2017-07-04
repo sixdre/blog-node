@@ -36,64 +36,78 @@ const upload = multer({
 //获取文章
 router.get('/articles',ArticleCtrl.getArticles);
 //根据id获取
-router.get('/article/:id',ArticleCtrl.getArticleById);
+router.get('/articles/:article_id',ArticleCtrl.getArticleById);
 //文章发布
-router.post('/article',Auth.checkAdmin, upload.single('cover'),ArticleCtrl.publish);
+router.post('/articles',Auth.checkAdmin, upload.single('cover'),ArticleCtrl.publish);
 //文章更新
-router.put('/article',Auth.checkAdmin, upload.single('cover'),ArticleCtrl.update);
+router.put('/articles/:article_id',Auth.checkAdmin, upload.single('cover'),ArticleCtrl.update);
 //文章删除(单项)
-router.delete('/article/:id',Auth.checkAdmin,ArticleCtrl.deleteOne);
+router.delete('/articles/:article_id',Auth.checkAdmin,ArticleCtrl.deleteOne);
 //文章删除（多选)
-router.post('/article/removeMulti', Auth.checkAdmin,ArticleCtrl.deleteMulti);
+router.post('/articles/removeMulti', Auth.checkAdmin,ArticleCtrl.deleteMulti);
 //文章点赞
-router.put('/article/:id/like',Auth.checkLoginByAjax,ArticleCtrl.addLikes);
+router.put('/articles/:article_id/likes',Auth.checkLoginByAjax,ArticleCtrl.addLikes);
 //获取文章评论
-router.get('/article/:id/comments',ArticleCtrl.getComments);
+router.get('/articles/:article_id/comments',ArticleCtrl.getComments);
 //文章评论
-router.post('/article/:id/comments',Auth.checkLoginByAjax,ArticleCtrl.addComment);
+router.post('/articles/:article_id/comments',Auth.checkLoginByAjax,ArticleCtrl.addComment);
 //评论点赞
-router.post('/comments/:id/like',Auth.checkLoginByAjax,ArticleCtrl.addCommentLike);
+router.post('/comments/:comment_id/like',Auth.checkLoginByAjax,ArticleCtrl.addCommentLike);
 
 
 //获取category数据
-router.get("/category",CategoryCtrl.getCategories);
+router.get("/categories",CategoryCtrl.getCategories);
 //分类添加
-router.post("/category", Auth.checkAdmin,CategoryCtrl.add);
+router.post("/categories", Auth.checkAdmin,CategoryCtrl.add);
 //分类更新
-router.put("/category", Auth.checkAdmin,CategoryCtrl.update);
+router.put("/categories/:category_id", Auth.checkAdmin,CategoryCtrl.update);
 //分类删除
-router.delete('/category/:id', Auth.checkAdmin,CategoryCtrl.remove);
+router.delete('/categories/:category_id', Auth.checkAdmin,CategoryCtrl.remove);
 
 //获取标签数据
-router.get('/tag',TagCtrl.getTags);
-
-router.get('/tag/:id/articles',ArticleCtrl.getArticlesByTagId);
+router.get('/tags',TagCtrl.getTags);
+//获取标签下的文章
+router.get('/tags/:tag_id/articles',ArticleCtrl.getArticlesByTagId);
 //新增标签
-router.post('/tag', Auth.checkAdmin,TagCtrl.add);
+router.post('/tags', Auth.checkAdmin,TagCtrl.add);
 //更新标签
-router.put('/tag', Auth.checkAdmin, TagCtrl.update);
+router.put('/tags/:tag_id', Auth.checkAdmin, TagCtrl.update);
 //删除标签
-router.delete('/tag/:id', Auth.checkAdmin,TagCtrl.remove);
+router.delete('/tags/:tag_id', Auth.checkAdmin,TagCtrl.remove);
 
 //获取友情链接数据 
-router.get('/friend',FriendCtrl.getFriends);
+router.get('/friends',FriendCtrl.getFriends);
 //添加友情链接
-router.post('/friend',Auth.checkAdmin,FriendCtrl.add);
+router.post('/friends',Auth.checkAdmin,FriendCtrl.add);
 //更新友链
-router.put('/friend', Auth.checkAdmin,FriendCtrl.update);
+router.put('/friends/:friend_id', Auth.checkAdmin,FriendCtrl.update);
 //删除友情链接
-router.delete('/friend/:id', Auth.checkAdmin,FriendCtrl.remove);
+router.delete('/friends/:friend_id', Auth.checkAdmin,FriendCtrl.remove);
 
 
 //获取注册用户
 router.get('/users', Auth.checkAdmin, UserCtrl.getUsers)
+////登陆
+router.post('/user/login',UserCtrl.login);
+//注册
+router.post('/user/regist',UserCtrl.regist);
+//退出
+router.get('/user/logout',UserCtrl.logout);
+//管理员登陆
+router.post('/user/admin_login',UserCtrl.admin_login);
+//管理员注册
+router.post('/user/admin_regist',UserCtrl.admin_regist);
+//管理员退出
+router.get('/user/admin_logout',UserCtrl.admin_logout)
+
+
 
 //获取留言
-router.get('/word',Auth.checkAdmin,WordCtrl.getWords);
+router.get('/words',Auth.checkAdmin,WordCtrl.getWords);
 //提交留言
-router.post('/word',Auth.checkLoginByAjax,WordCtrl.add);
+router.post('/words',Auth.checkLoginByAjax,WordCtrl.add);
 //留言回复
-router.post('/word/reply', Auth.checkAdmin,WordCtrl.reply);
+router.put('/words/:id', Auth.checkAdmin,WordCtrl.reply);
 
 
 

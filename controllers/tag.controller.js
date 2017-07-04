@@ -45,7 +45,7 @@ class TagObj{
 	}
 	
 	async add(req,res,next){
-		let {_id,name}=req.body.tag;
+		let {_id,name}=req.body;
 		if(!name || !name.length){
 			res.send({
 				code: 0,
@@ -90,9 +90,10 @@ class TagObj{
 
 	}
 	async update(req,res,next){
-		let {_id,name} = req.body.tag;
+		const id = req.params['tag_id'];
+		let {name} = req.body;
 		
-		if(!name|| !name.length||!_id){
+		if(!name.length){
 			res.json({
 				code: 0,
 				type: 'ERROR_PARAMS',
@@ -116,7 +117,7 @@ class TagObj{
 		}
 		
 		try{
-			await TagModel.update({_id: _id}, {name: name})
+			await TagModel.update({_id: id}, {name: name})
 			res.json({
 				code: 1,
 				message: '更新成功'
@@ -129,7 +130,7 @@ class TagObj{
 	}
 	
 	async remove(req,res,next){
-		let id = req.params['id'];
+		let id = req.params['tag_id'];
 		try{
 			await TagModel.remove({_id: id})
 			res.json({

@@ -71,7 +71,7 @@ class ArticleObj extends UploadComponent {
 	}
 
 	async getArticleById(req, res, next) {
-		let id = req.params['id'];
+		let id = req.params['article_id'];
 		if(!id) {
 			res.json({
 				code: 0,
@@ -96,7 +96,7 @@ class ArticleObj extends UploadComponent {
 	}
 
 	async getArticlesByTagId(req,res,next){
-		let tagId = req.params['id'];
+		let tagId = req.params['tag_id'];
 		console.log(typeof tagId)
 		if(!tagId) {
 			res.json({
@@ -154,7 +154,16 @@ class ArticleObj extends UploadComponent {
 	}
 
 	async update(req, res, next) {
+		const id = req.params['article_id'];
 		let newArticle = req.body.article;
+		
+		if(!id) {
+			res.json({
+				code: 0,
+				type: 'ERROR_PARAMS'
+			});
+			return;
+		}
 		try {
 			if(req.file) {
 				let nameArray = req.file.originalname.split('.')
@@ -168,7 +177,7 @@ class ArticleObj extends UploadComponent {
 				let imgurl = await this.upload(req);
 				newArticle.img = imgurl;
 			}
-			let article = await ArticleModel.findById(newArticle._id);
+			let article = await ArticleModel.findById(id);
 			let _article = _.extend(article, newArticle);
 			await _article.save();
 			res.json({
@@ -182,7 +191,7 @@ class ArticleObj extends UploadComponent {
 	}
 
 	async deleteOne(req, res, next) {
-		let id = req.params['id'];
+		let id = req.params['article_id'];
 		if(!id) {
 			res.json({
 				code: 0,
@@ -246,7 +255,7 @@ class ArticleObj extends UploadComponent {
 	}
 
 	async addLikes(req, res, next) {
-		let id = req.params['id'];
+		let id = req.params['article_id'];
 		let userId = req.session["User"]._id;
 		if(!id || !userId) {
 			res.json({
@@ -269,7 +278,7 @@ class ArticleObj extends UploadComponent {
 	}
 
 	async getComments(req, res, next) {
-		let articleId = req.params['id'];
+		let articleId = req.params['article_id'];
 		let { order_by, page = 1 } = req.query;
 		let sort = { likeNum: -1 }
 
@@ -298,7 +307,7 @@ class ArticleObj extends UploadComponent {
 
 	async addComment(req, res, next) {
 		let _comment = req.body;
-		const articleId=req.params['id'];
+		const articleId=req.params['article_id'];
 		_comment.from = req.session["User"];
 		if(_comment.cId) {
 			let reply = {
@@ -334,7 +343,7 @@ class ArticleObj extends UploadComponent {
 	}
 
 	async addCommentLike(req, res, next) {
-		const commentId = req.params['id'],
+		const commentId = req.params['comment_id'],
 			replyId = req.body.replyId,
 			user = req.session['User'];
 

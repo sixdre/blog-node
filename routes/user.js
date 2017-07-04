@@ -17,23 +17,6 @@ router.get('/regist',function(req,res,next){
 	});
 })
 
-//登陆
-router.post('/login',UserCtrl.login);
-//注册
-router.post('/regist',UserCtrl.regist);
-//退出
-router.get('/logout',UserCtrl.logout);
-
-
-//管理员登陆
-router.post('/admin_login',UserCtrl.admin_login);
-//管理员注册
-router.post('/admin_regist',UserCtrl.admin_regist)
-//管理员退出
-router.get('/admin_logout',UserCtrl.admin_logout)
-
-
-
 export default router;
 
 
