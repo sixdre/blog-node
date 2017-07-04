@@ -22,11 +22,11 @@ class ArticleObj extends UploadComponent {
 		this.update = this.update.bind(this)
 	}
 	async getArticles(req, res, next) {
-		let { currentPage = 1, limit = 5, title = "", flag = 0 } = req.query;
-
+		let { currentPage = 1, limit = 0, title = "", flag = 0 } = req.query;
 		currentPage = parseInt(currentPage) - 1;
 		limit = parseInt(limit);
 		flag = parseInt(flag);
+		
 		let queryObj = {
 			title: {
 				'$regex': title
@@ -49,7 +49,7 @@ class ArticleObj extends UploadComponent {
 		try {
 			const total = await ArticleModel.count(queryObj);
 			if(!total) {
-				res.json({ //没有更多文章
+				res.json({ 	
 					code: -1,
 					message: '没有更多文章'
 				});
@@ -57,7 +57,7 @@ class ArticleObj extends UploadComponent {
 			}
 			const articles = await ArticleModel.find(queryObj)
 				.sort({ "create_time": -1 }).skip(limit * currentPage)
-				.limit(limit).populate('category', 'name');
+				.limit(limit).populate('category');
 
 			res.json({
 				code: 1,
@@ -82,7 +82,7 @@ class ArticleObj extends UploadComponent {
 		}
 
 		try {
-			let article = await ArticleModel.findById(id).populate('category').populate('tags');
+			let article = await ArticleModel.findById(id).populate('category','name').populate('tags','name');
 			res.json({
 				code: 1,
 				article,
@@ -95,6 +95,33 @@ class ArticleObj extends UploadComponent {
 		}
 	}
 
+	async getArticlesByTagId(req,res,next){
+		let tagId = req.params['id'];
+		console.log(typeof tagId)
+		if(!tagId) {
+			res.json({
+				code: 0,
+				type: 'ERROR_PARAMS'
+			});
+			return;
+		}
+		try{
+			let articles = await ArticleModel.find({'tags':{'$in':[tagId]}}).populate('category').populate('tags');
+			res.json({
+				code:1,
+				type:'SUCCESS',
+				articles
+			});
+		}catch(err){
+			console.log('获取文章出错'+err);
+			res.json({
+				code: -1,
+				type: 'ERROR',
+				message:'获取文章出错'
+			});
+		}
+	}
+	
 	async publish(req, res, next) {
 		let article = req.body.article;
 		article['author'] = req.session["manager"].username || '未知用户';
@@ -104,7 +131,7 @@ class ArticleObj extends UploadComponent {
 				let type = nameArray[nameArray.length - 1];
 				if(!tool.checkUploadImg(type)) {
 					return res.json({
-						code: -2,
+						code: 0,
 						message: '文章封面格式错误'
 					})
 				}
@@ -134,7 +161,7 @@ class ArticleObj extends UploadComponent {
 				let type = nameArray[nameArray.length - 1];
 				if(!tool.checkUploadImg(type)) {
 					return res.json({
-						code: -2,
+						code: 0,
 						message: '文章封面格式错误'
 					})
 				}
@@ -197,22 +224,17 @@ class ArticleObj extends UploadComponent {
 						if(article.isDeleted) { //彻底删除
 							return ArticleModel.remove({
 								_id: article._id
-							}).then(function() { //返回promise对象
-								return 1; //返回下一个promise resolve 对象的值
 							});
-						} else { //（假删除）
+						} else { 			//（假删除）
 							return ArticleModel.update({
 								_id: article._id
 							}, {
 								'isDeleted': true
-							}).then(function() { //返回promise对象
-								return 1; //返回下一个promise resolve 对象的值
 							});
 						}
 					});
 				}));
-			}).then(function(dd) {
-				//console.log(dd);		//1
+			}).then(function() {
 				res.json({
 					code: 1,
 					message: '删除成功'
@@ -224,10 +246,26 @@ class ArticleObj extends UploadComponent {
 	}
 
 	async addLikes(req, res, next) {
-		console.log(req.params['id']);
-		res.json({
-			code: 1
-		})
+		let id = req.params['id'];
+		let userId = req.session["User"]._id;
+		if(!id || !userId) {
+			res.json({
+				code: 0,
+				type: 'ERROR_PARAMS',
+				message: '参数错误'
+			});
+			return;
+		}
+		try{
+			await ArticleModel.update({ _id: id}, { $addToSet: { "likes": userId } });
+			res.json({
+				code: 1,
+				type: 'SUCCESS_TO_ADD_LIKES',
+				message: '点赞成功'
+			});
+		}catch(err){
+			next(err);
+		}
 	}
 
 	async getComments(req, res, next) {

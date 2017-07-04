@@ -36,6 +36,8 @@ FriendSchema.pre("save",function(next){
 	next();
 })
 
+FriendSchema.index({ title: 1});
+
 const Friend = mongoose.model("Friend",FriendSchema);
 
 

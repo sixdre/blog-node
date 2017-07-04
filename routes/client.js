@@ -40,7 +40,7 @@ function init(currentPage, cb) {
 			ArticleModel.find(query).skip((currentPage - 1) * pageSize)
 				.limit(pageSize).sort({ create_time: -1 })
 				.populate('category', 'name')
-				.populate('tags').exec(function(err, articles) {
+				.populate('tags','name').exec(function(err, articles) {
 					callback(null, articles);
 				})
 		},
@@ -86,7 +86,7 @@ router.get('/page/:page', loadCommonData, function(req, res, next) {
 	ArticleModel.find(query).skip((page - 1) * pageSize)
 		.limit(pageSize).sort({ create_time: -1 })
 		.populate('category', 'name')
-		.populate('tags').exec(function(err, articles) {
+		.populate('tags','name').exec(function(err, articles) {
 			if(err) {
 				return next(err);
 			}
@@ -155,8 +155,8 @@ router.get('/article/:bId', loadCommonData, function(req, res, next) {
 		comments: ["doc", function(results, callback) {
 			let articleId = results.doc._id;
 			CommentModel.find({ articleId: articleId })
-				.populate('from')
-				.populate('reply.from reply.to').sort({ 'likeNum': -1 }).exec(function(err, comments) {
+				.populate('from','username')
+				.populate('reply.from reply.to','username').sort({ 'nums.likeNum': -1 }).exec(function(err, comments) {
 					let cTotal = comments.length;
 					comments.forEach(function(value) {
 						if(value.reply && value.reply.length > 0) {

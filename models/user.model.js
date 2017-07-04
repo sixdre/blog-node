@@ -36,6 +36,9 @@ UserSchema.statics.findByName = function(name) {
 		.exec();
 }
 
+
+UserSchema.index({username:1});
+
 const User = mongoose.model('User', UserSchema);
 
 export default User

@@ -21,6 +21,8 @@ TagSchema.pre('save', function(next) {
 	next()
 });
 
+TagSchema.index({ name: 1});
+
 const Tag = mongoose.model('Tag', TagSchema);
 
 export default Tag

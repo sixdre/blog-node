@@ -19,7 +19,7 @@ class WordObj{
 			const words=await WordModel.find({"state.isRead":false}).populate('user','username');
 			res.json({
 				code:1,
-				words:words,
+				words,
 				message:'获取留言成功'
 			});
 		}catch(err){

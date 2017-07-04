@@ -46,7 +46,7 @@ router.delete('/article/:id',Auth.checkAdmin,ArticleCtrl.deleteOne);
 //文章删除（多选)
 router.post('/article/removeMulti', Auth.checkAdmin,ArticleCtrl.deleteMulti);
 //文章点赞
-router.put('/article/:id/like',ArticleCtrl.addLikes);
+router.put('/article/:id/like',Auth.checkLoginByAjax,ArticleCtrl.addLikes);
 //获取文章评论
 router.get('/article/:id/comments',ArticleCtrl.getComments);
 //文章评论
@@ -66,6 +66,8 @@ router.delete('/category/:id', Auth.checkAdmin,CategoryCtrl.remove);
 
 //获取标签数据
 router.get('/tag',TagCtrl.getTags);
+
+router.get('/tag/:id/articles',ArticleCtrl.getArticlesByTagId);
 //新增标签
 router.post('/tag', Auth.checkAdmin,TagCtrl.add);
 //更新标签

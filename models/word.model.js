@@ -53,6 +53,7 @@ WordSchema.statics.findAllReply=function(){
 	return this.find({'state.isReply':true}).exec();
 }
 
+WordSchema.index({ user: 1});
 
 const Word = mongoose.model("Word",WordSchema);
 

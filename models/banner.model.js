@@ -11,6 +11,11 @@ const BannerSchema = new Schema({
 	},
 	url: {
 		type: String,
+//		set:function(url){
+//          if(!url) return url;
+//          if(0!==url.indexOf('http://')) url='http://'+url;
+//          return url;
+//     },
 		default: '#' //轮播图链接地址
 	},
 	weight: { //权重默认为0，越高排名越前

@@ -100,7 +100,6 @@ class UserObj{
 	
 	async login(req,res,next){
 		let {username,password} = req.body;
-		  
 		try{
 			if (validator.isEmpty(username)) {
 				throw new Error('请输入用户名');

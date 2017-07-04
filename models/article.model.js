@@ -13,15 +13,15 @@ const BaseQuery = require('../models/dbHelper'),
 
 //文章
 const ArticleSchema = new Schema({
-	author: { 	//作者
+	author: { 			//作者
 		type: String
 	},
-	title: String, //标题
-	category: { 	//类型分类
+	title: String, 		//标题
+	category: { 		//类型分类
 		type: ObjectId,
 		ref: 'Category'
 	},
-	tags: [{ 	//标签
+	tags: [{ 			//标签
 		type: ObjectId,
 		ref: 'Tag'
 	}],
@@ -31,52 +31,40 @@ const ArticleSchema = new Schema({
 	source: { 	  		//文章来源(出处)
 		type: String
 	},
-	likes: [{ 	//点赞用户
+	likes: [{ 			//点赞用户
 		type: ObjectId,
 		ref: 'User'
 	}], 
 	nums:{
-		cmtNum:{ //评论数
+		cmtNum:{ 		//评论数
 			type: Number,
 			default: 0
 		},
-		likeNum:{	//点赞数
+		likeNum:{		//点赞数
 			type: Number,
 			default: 0
 		},
-		pv: {		//浏览量
+		pv: {			//浏览量
 			type: Number,
 			default: 0
 		}
 	},
-	likeNum:{		//点赞数
-		type: Number,
-		default: 0
-	},
-	pv: {		//浏览量
-		type: Number,
-		default: 0
-	}, 
-	top: {		 // 置顶文章
+	top: {		 		// 置顶文章
 		type: Boolean,
 		default: false
 	},
-	good: {		// 精华文章
+	good: {				// 精华文章
 		type: Boolean,
 		default: false
 	}, 
-	isDeleted:{		//软删除用于删除找回
+	isDeleted:{			//软删除用于删除找回
 		type: Boolean,
 		default: false
 	},
-	isDraft: {		//是否草稿
+	isDraft: {			//是否草稿
 		type: Boolean,
 		default: false
 	}, 
-//	isActive: {		 //是否有效
-//		type: Boolean,
-//		default: true
-//	},
 	create_time: {		//创建时间
 		type: Date,
 		default:Date.now()
@@ -269,10 +257,10 @@ ArticleSchema.statics.findBybIdUpdate = function(id, callback) {
 
 
 ArticleSchema.plugin(autoIncrement.plugin, {
-	model: 'Article', //数据模块，需要跟同名 x.model("Books", BooksSchema);
-	field: 'bId', 	   //字段名
-	startAt: 1,      //开始位置，自定义
-	incrementBy: 1   //每次自增数量
+	model: 'Article', //数据模块
+	field: 'bId', 	  //字段名
+	startAt: 1,       //开始位置，自定义
+	incrementBy: 1    //每次自增数量
 });
 ArticleSchema.pre('save', function(next) {
 	this.nums.likeNum=this.likes.length;

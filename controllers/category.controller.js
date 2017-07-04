@@ -137,7 +137,7 @@ class CategoryObj{
 		}
 		
 		try{
-			CategoryModel.remove({_id: id});
+			await CategoryModel.remove({_id: id});
 			res.json({
 				code: 1,
 				message: '删除成功'

@@ -60,6 +60,8 @@ CommentSchema.statics = {
 
 }
 
+CommentSchema.index({ articleId: 1});
+
 const Comment = mongoose.model('Comment', CommentSchema);
 
 export default Comment
