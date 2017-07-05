@@ -30,7 +30,11 @@ npm install -g nodemon
 
 npm run dev (请确保已经安装了mongodb数据库并且已经开启)	
 
-这里只是开启了node服务 ,如果要查看后台界面 请将(https://github.com/sixdre/blog-manage) 中的项目进行打包，将打包后的dist文件夹里的内容复制到 public目录下。网站的首页还在开发中，这里暂时还没有
+这里只是开启了node服务 ,如果要查看后台界面 请将(https://github.com/sixdre/blog-manage) 中的项目进行打包，将打包后的dist文件夹里的内容复制到 public目录下。
+
+浏览器输入localhost:7893/admin 进入后台管理界面
+
+网站的首页还在开发中，这里暂时还没有
 
 ```
 
