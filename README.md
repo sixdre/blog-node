@@ -11,10 +11,28 @@
 
 >  部署环境 阿里云 CentOS 7.2 64位 
 
-
 ## 技术栈
 
 nodejs + express + mongodb + mongoose + es6/7 + babel
+
+
+
+## 项目运行
+
+```
+git clone https://github.com/sixdre/blog-node  
+
+cd blog-node
+
+npm install 这里推荐使用淘宝的npm镜像   输入npm install -g cnpm --registry=https://registry.npm.taobao.org 进行安装
+
+npm install -g nodemon
+
+npm run dev (请确保已经安装了mongodb数据库并且已经开启)	
+
+这里只是开启了node服务 ,如果要查看后台界面 请将(https://github.com/sixdre/blog-manage) 中的项目进行打包，将打包后的dist文件夹里的内容复制到 public目录下。网站的首页还在开发中，这里暂时还没有
+
+```
 
 
 
