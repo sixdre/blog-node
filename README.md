@@ -44,10 +44,10 @@ npm run dev (请确保已经安装了mongodb数据库并且已经开启)
 # 效果演示
 
 ### 线上网址
-[网站地址](http://blog.comehere.online)
+[网站地址](http://39.108.61.102:7893/)	由于online域名没法备案，暂时只能使用ip访问
 
 ### 后台管理系统线上网址
-[后台管理网址](http://blog.comehere.online/admin)
+[后台管理网址](http://39.108.61.102:7893//admin)	由于online域名没法备案，暂时只能使用ip访问
 
 
 # 相关项目
