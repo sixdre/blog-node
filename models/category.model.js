@@ -7,8 +7,7 @@ const Schema = mongoose.Schema,
 const CategorySchema = new Schema({
 	name: {
 		unique: true,
-		type: String,
-		default:'未分类'
+		type: String
 	},
 	articles: [{
 		type: ObjectId,
@@ -36,5 +35,13 @@ CategorySchema.pre('save', function(next) {
 CategorySchema.index({ name: 1});
 
 const Category = mongoose.model('Category', CategorySchema);
+
+//Category.findOne((err, data) => {
+//	if (!data) {
+//		Category.create({
+//			name:'未分类'
+//		});
+//	}
+//})
 
 export default Category

@@ -145,7 +145,45 @@ exports.contain=function(arr,val){
     }  
     return false;  
 }
+/*
+ * isRepeat 检查数组中是否有重复值
+ * @param arr  数组
+ */
+exports.isRepeat = function(arr){
+	var hash = {};
+    for(var i in arr) {
+        if(hash[arr[i]])
+        {
+            return true;
+        }
+        hash[arr[i]] = true;
+    }
+    return false;
+}
 
+/*
+ * hasSameValue 检查两个数组中是否有相同值
+ * @param arr1  数组1
+ * @param arr2  数组2
+ * @returns Bollean  
+ */
+exports.hasSameValue=function(arr1,arr2){
+	var rs =false;
+	for (var i=0; i<arr1.length; i++){
+        for (var j=0;j<arr2.length;j++){
+            if( arr1[i]== arr2[j]){
+                rs=true;
+                break;
+            }
+        }
+    }
+    return rs;
+}
+
+/*
+ * checkUploadImg 检查上传图片格式
+ * @param type  图片格式
+ */
 exports.checkUploadImg=function(type){
 	let imgArr=CONFIG.UploadImgType;
 	if(imgArr.indexOf(type)==-1){
