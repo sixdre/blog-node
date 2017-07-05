@@ -9,7 +9,7 @@
 
 >  如果对您对此项目有兴趣，可以点 "Star" 支持一下 谢谢！ ^_^
 
->  部署环境 阿里云 CentOS 7.2 64位 
+>  线上部署环境 Aliyun Linux 17.1 64位 
 
 ## 技术栈
 
@@ -30,7 +30,8 @@ npm install -g nodemon
 
 npm run dev (请确保已经安装了mongodb数据库并且已经开启)	
 
-这里只是开启了node服务 ,如果要查看后台界面 请将(https://github.com/sixdre/blog-manage) 中的项目进行打包，将打包后的dist文件夹里的内容复制到 public目录下。
+这里只是开启了node服务 ,如果要查看后台界面 请将[后台管理项目地址](https://github.com/sixdre/blog-manage) 中的项目进行打包。
+将打包后的dist文件夹里的内容复制到 public目录下。
 
 浏览器输入localhost:7893/admin 进入后台管理界面
 
