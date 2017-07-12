@@ -37,6 +37,7 @@ export default (req,res,next) => {
 				if(err){
 					return cb(err);
 				}
+				console.log(types)
 				cb(null, types);
 			});
 		},
@@ -50,8 +51,10 @@ export default (req,res,next) => {
 					if(err){
 						return cb(err);
 					}
-					type.name = cate.name;
-					categorys.push(type);
+					if(cate&&cate.name){
+						type.name = cate.name;
+						categorys.push(type);
+					}
 					cb(null,categorys)
 				})
 			},function(err,results){

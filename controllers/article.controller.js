@@ -57,8 +57,8 @@ class ArticleObj extends UploadComponent {
 			}
 			const articles = await ArticleModel.find(queryObj)
 				.sort({ "create_time": -1 }).skip(limit * currentPage)
-				.limit(limit).populate('category');
-
+				.limit(limit).populate('category','name').populate('tags','name');
+			console.log(articles)
 			res.json({
 				code: 1,
 				articles,
