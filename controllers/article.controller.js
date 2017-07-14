@@ -23,7 +23,7 @@ class ArticleObj extends UploadComponent {
 	}
 	async getArticles(req, res, next) {
 		let { currentPage = 1, limit = 0, title = "", flag = 0 } = req.query;
-		currentPage = parseInt(currentPage) - 1;
+		currentPage = parseInt(currentPage);
 		limit = parseInt(limit);
 		flag = parseInt(flag);
 		
@@ -48,21 +48,25 @@ class ArticleObj extends UploadComponent {
 
 		try {
 			const total = await ArticleModel.count(queryObj);
-			if(!total) {
+			const totalPage =Math.ceil(total/limit);
+			if(!total||currentPage>totalPage) {
 				res.json({ 	
 					code: -1,
 					message: '没有更多文章'
 				});
 				return;
 			}
+			
 			const articles = await ArticleModel.find(queryObj)
-				.sort({ "create_time": -1 }).skip(limit * currentPage)
+				.sort({ "create_time": -1 }).skip(limit * (currentPage-1))
 				.limit(limit).populate('category','name').populate('tags','name');
-			console.log(articles)
+			
 			res.json({
 				code: 1,
 				articles,
-				total
+				total,		//文章总数
+				totalPage,	//总计页数
+				currentPage	//当前页
 			});
 		} catch(err) {
 			console.log('获取文章列表出错:' + err);
