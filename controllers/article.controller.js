@@ -34,6 +34,8 @@ class ArticleObj extends UploadComponent {
 		}
 		switch(flag) {
 			case 1: //有效
+//				Object.assign(sortBy, {float_minimum_order_amount: 1});
+//				
 				queryObj.isDeleted = false;
 				queryObj.isDraft = false;
 				break;
@@ -76,17 +78,8 @@ class ArticleObj extends UploadComponent {
 
 	async getArticleById(req, res, next) {
 		let id = req.params['article_id'];
-		if(!id) {
-			res.json({
-				code: 0,
-				type: 'ERROR_PARAMS',
-				message: '请输入文章ID'
-			});
-			return;
-		}
-
 		try {
-			let article = await ArticleModel.findById(id).populate('category','name').populate('tags','name');
+			let article = await ArticleModel.findById(id).populate('category','-__v').populate('tags','-__v');
 			res.json({
 				code: 1,
 				article,
@@ -101,16 +94,34 @@ class ArticleObj extends UploadComponent {
 
 	async getArticlesByTagId(req,res,next){
 		let tagId = req.params['tag_id'];
-		console.log(typeof tagId)
-		if(!tagId) {
-			res.json({
-				code: 0,
-				type: 'ERROR_PARAMS'
-			});
-			return;
-		}
+		const {offset=0,limit = 100} = req.query;
 		try{
-			let articles = await ArticleModel.find({'tags':{'$in':[tagId]}}).populate('category').populate('tags');
+			let articles = await ArticleModel.find({'tags':{'$in':[tagId]}})
+								.skip(Number(offset)).limit(Number(limit))
+								.populate('category','-__v').populate('tags','-__v');
+							
+			res.json({
+				code:1,
+				type:'SUCCESS',
+				articles
+			});
+		}catch(err){
+			console.log('获取文章出错'+err);
+			res.json({
+				code: -1,
+				type: 'ERROR',
+				message:'获取文章出错'
+			});
+		}
+	}
+	
+	async getArticlesByCategoryId(req,res,next){
+		const cId = req.params['category_id'];
+		const {offset=0,limit = 100} = req.query;
+		try{
+			let articles = await ArticleModel.find({'category':{'$in':[cId]}},{'__v':0})
+							.skip(Number(offset)).limit(Number(limit))
+							.populate('category','-__v').populate('tags','-__v');
 			res.json({
 				code:1,
 				type:'SUCCESS',
@@ -193,6 +204,25 @@ class ArticleObj extends UploadComponent {
 			next(err);
 		}
 	}
+
+	async updatePv(req,res,next){
+		const id = req.params['article_id'];
+		console.log(id)
+		try{
+			await ArticleModel.update({_id:id}, {'$inc': {'nums.pv': 1}});
+			res.json({
+				code: 1,
+				message: '更新pv成功'
+			});
+		}catch(err){
+			res.json({
+				code: -1,
+				message: '更新pv失败'
+			});
+		}
+
+	}
+
 
 	async deleteOne(req, res, next) {
 		let id = req.params['article_id'];

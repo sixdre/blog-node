@@ -41,6 +41,8 @@ router.get('/articles/:article_id',ArticleCtrl.getArticleById);
 router.post('/articles',Auth.checkAdmin, upload.single('cover'),ArticleCtrl.publish);
 //文章更新
 router.put('/articles/:article_id',Auth.checkAdmin, upload.single('cover'),ArticleCtrl.update);
+//更新文章pv
+router.put('/articles/:article_id/pv',ArticleCtrl.updatePv);
 //文章删除(单项)
 router.delete('/articles/:article_id',Auth.checkAdmin,ArticleCtrl.deleteOne);
 //文章删除（多选)
@@ -57,6 +59,8 @@ router.post('/comments/:comment_id/like',Auth.checkLoginByAjax,ArticleCtrl.addCo
 
 //获取category数据
 router.get("/categories",CategoryCtrl.getCategories);
+//获取某一分类下的文章
+router.get("/categories/:category_id/articles",ArticleCtrl.getArticlesByCategoryId);
 //分类添加
 router.post("/categories", Auth.checkAdmin,CategoryCtrl.add);
 //分类更新
