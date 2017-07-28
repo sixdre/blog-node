@@ -57,6 +57,10 @@ const ArticleSchema = new Schema({
 		type: Boolean,
 		default: false
 	}, 
+	status:{
+		type: Number,
+		default:2      //0 表示删除，1表示草稿，2 表示有效
+	},
 	isDeleted:{			//软删除用于删除找回
 		type: Boolean,
 		default: false

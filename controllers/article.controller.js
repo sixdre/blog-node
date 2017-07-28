@@ -7,72 +7,33 @@ import fs from 'fs'
 import _ from 'underscore'
 import mongoose from 'mongoose'
 import events from 'events'
-import UploadComponent from '../prototype/upload'
+
 //数据模型
 import ArticleModel from '../models/article.model'
 import CategoryModel from "../models/category.model"
 import CommentModel from '../models/comment.model'
+import ArticleService from '../services/article'
 
 const tool = require('../utility/tool');
 
-class ArticleObj extends UploadComponent {
+class ArticleObj extends ArticleService {
 	constructor() {
 		super()
+		this.getArticles = this.getArticles.bind(this)
 		this.publish = this.publish.bind(this)
 		this.update = this.update.bind(this)
 	}
 	async getArticles(req, res, next) {
-		let { currentPage = 1, limit = 0, title = "", flag = 0 } = req.query;
+		let { currentPage = 1, limit = 0, title = "", flag = 2 } = req.query;
 		currentPage = parseInt(currentPage);
 		limit = parseInt(limit);
 		flag = parseInt(flag);
-		
-		let queryObj = {
-			title: {
-				'$regex': title
-			},
-		}
-		switch(flag) {
-			case 1: //有效
-//				Object.assign(sortBy, {float_minimum_order_amount: 1});
-//				
-				queryObj.isDeleted = false;
-				queryObj.isDraft = false;
-				break;
-			case 2: //草稿
-				queryObj.isDraft = true;
-				queryObj.isDeleted = false;
-				break;
-			case 3: //已删除
-				queryObj.isDeleted = true;
-				break;
-		}
 
-		try {
-			const total = await ArticleModel.count(queryObj);
-			const totalPage =Math.ceil(total/limit);
-			if(!total||currentPage>totalPage) {
-				res.json({ 	
-					code: -1,
-					message: '没有更多文章'
-				});
-				return;
-			}
-			
-			const articles = await ArticleModel.find(queryObj)
-				.sort({ "create_time": -1 }).skip(limit * (currentPage-1))
-				.limit(limit).populate('category','name').populate('tags','name');
-			
-			res.json({
-				code: 1,
-				articles,
-				total,		//文章总数
-				totalPage,	//总计页数
-				currentPage	//当前页
-			});
-		} catch(err) {
+		try{
+			let data = await this.get(currentPage,limit,flag,title);
+			res.json(data);
+		}catch(err){
 			console.log('获取文章列表出错:' + err);
-			next(err);
 		}
 	}
 
@@ -241,7 +202,7 @@ class ArticleObj extends UploadComponent {
 			if(article.isDeleted) {
 				await ArticleModel.remove({ _id: article._id });
 			} else {
-				await ArticleModel.update({ _id: article._id }, { 'isDeleted': true });
+				await ArticleModel.update({ _id: article._id }, { 'status': 0 });
 			}
 			res.json({
 				code: 1,
@@ -272,7 +233,7 @@ class ArticleObj extends UploadComponent {
 							return ArticleModel.update({
 								_id: article._id
 							}, {
-								'isDeleted': true
+								'status': 0
 							});
 						}
 					});
@@ -329,9 +290,12 @@ class ArticleObj extends UploadComponent {
 				})
 				.sort(sort);
 			if(comments) {
-				res.render("www/blocks/comment_list", {
+				// res.render("www/blocks/comment_list", {
+				// 	comments: comments
+				// });
+				res.json({
 					comments: comments
-				});
+				})
 			}
 		} catch(err) {
 			console.log(err);
