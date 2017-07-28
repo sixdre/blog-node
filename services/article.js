@@ -8,7 +8,7 @@ class articleService extends UploadComponent {
     }
 
     //获取文章列表（默认获取有效文章）
-    get(cp = 1,limit = 10,flag = 2,title = ''){
+    get({cp = 1,limit = 10,flag = 2,title = ''}){
         return new Promise(async (resolve,reject)=>{
             cp = parseInt(cp);
             limit = parseInt(limit);
@@ -31,8 +31,7 @@ class articleService extends UploadComponent {
                         code: -1,
                         cp,
                         total,
-                        articles:[],
-                        message: '没有更多文章'
+                        articles:[]
                     });
                     return;
                 }
@@ -64,11 +63,7 @@ class articleService extends UploadComponent {
             }
             try {
                 let article = await ArticleModel.findById(id).populate('category','-__v').populate('tags','-__v');
-                resolve({
-                    code: 1,
-                    article,
-                    message: 'success'
-                });
+                resolve(article);
             } catch(err) {
                 reject(err);
             }
@@ -77,4 +72,4 @@ class articleService extends UploadComponent {
 
 }
 
-export default articleService;
+export default new articleService();

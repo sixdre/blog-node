@@ -8,18 +8,18 @@ import _ from 'underscore'
 import mongoose from 'mongoose'
 import events from 'events'
 
-//数据模型
+
 import ArticleModel from '../models/article.model'
 import CategoryModel from "../models/category.model"
 import CommentModel from '../models/comment.model'
 import ArticleService from '../services/article'
+import UploadComponent from '../prototype/upload'
 
 const tool = require('../utility/tool');
 
-class ArticleObj extends ArticleService {
+class ArticleObj extends UploadComponent{
 	constructor() {
 		super()
-		this.getArticles = this.getArticles.bind(this)
 		this.publish = this.publish.bind(this)
 		this.update = this.update.bind(this)
 	}
@@ -28,9 +28,14 @@ class ArticleObj extends ArticleService {
 		currentPage = parseInt(currentPage);
 		limit = parseInt(limit);
 		flag = parseInt(flag);
-
+		let queryObj={
+			cp:currentPage,
+			limit:limit,
+			flag:flag,
+			title:title
+		}
 		try{
-			let data = await this.get(currentPage,limit,flag,title);
+			let data = await ArticleService.get(queryObj);
 			res.json(data);
 		}catch(err){
 			console.log('获取文章列表出错:' + err);
@@ -39,17 +44,15 @@ class ArticleObj extends ArticleService {
 
 	async getArticleById(req, res, next) {
 		let id = req.params['article_id'];
-		try {
-			let article = await ArticleModel.findById(id).populate('category','-__v').populate('tags','-__v');
+		try{
+			let article = await ArticleService.getById(id);
 			res.json({
 				code: 1,
 				article,
 				message: 'success'
 			});
-		} catch(err) {
-			res.status(500).json({
-				message: '查询出错'
-			});
+		}catch(err){
+			console.log('获取文章出错',+err);
 		}
 	}
 
@@ -176,33 +179,27 @@ class ArticleObj extends ArticleService {
 				message: '更新pv成功'
 			});
 		}catch(err){
-			res.json({
-				code: -1,
-				message: '更新pv失败'
-			});
+			console.log('更新pv失败');
 		}
 
 	}
 
 
 	async deleteOne(req, res, next) {
-		let id = req.params['article_id'];
-		if(!id) {
-			res.json({
-				code: 0,
-				type: 'ERROR_PARAMS',
-				message: '请输入文章ID'
-			});
-			return;
-		}
-
+		const id = req.params['article_id'];
 		try {
 			let article = await ArticleModel.findById(id);
-			await CategoryModel.update({ _id: article.category }, { $pull: { "articles": article._id } });
-			if(article.isDeleted) {
-				await ArticleModel.remove({ _id: article._id });
-			} else {
-				await ArticleModel.update({ _id: article._id }, { 'status': 0 });
+			if(!article){
+				return res.json({
+					code:-1,
+					message:'没有找到要删除的文章'
+				})
+			}
+			await CategoryModel.update({ _id: article.category }, { $pull: { "articles": id } });
+			if(!article.status) {
+				await ArticleModel.remove({ _id: id });
+			}else{
+				await ArticleModel.update({ _id: id }, { 'status': 0 });
 			}
 			res.json({
 				code: 1,
@@ -210,7 +207,6 @@ class ArticleObj extends ArticleService {
 			});
 		} catch(err) {
 			console.log('删除文章出错' + err);
-			next(err);
 		}
 	}
 
@@ -225,7 +221,7 @@ class ArticleObj extends ArticleService {
 							"articles": article._id
 						}
 					}).then(function() {
-						if(article.isDeleted) { //彻底删除
+						if(!article.status) { //彻底删除
 							return ArticleModel.remove({
 								_id: article._id
 							});
@@ -245,7 +241,6 @@ class ArticleObj extends ArticleService {
 				});
 			}).catch(function(err) {
 				console.log('文章批量删除失败:' + err);
-				next(err);
 			})
 	}
 
@@ -268,7 +263,7 @@ class ArticleObj extends ArticleService {
 				message: '点赞成功'
 			});
 		}catch(err){
-			next(err);
+			console.log('点赞失败:'+err)
 		}
 	}
 

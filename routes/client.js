@@ -15,102 +15,46 @@ import tool from '../utility/tool'
 import Auth from '../middleware/auth'
 import loadCommonData from '../middleware/common' 
 
+import ArticleService from '../services/article'
 
 const router = express.Router();
-const BaseQuery = require('../models/dbHelper'),
-	aQuery = BaseQuery.ArticlesQuery;
-
-//首页面初始化
-function init(currentPage, cb) {
-	async.auto({
-		banners: function(callback) {
-			BannerModel.find({}).sort({ weight: -1 }).limit(3).exec(function(err, banners) {
-				callback(null, banners);
-			})
-		},
-		total: function(callback) {
-			let query = aQuery();
-			ArticleModel.count(query).exec(function(err, total) { //所有文章数量
-				callback(null, total);
-			})
-		},
-		articles: function(callback) {
-			let pageSize = parseInt(CONFIG.PageSize);
-			let query = aQuery();
-			ArticleModel.find(query).skip((currentPage - 1) * pageSize)
-				.limit(pageSize).sort({ create_time: -1 })
-				.populate('category', 'name')
-				.populate('tags','name').exec(function(err, articles) {
-					callback(null, articles);
-				})
-		},
-		newArticle: function(callback) {
-			ArticleModel.findNew(1, function(newArticle) {
-				callback(null, newArticle);
-			});
-		},
-		hot: function(callback) {
-			ArticleModel.findByHot(3, function(hot) {
-				callback(null, hot);
-			})
-		}
-
-	}, function(err, results) {
-		results.settings = CONFIG;
-		cb(results);
-	})
-}
 
 //router.get("*",loadCommonData);
 
-router.get('/', loadCommonData, function(req, res, next) {
-	let currentPage = 1;
-	init(currentPage, function(results) {
+router.get('/', loadCommonData, async (req, res, next)=>{
+	let limit = parseInt(CONFIG.PageSize);
+	try{
+		let data = await ArticleService.get({limit:limit});
+		let banners = await BannerModel.find({}).sort({ weight: -1 }).limit(3);
 		res.render('www/index', {
-			title: results.settings.SiteName,
-			banners: results.banners,
-			total: results.total,
-			articles: results.articles, //所有文章
-			newArticle: results.newArticle[0], //最新文章
-			hot: results.hot, //热门文章
-			currentpage: currentPage, //当前页码
-			pagesize: parseInt(results.settings.PageSize) //列表数
+			title: CONFIG.SiteName,
+			banners,
+			total: data.total,
+			articles: data.articles, //所有文章
+			currentpage: data.cp, 	//当前页码
+			pagesize: limit 		//列表数
 		});
-	});
+	}catch(err){
+		next(err);
+	}
+	
 })
 
-router.get('/page/:page', loadCommonData, function(req, res, next) {
+router.get('/page/:page', loadCommonData, async (req, res, next)=> {
 	let page = parseInt(req.params["page"]);
-	let pageSize = parseInt(CONFIG.PageSize);
-	let query = aQuery();
-	ArticleModel.find(query).skip((page - 1) * pageSize)
-		.limit(pageSize).sort({ create_time: -1 })
-		.populate('category', 'name')
-		.populate('tags','name').exec(function(err, articles) {
-			if(err) {
-				return next(err);
-			}
-			res.render('www/blocks/article_list', {
-				articles: articles
-			})
+	let limit = parseInt(CONFIG.PageSize);
+	try{
+		let data = await ArticleService.get({cp:page,limit:limit});
+		res.render('www/blocks/article_list', {
+			articles: data.articles
 		})
+	}catch(err){
+		next(err);
+	}
+
 })
 
-//router.get('/page/:page',loadCommonData,function(req,res,next){
-//	let currentPage=parseInt(req.params["page"]);
-//	init(currentPage,function(results){
-//		res.render('www/new', {
-//			title: results.settings.SiteName,
-//			banners:results.banners,
-//			total:results.total,
-//			articles:results.articles,	//所有文章
-//			newArticle:results.newArticle[0],	//最新文章
-//			hot:results.hot,				//热门文章
-//			currentpage:currentPage,	//当前页码
-//			pagesize:parseInt(results.settings.PageSize)			//列表数
-//		});
-//	});
-//})
+
 
 //文章详情页面
 router.get('/article/:bId', loadCommonData, function(req, res, next) {
