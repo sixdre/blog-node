@@ -117,6 +117,9 @@ class ArticleObj extends UploadComponent{
 				let imgurl = await this.upload(req);
 				article.img = imgurl;
 			}
+			if(!article.abstract||!article.abstract.length){
+				article.abstract = article.content.substring(0,50);
+			}
 			let newarticle = new ArticleModel(article);
 			article = await newarticle.save();
 			const categoryId = article.category;
@@ -155,6 +158,9 @@ class ArticleObj extends UploadComponent{
 				}
 				let imgurl = await this.upload(req);
 				newArticle.img = imgurl;
+			}
+			if(!newArticle.abstract||!newArticle.abstract.length){
+				newArticle.abstract = newArticle.content.substring(0,50);
 			}
 			let article = await ArticleModel.findById(id);
 			let _article = _.extend(article, newArticle);

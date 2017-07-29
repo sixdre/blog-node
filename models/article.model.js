@@ -27,6 +27,7 @@ const ArticleSchema = new Schema({
 	}],
 	content: String, 	//内容
 	tagcontent: String, //带格式的内容
+	abstract:String,	//简介
 	img: String, 		//封面
 	source: { 	  		//文章来源(出处)
 		type: String
@@ -61,14 +62,6 @@ const ArticleSchema = new Schema({
 		type: Number,
 		default:2      //0 表示删除，1表示草稿，2 表示有效
 	},
-	isDeleted:{			//软删除用于删除找回
-		type: Boolean,
-		default: false
-	},
-	isDraft: {			//是否草稿
-		type: Boolean,
-		default: false
-	}, 
 	create_time: {		//创建时间
 		type: Date,
 		default:Date.now()
@@ -93,43 +86,6 @@ ArticleSchema.path('source').validate(function(value){
 
 
 
-//查找所有
-ArticleSchema.statics.findAll = function(callback) {
-	let query = aQuery();
-
-	return this.model('Article')
-		.find(query)
-		.sort({
-			create_time: -1
-		})
-		.exec(function(error, doc) {
-			if(error) {
-				console.log(error);
-				callback([]);
-			} else {
-				callback(doc);
-			}
-		});
-}
-
-//查找最新的
-ArticleSchema.statics.findNew = function(limit, callback) {
-	let query = aQuery();
-	return this.model('Article')
-		.find(query)
-		.sort({
-			create_time: -1
-		})
-		.limit(limit)
-		.exec(function(error, doc) {
-			if(error) {
-				console.log(error);
-				callback([]);
-			} else {
-				callback(doc);
-			}
-		});
-}
 //查找上一篇
 ArticleSchema.statics.findPrev = function(bid, callback) {
 	let query = aQuery();
@@ -183,22 +139,6 @@ ArticleSchema.statics.findByBId = function(id, callback) {
 		}
 	});
 
-}
-
-//根据时间来查找
-ArticleSchema.statics.findByTime = function(time, callback) {
-	return this.model('Article')
-		.find({
-			create_time: time
-		})
-		.exec(function(error, doc) {
-			if(error) {
-				console.log(error);
-				callback([]);
-			} else {
-				callback(doc);
-			}
-		});
 }
 
 //查询热门文章 (根据浏览数来排序)--客户端

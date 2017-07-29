@@ -35,16 +35,16 @@ class articleService extends UploadComponent {
                     });
                     return;
                 }
-                const articles = await ArticleModel.find(queryObj)
+                const articles = await ArticleModel.find(queryObj,{content:0,tagcontent:0,__v:0})
                     .sort({ "create_time": -1 }).skip(limit * (cp-1))
                     .limit(limit).populate('category','name').populate('tags','name');
-                
+              
                 resolve({
                     code: 1,
                     articles,
                     total,		//文章总数
                     totalPage,	//总计页数
-                    cp	//当前页
+                    cp	        //当前页
                 });
             } catch(err) {
                 reject('获取文章列表出错:' + err);
@@ -69,6 +69,46 @@ class articleService extends UploadComponent {
             }
         })
     }
+
+    //发布文章
+    publish(article){
+        return new Promise(async (resolve,reject)=>{
+            try{
+                let newarticle = await ArticleModel.create(article);
+                resolve(newarticle);
+            }catch(err){
+                reject(err)   
+            }
+
+        })
+    }
+
+    //更新浏览量
+    updatePv(id){
+        return new Promise(async (resolve,reject)=>{
+            if(!id){
+                reject({
+                    type: 'ERROR',
+                    message:'ERROR_PARAMS ID'
+                });
+            }
+            try{
+                await ArticleModel.update({_id:id}, {'$inc': {'nums.pv': 1}});
+                resolve('success');
+            }catch(err){
+                reject(err)
+            }
+        })
+    }
+
+
+
+
+
+
+
+
+
 
 }
 
