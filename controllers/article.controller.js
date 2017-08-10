@@ -20,9 +20,10 @@ const tool = require('../utility/tool');
 class ArticleObj extends UploadComponent{
 	constructor() {
 		super()
-		this.publish = this.publish.bind(this)
+		this.create = this.create.bind(this)
 		this.update = this.update.bind(this)
 	}
+	//获取文章
 	async getArticles(req, res, next) {
 		let { currentPage = 1, limit = 0, title = "", flag = 2 } = req.query;
 		currentPage = parseInt(currentPage);
@@ -41,7 +42,7 @@ class ArticleObj extends UploadComponent{
 			console.log('获取文章列表出错:' + err);
 		}
 	}
-
+	//根据id获取文章
 	async getArticleById(req, res, next) {
 		let id = req.params['article_id'];
 		try{
@@ -60,7 +61,7 @@ class ArticleObj extends UploadComponent{
 		let tagId = req.params['tag_id'];
 		const {offset=0,limit = 100} = req.query;
 		try{
-			let articles = await ArticleModel.find({'tags':{'$in':[tagId]}})
+			let articles = await ArticleModel.find({'tags':{'$in':[tagId]}},{content:0,tagcontent:0,__v:0})
 								.skip(Number(offset)).limit(Number(limit))
 								.populate('category','-__v').populate('tags','-__v');
 							
@@ -83,7 +84,7 @@ class ArticleObj extends UploadComponent{
 		const cId = req.params['category_id'];
 		const {offset=0,limit = 100} = req.query;
 		try{
-			let articles = await ArticleModel.find({'category':{'$in':[cId]}},{'__v':0})
+			let articles = await ArticleModel.find({'category':{'$in':[cId]}},{'content':0,'tagcontent':0,'__v':0})
 							.skip(Number(offset)).limit(Number(limit))
 							.populate('category','-__v').populate('tags','-__v');
 			res.json({
@@ -101,7 +102,7 @@ class ArticleObj extends UploadComponent{
 		}
 	}
 	
-	async publish(req, res, next) {
+	async create(req, res, next) {
 		let article = req.body.article;
 		article['author'] = req.session["manager"].username || '未知用户';
 		try {
@@ -120,10 +121,9 @@ class ArticleObj extends UploadComponent{
 			if(!article.abstract||!article.abstract.length){
 				article.abstract = article.content.substring(0,50);
 			}
-			let newarticle = new ArticleModel(article);
-			article = await newarticle.save();
-			const categoryId = article.category;
-			await CategoryModel.update({ _id: categoryId }, { '$addToSet': { "articles": article._id } });
+			let newarticle = await new ArticleModel(article).save();
+
+			await CategoryModel.update({ '_id': newarticle.category }, { '$addToSet': { "articles": newarticle._id } });
 			res.json({
 				code: 1,
 				article,
@@ -138,14 +138,7 @@ class ArticleObj extends UploadComponent{
 	async update(req, res, next) {
 		const id = req.params['article_id'];
 		let newArticle = req.body.article;
-		
-		if(!id) {
-			res.json({
-				code: 0,
-				type: 'ERROR_PARAMS'
-			});
-			return;
-		}
+
 		try {
 			if(req.file) {
 				let nameArray = req.file.originalname.split('.')

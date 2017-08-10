@@ -38,7 +38,7 @@ router.get('/articles',ArticleCtrl.getArticles);
 //根据id获取
 router.get('/articles/:article_id',ArticleCtrl.getArticleById);
 //文章发布
-router.post('/articles',Auth.checkAdmin, upload.single('cover'),ArticleCtrl.publish);
+router.post('/articles',Auth.checkAdmin, upload.single('cover'),ArticleCtrl.create);
 //文章更新
 router.put('/articles/:article_id',Auth.checkAdmin, upload.single('cover'),ArticleCtrl.update);
 //更新文章pv

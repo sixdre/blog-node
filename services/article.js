@@ -71,10 +71,10 @@ class articleService extends UploadComponent {
     }
 
     //发布文章
-    publish(article){
+    create(article){
         return new Promise(async (resolve,reject)=>{
             try{
-                let newarticle = await ArticleModel.create(article);
+				let newarticle = await new ArticleModel(article).save();
                 resolve(newarticle);
             }catch(err){
                 reject(err)   
