@@ -30,11 +30,12 @@ class FileObj extends UploadComponent{
 		if(!req.file){
 			res.json({
 				code:-2,
+				type:'NOT FILE',
 				message:'请选择文件'
 			});
 			return ;
 		}
-		let {filename,size,path} = req.file;
+		let {filename,size} = req.file;
 
 		try{
 			let fileurl = await this.upload(req);
@@ -62,14 +63,12 @@ class FileObj extends UploadComponent{
 			});
 			return;
 		}
-		console.log(req.file,req.body)
 		let nameArray = req.file.originalname.split('.')
 		let type = nameArray[nameArray.length - 1];
 		let typeArray = ["jpg", "png", "gif", "jpeg"];
 		if(tool.contain(typeArray, type) && tool.checkUrl(req.body.link)) {
 			try{
 				let imgurl = await this.upload(req);
-				console.log(imgurl)
 				let banner = new BannerModel({
 					dec: req.body.dec,
 					url: req.body.link,

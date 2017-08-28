@@ -94,47 +94,7 @@ class CategoryObj{
 	   		next(err);
 	   	}
 	   	
-		
-//		if(!categoryName|| !categoryName.length){
-//			res.json({
-//				code: 0,
-//				type: 'ERROR_PARAMS',
-//				message:'请输入分类名称'
-//			})
-//			return ;
-//		}
-//		
-//		try{
-//			let cate=await CategoryModel.findOne({name: categoryName})
-//			if(cate) {
-//				throw new Error('已有此分类,不可重复')
-//			}
-//		}catch(err){
-//			console.log('已有此标签,不可重复');
-//			res.json({
-//				code: -1,
-//				type: 'ERROR_TO_ADD_CATEGORY',
-//				message: err.message
-//			})
-//			return;
-//		}
-//		
-//		try{
-//			const newCategory = new CategoryModel({
-//				name:categoryName
-//			});
-//			const category=await newCategory.save();
-//			res.json({
-//				code: 1,
-//				category:category,
-//				type: 'SUCCESS_TO_ADD_CATEGORY',
-//				message: '添加成功'
-//			})
-//		}catch(err){
-//			next(err);
-//		}
-		
-		
+	
 	}
 	
 	async update(req,res,next){

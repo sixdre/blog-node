@@ -49,12 +49,20 @@ router.delete('/articles/:article_id',Auth.checkAdmin,ArticleCtrl.deleteOne);
 router.post('/articles/removeMulti', Auth.checkAdmin,ArticleCtrl.deleteMulti);
 //文章点赞
 router.put('/articles/:article_id/likes',Auth.checkLoginByAjax,ArticleCtrl.addLikes);
+
 //获取文章评论
-router.get('/articles/:article_id/comments',ArticleCtrl.getComments);
+router.get('/comments/:article_id',ArticleCtrl.getComments);
 //文章评论
-router.post('/articles/:article_id/comments',Auth.checkLoginByAjax,ArticleCtrl.addComment);
+router.post('/comments/:article_id',Auth.checkLoginByAjax,ArticleCtrl.addComment);
 //评论点赞
 router.post('/comments/:comment_id/like',Auth.checkLoginByAjax,ArticleCtrl.addCommentLike);
+
+
+//获取文章评论
+//router.get('/articles/:article_id/comments',ArticleCtrl.getComments);
+////文章评论
+//router.post('/articles/:article_id/comments',Auth.checkLoginByAjax,ArticleCtrl.addComment);
+
 
 
 //获取category数据
