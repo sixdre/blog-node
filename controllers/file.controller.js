@@ -5,8 +5,6 @@
 import http from 'http'
 import path from 'path'
 import fs from 'fs'
-import multer from 'multer' //上传文件中间件 multer
-import mongoose from 'mongoose'
 import UploadComponent from '../prototype/upload'
 //数据模型
 import FileModel from '../models/file.model'	
@@ -51,7 +49,7 @@ class FileObj extends UploadComponent{
 			});
 		}catch(err){
 			console.log('保存文件出错'+err);
-			next(err);
+			return 	next(err);
 		}
 	}
 	
@@ -82,13 +80,13 @@ class FileObj extends UploadComponent{
 				});
 			}catch(err){
 				console.log("banner save err:", err);
-				next(err);
+				return next(err);
 			}
 		} else {
 			res.json({
 				code: -1,
 				type: 'FORM_DATA_ERROR',
-				message: '添加失败'
+				message: '参数错误'
 			});
 		}
 	}

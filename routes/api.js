@@ -2,7 +2,6 @@
 //后台管理路由
 import express  from 'express' 
 import multer from 'multer'		
-import moment from 'moment'
 
 import ArticleCtrl from '../controllers/article.controller'
 import CategoryCtrl from '../controllers/category.controller'
@@ -33,6 +32,10 @@ const upload = multer({
 	storage: storage
 });
 
+
+router.del = router.delete;
+
+
 //获取文章
 router.get('/articles',ArticleCtrl.getArticles);
 //根据id获取
@@ -44,29 +47,31 @@ router.put('/articles/:article_id',Auth.checkAdmin, upload.single('cover'),Artic
 //更新文章pv
 router.put('/articles/:article_id/pv',ArticleCtrl.updatePv);
 //文章删除(单项)
-router.delete('/articles/:article_id',Auth.checkAdmin,ArticleCtrl.deleteOne);
+router.del('/articles/:article_id',Auth.checkAdmin,ArticleCtrl.deleteOne);
 //文章删除（多选)
 router.post('/articles/removeMulti', Auth.checkAdmin,ArticleCtrl.deleteMulti);
 //文章点赞
 router.put('/articles/:article_id/likes',Auth.checkLoginByAjax,ArticleCtrl.addLikes);
 
 //获取文章评论
-router.get('/comments/:article_id',ArticleCtrl.getComments);
+router.get('/comments/article/:article_id',ArticleCtrl.getComments);
 //文章评论
-router.post('/comments/:article_id',Auth.checkLoginByAjax,ArticleCtrl.addComment);
+router.post('/comments/article/:article_id',Auth.checkLoginByAjax,ArticleCtrl.addComment);
 //评论点赞
 router.post('/comments/:comment_id/like',Auth.checkLoginByAjax,ArticleCtrl.addCommentLike);
 
 
 //获取文章评论
 //router.get('/articles/:article_id/comments',ArticleCtrl.getComments);
-////文章评论
+//文章评论
 //router.post('/articles/:article_id/comments',Auth.checkLoginByAjax,ArticleCtrl.addComment);
 
 
 
 //获取category数据
 router.get("/categories",CategoryCtrl.getCategories);
+//获取指定的category
+router.get("/categories/:category_id", CategoryCtrl.getCategoryById);
 //获取某一分类下的文章
 router.get("/categories/:category_id/articles",ArticleCtrl.getArticlesByCategoryId);
 //分类添加
@@ -74,10 +79,12 @@ router.post("/categories", Auth.checkAdmin,CategoryCtrl.add);
 //分类更新
 router.put("/categories/:category_id", Auth.checkAdmin,CategoryCtrl.update);
 //分类删除
-router.delete('/categories/:category_id', Auth.checkAdmin,CategoryCtrl.remove);
+router.del('/categories/:category_id', Auth.checkAdmin,CategoryCtrl.remove);
 
 //获取标签数据
 router.get('/tags',TagCtrl.getTags);
+//获取指定id的标签
+router.get('/tags/:tag_id', TagCtrl.getTagById);
 //获取标签下的文章
 router.get('/tags/:tag_id/articles',ArticleCtrl.getArticlesByTagId);
 //新增标签
@@ -85,7 +92,7 @@ router.post('/tags', Auth.checkAdmin,TagCtrl.add);
 //更新标签
 router.put('/tags/:tag_id', Auth.checkAdmin, TagCtrl.update);
 //删除标签
-router.delete('/tags/:tag_id', Auth.checkAdmin,TagCtrl.remove);
+router.del('/tags/:tag_id', Auth.checkAdmin,TagCtrl.remove);
 
 //获取友情链接数据 
 router.get('/friends',FriendCtrl.getFriends);
@@ -94,12 +101,12 @@ router.post('/friends',Auth.checkAdmin,FriendCtrl.add);
 //更新友链
 router.put('/friends/:friend_id', Auth.checkAdmin,FriendCtrl.update);
 //删除友情链接
-router.delete('/friends/:friend_id', Auth.checkAdmin,FriendCtrl.remove);
+router.del('/friends/:friend_id', Auth.checkAdmin,FriendCtrl.remove);
 
 
 //获取注册用户
 router.get('/users', Auth.checkAdmin, UserCtrl.getUsers)
-////登陆
+//登陆
 router.post('/user/login',UserCtrl.login);
 //注册
 router.post('/user/regist',UserCtrl.regist);

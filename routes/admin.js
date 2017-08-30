@@ -1,13 +1,8 @@
 "use strict";
 //后台管理路由
 import express from 'express'
-import path from 'path'
-import fs from 'fs'
 import async from 'async'
-import multer from 'multer'  //上传文件中间件 multer
-import md5 from 'md5'
-import _ from 'underscore'
-import mongoose from 'mongoose'
+
 //数据模型
 import ArticleModel from '../models/article.model'
 import CategoryModel from "../models/category.model"

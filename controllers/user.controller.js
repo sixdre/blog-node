@@ -2,10 +2,6 @@
  * 用户控制器
  */
 "use strict";
-import path from 'path'
-import fs from 'fs'
-import _ from 'underscore'
-import mongoose from 'mongoose'
 import md5  from 'md5'
 import validator from 'validator'
 
@@ -40,7 +36,7 @@ class UserObj{
 			});	
 		}catch(err){
 			console.log('查询用户列表出错:' + err);
-			next(err);
+			return next(err);
 		}
 		
 	}
@@ -93,7 +89,8 @@ class UserObj{
 			});
 
 		}catch(err){
-			next(err);
+			console.log('用户注册失败:' + err);
+			return next(err);
 		}
 		
 	}
@@ -137,7 +134,8 @@ class UserObj{
 //				res.redirect('back');
 			}
 		}catch(err){
-			next(err);
+			console.log('登录失败:' + err);
+			return next(err);
 		}
 		  
 	}
@@ -184,8 +182,8 @@ class UserObj{
 				message:'成功创建超级管理员！'
 			});
 		}catch(err){
-			console.log('注册失败:'+err);
-			next(err);
+			console.log('创建超级管理员失败:' + err);
+			return next(err);
 		}
 	}
 	
@@ -195,7 +193,6 @@ class UserObj{
 
 		try{
 			let manager=await UserModel.findOne({username:username});
-			console.log(manager)
 			if(!manager|| !manager.isAdmin){
 				res.json({
 					code:-1,
@@ -214,8 +211,8 @@ class UserObj{
 				});			
 			}
 		}catch(err){
-			console.log('登陆出错:'+err);
-			next(err);
+			console.log('管理员登陆出错:' + err);
+			return next(err);
 		}
 	}
 	

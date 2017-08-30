@@ -2,12 +2,7 @@
  * 文章控制器（文章发布，查询，删除）
  */
 "use strict";
-import path from 'path'
-import fs from 'fs'
 import _ from 'underscore'
-import mongoose from 'mongoose'
-import events from 'events'
-
 
 import ArticleModel from '../models/article.model'
 import CategoryModel from "../models/category.model"
@@ -40,6 +35,7 @@ class ArticleObj extends UploadComponent{
 			res.json(data);
 		}catch(err){
 			console.log('获取文章列表出错:' + err);
+			return next(err);
 		}
 	}
 	//根据id获取文章
@@ -54,6 +50,7 @@ class ArticleObj extends UploadComponent{
 			});
 		}catch(err){
 			console.log('获取文章出错',+err);
+			return next(err);
 		}
 	}
 
@@ -72,11 +69,7 @@ class ArticleObj extends UploadComponent{
 			});
 		}catch(err){
 			console.log('获取文章出错'+err);
-			res.json({
-				code: -1,
-				type: 'ERROR',
-				message:'获取文章出错'
-			});
+			return next(err);
 		}
 	}
 	
@@ -94,11 +87,7 @@ class ArticleObj extends UploadComponent{
 			});
 		}catch(err){
 			console.log('获取文章出错'+err);
-			res.json({
-				code: -1,
-				type: 'ERROR',
-				message:'获取文章出错'
-			});
+			return next(err);
 		}
 	}
 	
@@ -131,7 +120,7 @@ class ArticleObj extends UploadComponent{
 			});
 		} catch(err) {
 			console.log('文章发布出错' + err);
-			next(err);
+			return next(err);
 		}
 	}
 
@@ -164,7 +153,7 @@ class ArticleObj extends UploadComponent{
 			});
 		} catch(err) {
 			console.log('更新文章失败:' + err);
-			next(err);
+			return next(err);
 		}
 	}
 
@@ -179,6 +168,7 @@ class ArticleObj extends UploadComponent{
 			});
 		}catch(err){
 			console.log('更新pv失败');
+			return next(err);
 		}
 
 	}
@@ -206,6 +196,7 @@ class ArticleObj extends UploadComponent{
 			});
 		} catch(err) {
 			console.log('删除文章出错' + err);
+			return next(err);
 		}
 	}
 
@@ -240,6 +231,7 @@ class ArticleObj extends UploadComponent{
 				});
 			}).catch(function(err) {
 				console.log('文章批量删除失败:' + err);
+				return next(err);
 			})
 	}
 
@@ -262,7 +254,8 @@ class ArticleObj extends UploadComponent{
 				message: '点赞成功'
 			});
 		}catch(err){
-			console.log('点赞失败:'+err)
+			console.log('点赞失败:'+err);
+			return next(err);
 		}
 	}
 
@@ -293,7 +286,7 @@ class ArticleObj extends UploadComponent{
 			}
 		} catch(err) {
 			console.log(err);
-			next(err);
+			return next(err);
 		}
 	}
 
@@ -316,8 +309,8 @@ class ArticleObj extends UploadComponent{
 					message:'评论成功'
 				});
 			} catch(err) {
-				next(err);
 				console.log('评论出错:' + err);
+				return 	next(err);
 			}
 		} else {
 			_comment.create_time = new Date();
@@ -331,8 +324,8 @@ class ArticleObj extends UploadComponent{
 					message:'评论成功'
 				});
 			} catch(err) {
-				next(err);
 				console.log('评论出错:' + err);
+				return 	next(err);
 			}
 		}
 	}
@@ -391,7 +384,7 @@ class ArticleObj extends UploadComponent{
 			}
 		} catch(err) {
 			console.log('评论点赞出错:' + err);
-			next(err);
+			return 	next(err);
 		}
 	}
 }

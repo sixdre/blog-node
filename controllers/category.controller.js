@@ -2,11 +2,6 @@
  * 分类控制器
  */
 "use strict";
-import path from 'path'
-import fs from 'fs'
-import _ from 'underscore'
-import mongoose from 'mongoose'
-
 //数据模型
 import CategoryModel from "../models/category.model"
 const tool = require('../utility/tool');
@@ -38,8 +33,25 @@ class CategoryObj{
 			});	
 		}catch(err){
 			console.log('获取分类列表出错:' + err);
-			next(err);
+			return 	next(err);
 		}
+	}
+	
+	async getCategoryById(req,res,next){
+		const id = req.params['category_id'];
+		
+		try{
+			let category = await CategoryModel.findOne({_id:id},{'__v':0});
+			res.json({
+				code:1,
+				category,
+				message:'获取分类成功'
+			})
+		}catch(err){
+			console.log('获取分类出错:' + err);
+			return 	next(err);
+		}
+		
 	}
 	
 	async add(req,res,next){
@@ -91,7 +103,8 @@ class CategoryObj{
 				message: '添加成功'
 			});
 	   	}catch(err){
-	   		next(err);
+	   		console.log('分类添加失败',+err);
+	   		return 	next(err);
 	   	}
 	   	
 	
@@ -132,7 +145,8 @@ class CategoryObj{
 				message: '更新成功'
 			});
 		}catch(err){
-			next(err)
+			console.log('分类更新失败'+err);
+			return 	next(err);
 		}
 	}
 	
@@ -155,7 +169,8 @@ class CategoryObj{
 			});
 			
 		}catch(err){
-			next(err);
+			console.log('分类删除失败'+err);
+			return 	next(err);
 		}
 	}
 	

@@ -2,10 +2,6 @@
  * 留言控制器
  */
 "use strict";
-import path from 'path'
-import fs  from 'fs'
-import _  from 'underscore'
-import mongoose from 'mongoose'
 
 //数据模型
 import WordModel from '../models/word.model'	
@@ -23,7 +19,8 @@ class WordObj{
 				message:'获取留言成功'
 			});
 		}catch(err){
-			next(err);
+			console.log('获取留言失败'+err);
+			return next(err);
 		}
 	}
 	
@@ -40,8 +37,8 @@ class WordObj{
 				message:'留言成功'
 			});
 		}catch(err){
-			console.log("留言失败:"+err);
-			next(err);
+			console.log('添加留言失败'+err);
+			return next(err);
 		}
 	}
 	
@@ -64,8 +61,8 @@ class WordObj{
 				message: '留言回复成功'
 			});
 		}catch(err){
-			console.log(err);
-			next(err);
+			console.log('留言回复失败'+err);
+			return next(err);
 		}
 	}
 	

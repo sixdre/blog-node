@@ -1,9 +1,6 @@
 "use strict";
 import express from 'express'
 import async from 'async'
-import events from 'events'
-import path from 'path'
-import mongoose from 'mongoose'
 
 //数据模型
 import ArticleModel from '../models/article.model'

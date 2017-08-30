@@ -2,11 +2,6 @@
  * 友情链接控制器
  */
 "use strict";
-import path from 'path'
-import fs from 'fs'
-import _ from 'underscore'
-import mongoose from 'mongoose'
-
 //数据模型
 import FriendModel from '../models/friend.model'	
 
@@ -36,7 +31,8 @@ class FriendObj{
 			})
 
 		}catch(err){
-			next(err);
+			console.log('获取友情链接数据失败'+err);
+			return next(err);
 		}
 	}
 	
@@ -76,8 +72,8 @@ class FriendObj{
 				message: '添加成功'
 			});
 		}catch(err){
-			console.log('添加失败'+err);
-			next(err);
+			console.log('友情链接添加失败'+err);
+			return next(err);
 		}
 	}
 	
@@ -100,8 +96,8 @@ class FriendObj{
 			});
 			
 		}catch(err){
-			console.log('更新失败:' + err);
-			next(err);
+			console.log('友情链接更新失败:' + err);
+			return next(err);
 		}
 	}
 	
@@ -121,8 +117,8 @@ class FriendObj{
 				message: '删除成功'
 			});
 		}catch(err){
-			console.log('友链删除失败:' + err);
-			next(err);
+			console.log('友情链接删除失败:' + err);
+			return next(err);
 		}
 	}
 }

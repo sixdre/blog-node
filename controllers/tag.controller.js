@@ -2,11 +2,6 @@
  * 标签控制器
  */
 "use strict";
-import path from 'path'
-import fs from 'fs'
-import _ from 'underscore'
-import mongoose from 'mongoose'
-
 //数据模型
 import TagModel from '../models/tag.model'	
 const tool = require('../utility/tool');
@@ -40,11 +35,29 @@ class TagObj{
 			});	
 		}catch(err){
 			console.log('获取标签列表出错:' + err);
-			next(err);
+			return next(err);
 		}
 		
 	}
 	
+	async getTagById(req,res,next){
+		const id = req.params['tag_id'];
+		
+		try{
+			let tag = await TagModel.findOne({_id:id},{'__v':0});
+			res.json({
+				code:1,
+				tag,
+				message:'获取标签成功'
+			})
+		}catch(err){
+			console.log('获取标签出错:' + err);
+			return 	next(err);
+		}
+		
+	}
+	
+
 	async add(req,res,next){
 		const tagName = req.body.name;
 	    const nameArr = tagName.split('/');
@@ -93,51 +106,10 @@ class TagObj{
 				message: '添加成功'
 			});
 	   	}catch(err){
-	   		next(err);
+	   		console.log('添加标签出错:' + err);
+			return next(err);
 	   	}
 		
-//		let {_id,name}=req.body;
-//		if(!name || !name.length){
-//			res.send({
-//				code: 0,
-//				type: 'ERROR_PARAMS',
-//				message:'请输入标签名称'
-//			})
-//			return ;
-//		}
-//		
-//		try{
-//			let tag=await TagModel.findOne({name: name});
-//			if(tag) {
-//				throw new Error('已有此标签,不可重复')
-//			}
-//		}catch(err){
-//			console.log('已有此标签,不可重复');
-//			res.send({
-//				code: -1,
-//				type: 'ERROR_TO_ADD_TAG',
-//				message: err.message
-//			})
-//			return;
-//		}
-//		try{
-//			const newTag=new TagModel({
-//				name:name
-//			})
-//			const tag=await newTag.save();
-//			res.send({
-//				code: 1,
-//				tag:tag,
-//				type: 'SUCCESS_TO_ADD_TAG',
-//				message: '添加成功'
-//			})
-//		}catch(err){
-//			res.send({
-//				code: -1,
-//				type: 'ERROR_TO_ADD_TAG',
-//				message: '添加失败'
-//			})
-//		}
 
 	}
 	async update(req,res,next){
@@ -174,9 +146,8 @@ class TagObj{
 				message: '更新成功'
 			});
 		}catch(err){
-			res.json({
-				message: '更新失败'
-			});
+			console.log('更新标签出错:' + err);
+			return next(err);
 		}
 	}
 	
@@ -189,10 +160,8 @@ class TagObj{
 				message: '删除成功'
 			});
 		}catch(err){
-			res.json({
-				code: -1,
-				message: '删除失败'
-			});
+			console.log('删除标签出错:' + err);
+			return next(err);
 		}
 	}
 	

@@ -1,15 +1,12 @@
 "use strict";
 //引入数据模型  
-import mongoose from 'mongoose'
 import async from 'async'
 import events from 'events' //事件处理模块
-import path from 'path'
 
 const tool = require('../utility/tool');
 import ArticleModel from '../models/article.model'
 import CategoryModel from "../models/category.model" 
 import FriendModel from "../models/friend.model" 
-
 
 /*
  * 加载网站公共的数据（页面导航，友情链接 
