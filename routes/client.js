@@ -8,8 +8,6 @@ import CategoryModel from "../models/category.model"
 import BannerModel from '../models/banner.model'
 import CommentModel from '../models/comment.model'
 
-import tool from '../utility/tool'
-import Auth from '../middleware/auth'
 import loadCommonData from '../middleware/common' 
 
 import ArticleService from '../services/article'

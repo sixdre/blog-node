@@ -276,14 +276,12 @@ class ArticleObj extends UploadComponent{
 					select:'username '
 				})
 				.sort(sort);
-			if(comments) {
-				// res.render("www/blocks/comment_list", {
-				// 	comments: comments
-				// });
-				res.json({
-					comments: comments
-				})
-			}
+			// res.render("www/blocks/comment_list", {
+			// 	comments: comments
+			// });
+			res.json({
+				comments: comments
+			})
 		} catch(err) {
 			console.log(err);
 			return next(err);
@@ -334,12 +332,6 @@ class ArticleObj extends UploadComponent{
 		const commentId = req.params['comment_id'],
 			replyId = req.body.replyId,
 			user = req.session['User'];
-
-		if(!commentId) {
-			return res.status(500).json({
-				message: '请求参数有误'
-			})
-		}
 
 		try {
 			let comment = await CommentModel.findById(commentId);

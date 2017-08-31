@@ -1,10 +1,9 @@
 "use strict";
-import _ from 'underscore'
 import ArticleModel from '../models/article.model'
-import UploadComponent from '../prototype/upload'
-class articleService extends UploadComponent {
+
+class articleService{
     constructor(){
-        super()
+   
     }
 
     //获取文章列表（默认获取有效文章）
