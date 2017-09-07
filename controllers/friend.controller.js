@@ -51,7 +51,7 @@ class FriendObj{
 		try{
 			let friend = await FriendModel.findOne({title: title});
 			if(friend){
-				throw new Error('已有此标签,不可重复')
+				throw new Error('已有此友链,不可重复')
 			}
 		}catch(err){
 			console.log('已有此标签,不可重复');

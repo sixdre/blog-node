@@ -9,7 +9,7 @@ import CategoryModel from "../models/category.model"
 import CommentModel from '../models/comment.model'
 import ArticleService from '../services/article'
 import UploadComponent from '../prototype/upload'
-
+import jwt  from  "jsonwebtoken"
 const tool = require('../utility/tool');
 
 class ArticleObj extends UploadComponent{
@@ -20,15 +20,16 @@ class ArticleObj extends UploadComponent{
 	}
 	//获取文章
 	async getArticles(req, res, next) {
-		let { currentPage = 1, limit = 0, title = "", flag = 2 } = req.query;
-		currentPage = parseInt(currentPage);
+		
+		let { page = 1, limit = 10, title = "", flag = 2 } = req.query;
+		page = parseInt(page);
 		limit = parseInt(limit);
 		flag = parseInt(flag);
 		let queryObj={
-			cp:currentPage,
-			limit:limit,
-			flag:flag,
-			title:title
+			page,
+			limit,
+			flag,
+			title
 		}
 		try{
 			let data = await ArticleService.get(queryObj);

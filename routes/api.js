@@ -122,7 +122,7 @@ router.get('/user/admin_logout',UserCtrl.admin_logout)
 
 
 //获取留言
-router.get('/words',Auth.checkAdmin,WordCtrl.getWords);
+router.get('/words',WordCtrl.getWords);
 //提交留言
 router.post('/words',Auth.checkLoginByAjax,WordCtrl.add);
 //留言回复

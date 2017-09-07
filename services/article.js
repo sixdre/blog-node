@@ -7,9 +7,9 @@ class articleService{
     }
 
     //获取文章列表（默认获取有效文章）
-    get({cp = 1,limit = 10,flag = 2,title = ''}){
+    get({page = 1,limit = 10,flag = 2,title = ''}){
         return new Promise(async (resolve,reject)=>{
-            cp = parseInt(cp);
+            page = parseInt(page);
             limit = parseInt(limit);
             flag = parseInt(flag);
             let queryObj = {
@@ -25,25 +25,26 @@ class articleService{
             try {
                 const total = await ArticleModel.count(queryObj);
                 const totalPage =Math.ceil(total/limit);
-                if(!total||cp>totalPage) {
+
+                if(!total||page>totalPage) {
                     resolve({
                         code: -1,
-                        cp,
+                        page,
                         total,
                         articles:[]
                     });
                     return;
                 }
                 const articles = await ArticleModel.find(queryObj,{content:0,tagcontent:0,__v:0})
-                    .sort({ "create_time": -1 }).skip(limit * (cp-1))
+                    .sort({ "create_time": -1 }).skip(limit * (page-1))
                     .limit(limit).populate('category','name').populate('tags','name');
               
                 resolve({
                     code: 1,
                     articles,
-                    total,		//文章总数
-                    totalPage,	//总计页数
-                    cp	        //当前页
+                    total,			//文章总数
+                    totalPage,		//总计页数
+                    page	        //当前页
                 });
             } catch(err) {
                 reject('获取文章列表出错:' + err);

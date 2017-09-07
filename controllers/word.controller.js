@@ -11,11 +11,29 @@ class WordObj{
 		
 	}
 	async getWords(req,res,next){
+		//read(0)表示为未读
+		//read(1)表示为已读
+		//reply(0)表示为未回复
+		//reply(1)表示为已回复
+		let read = req.query.read;
+		let reply = req.query.reply;
+		let query = {};
 		try{
-			const words=await WordModel.find({"state.isRead":false}).populate('user','username');
+			if(read == '0'){
+				query.isRead = false;
+			}else if(read == '1'){
+				query.isRead = true;
+			}
+			if(reply=='0'){
+				query.isReply= false;
+			}else if(reply=='1'){
+				query.isReply= true;
+			}
+			const words=await WordModel.find(query).populate('user','username');
 			res.json({
 				code:1,
 				words,
+				query,
 				message:'获取留言成功'
 			});
 		}catch(err){
