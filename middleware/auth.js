@@ -12,7 +12,6 @@ class Check {
 	}
 	
 	async check(req,res,next){
-		
 		let {username,password} = req.body;
 		try{
 			if (validator.isEmpty(username)) {
@@ -80,6 +79,36 @@ class Check {
 //          }
 //      })
 	}
+	
+	checkToken(req,res,next){
+		var token = req.body.token || req.query.token || req.headers['authorization'];
+		console.log(token)
+ 		if (token) {
+ 			jwt.verify(token, 'app.get(superSecret)', function (err, decoded) {
+	            if (err) {
+	                return res.json({success: false, message: 'token信息错误.'});
+	            } else {
+	                console.log(decoded);
+	                next()
+	            }
+	        });
+
+ 		}else {
+
+	        // 如果没有token，则返回错误
+	        return res.status(403).send({
+	            success: false,
+	            message: '没有提供token！'
+	        });
+	
+	    }	
+ 			
+ 
+ 			
+ 			
+	}
+	
+	
 	
 	checkAdmin(req, res, next) {
 		if(!req.session['manager']) {

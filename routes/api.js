@@ -36,6 +36,8 @@ const upload = multer({
 router.del = router.delete;
 
 
+router.post('/testuser',Auth.check);
+
 //获取文章
 router.get('/articles',ArticleCtrl.getArticles);
 //根据id获取

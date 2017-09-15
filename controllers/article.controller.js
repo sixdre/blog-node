@@ -20,7 +20,7 @@ class ArticleObj extends UploadComponent{
 	}
 	//获取文章
 	async getArticles(req, res, next) {
-		
+
 		let { page = 1, limit = 10, title = "", flag = 2 } = req.query;
 		page = parseInt(page);
 		limit = parseInt(limit);
