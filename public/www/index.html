@@ -14,53 +14,7 @@
 			<!--/banner-->
 			<div class="col-sm-8 col-xs-12 main">
 				<%include ./blocks/category.html%>
-				<!--文章列表-->
-				<div class="article_list_container">
-					<ul class="article_list" id="article_list" data-pagesize="<%=pagesize%>" data-total="<%=total%>" data-curp="<%=currentpage%>">
-						<%articles.forEach(function(value,i){%>
-							<%var cls=''%>
-							<%if(value.img&&value.img.length){%>
-								<%cls='have-img'%>
-							<%}%>
-						<li class="<%=cls%>">
-							<%if(value.img&&value.img.length){%>
-							<a class="wrap-img" href="/article/<%=value.bId%>">
-						      <img src="<%=value.img%>" class="img-responsive">
-						    </a>
-						  	<%}%>
-						    <div class="content">
-								<div class="author">
-									<div class="name">
-										<a class="blue-link" href="javascript:;"><%=value.author%></a>
-										<span class="time"><%=moment(value.create_time).format('YYYY-MM-DD')%></span>
-									</div>
-								</div>
-								<a class="title" href="/article/<%=value.bId%>"><%=value.title%></a>
-								<p class="abstract">
-									<%-value.content.substring(0,100)%>...
-								</p>
-								<div class="meta">
-									<%if(value.category){%>
-									<a class="art_category" href="/category/<%=value.category.name%>"><%=value.category.name%></a>
-									<%}%>
-									<a class="fa fa-eye"> <%=value.nums.pv%></a> 
-									<a class="fa fa-thumbs-o-up"> <%=value.nums.likeNum%></a>
-								</div>
-							</div>
-						</li>
-						<%})%>
-					</ul>
-				</div>
-				<p class="loading text-center">
-					<i class="fa fa-spinner fa-pulse fa-3x fa-fw margin-bottom"></i>
-				</p>
-				<!--<a data-page="3" href="/" class="load-more">阅读更多</a>-->
-				
-				<!--<div class="page_box" style="text-align: center;">
-					<ul class="pagination" id="pagination" data-pagesize="<%=pagesize%>" data-total="<%=total%>" data-curp="<%=currentpage%>"></ul>
-				</div>-->
-
-				<!--/ 文章列表-->
+			
 			</div>
 			
 			<!--右侧-->

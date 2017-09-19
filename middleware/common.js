@@ -28,7 +28,7 @@ export default (req,res,next) => {
 			});
 		},
 		types: function(cb) {
-			ArticleModel.aggregate([{$match:{'isDeleted':false,'isDraft':false}},
+			ArticleModel.aggregate([{$match:{'status':2}},
 					{$group: {_id: "$category",total: {$sum: 1}}}])
 			.exec(function(err, types) {
 				if(err){

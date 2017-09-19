@@ -26,8 +26,8 @@ router.get('/', loadCommonData, async (req, res, next)=>{
 			banners,
 			total: data.total,
 			articles: data.articles, //所有文章
-			currentpage: data.cp, 	//当前页码
-			pagesize: limit 		//列表数
+			page: data.cp, 	//当前页码
+			limit: limit 		//列表数
 		});
 	}catch(err){
 		next(err);

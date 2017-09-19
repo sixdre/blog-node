@@ -16,7 +16,11 @@ const ArticleSchema = new Schema({
 	author: { 			//作者
 		type: String
 	},
-	title: String, 		//标题
+	title: {			//标题
+		unique: true,
+		index: true,
+		type: String
+	}, 		
 	category: { 		//类型分类
 		type: ObjectId,
 		ref: 'Category'
