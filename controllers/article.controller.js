@@ -9,7 +9,7 @@ import CategoryModel from "../models/category.model"
 import CommentModel from '../models/comment.model'
 import ArticleService from '../services/article'
 import UploadComponent from '../prototype/upload'
-import jwt  from  "jsonwebtoken"
+
 const tool = require('../utility/tool');
 
 class ArticleObj extends UploadComponent{
@@ -20,7 +20,6 @@ class ArticleObj extends UploadComponent{
 	}
 	//获取文章
 	async getArticles(req, res, next) {
-
 		let { page = 1, limit = 10, title = "", flag = 2 } = req.query;
 		page = parseInt(page);
 		limit = parseInt(limit);
@@ -116,7 +115,6 @@ class ArticleObj extends UploadComponent{
 			await CategoryModel.update({ '_id': newarticle.category }, { '$addToSet': { "articles": newarticle._id } });
 			res.json({
 				code: 1,
-				article,
 				message: '发布成功'
 			});
 		} catch(err) {

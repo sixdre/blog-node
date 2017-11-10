@@ -62,7 +62,7 @@ class articleService{
                 });
             }
             try {
-                let article = await ArticleModel.findById(id).populate('category','-__v').populate('tags','-__v');
+                let article = await ArticleModel.findById(id,{content:0,__v:0}).populate('category','-__v').populate('tags','-__v');
                 resolve(article);
             } catch(err) {
                 reject(err);

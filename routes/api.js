@@ -109,17 +109,17 @@ router.del('/friends/:friend_id', Auth.checkAdmin,FriendCtrl.remove);
 //获取注册用户
 router.get('/users', Auth.checkAdmin, UserCtrl.getUsers)
 //登陆
-router.post('/user/login',UserCtrl.login);
+router.post('/login',UserCtrl.login);
 //注册
-router.post('/user/regist',UserCtrl.regist);
+router.post('/regist',UserCtrl.regist);
 //退出
-router.get('/user/logout',UserCtrl.logout);
+router.get('/logout',UserCtrl.logout);
 //管理员登陆
-router.post('/user/admin_login',UserCtrl.admin_login);
+router.post('/admin_login',UserCtrl.admin_login);
 //管理员注册
-router.post('/user/admin_regist',UserCtrl.admin_regist);
+router.post('/admin_regist',UserCtrl.admin_regist);
 //管理员退出
-router.get('/user/admin_logout',UserCtrl.admin_logout)
+router.get('/admin_logout',UserCtrl.admin_logout)
 
 
 

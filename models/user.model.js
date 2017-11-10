@@ -41,4 +41,13 @@ UserSchema.index({username:1});
 
 const User = mongoose.model('User', UserSchema);
 
+//User.findOne((err, data) => {
+//	if (!data) {
+//		Category.create({
+//			name:'未分类'
+//		});
+//	}
+//})
+
+
 export default User
