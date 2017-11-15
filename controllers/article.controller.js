@@ -275,9 +275,6 @@ class ArticleObj extends UploadComponent{
 					select:'username '
 				})
 				.sort(sort);
-			// res.render("www/blocks/comment_list", {
-			// 	comments: comments
-			// });
 			res.json({
 				comments: comments
 			})
@@ -337,7 +334,7 @@ class ArticleObj extends UploadComponent{
 			if(!comment) {
 				res.json({
 					code: 0,
-					message: '错误'
+					message: '操作失败，没有找到该评论！'
 				});
 				return;
 			}
@@ -356,7 +353,7 @@ class ArticleObj extends UploadComponent{
 				});
 			} else {
 				let reply = comment.reply;
-				reply.forEach(function(value) {
+				reply.forEach((value) =>{
 					if(value._id == replyId) {
 						if(value.likes.indexOf(user._id) > -1) {
 							return res.json({
