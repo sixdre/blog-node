@@ -48,10 +48,8 @@ router.post('/articles',Auth.checkAdmin, upload.single('cover'),ArticleCtrl.crea
 router.put('/articles/:article_id',Auth.checkAdmin, upload.single('cover'),ArticleCtrl.update);
 //更新文章pv
 router.put('/articles/:article_id/pv',ArticleCtrl.updatePv);
-//文章删除(单项)
-router.del('/articles/:article_id',Auth.checkAdmin,ArticleCtrl.deleteOne);
-//文章删除（多选)
-router.post('/articles/removeMulti', Auth.checkAdmin,ArticleCtrl.deleteMulti);
+//文章删除
+router.del('/articles/:article_id',Auth.checkAdmin,ArticleCtrl.remove);
 //文章点赞
 router.put('/articles/:article_id/likes',Auth.checkLoginByAjax,ArticleCtrl.addLikes);
 

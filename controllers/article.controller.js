@@ -199,8 +199,9 @@ class ArticleObj extends UploadComponent{
 		}
 	}
 
-	deleteMulti(req, res, next) {
-		ArticleModel.find({ _id: { "$in": req.body.ids } })
+	remove(req, res, next) {
+		const ids = req.params['article_id'].split(',');
+		ArticleModel.find({ _id: { "$in": ids } })
 			.then(function(articles) {
 				return Promise.all(articles.map(function(article) {
 					return CategoryModel.update({
