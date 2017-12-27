@@ -4,7 +4,7 @@
 "use strict";
 import md5  from 'md5'
 import validator from 'validator'
-
+import auth from '../middleware/auth'
 //数据模型
 import UserModel from '../models/user.model'	
 
@@ -190,7 +190,6 @@ class UserObj{
 	
 	async admin_login(req,res,next){
 		let {username,password} = req.body;
-
 		try{
 			let manager=await UserModel.findOne({username:username});
 			if(!manager|| !manager.isAdmin){
@@ -205,8 +204,10 @@ class UserObj{
 				});			
 			}else{
 				req.session["manager"] = manager;
+				var token = auth.setToken(manager);
 				res.json({
 					code : 1,
+					token,
 					message:'登陆成功'	//登陆成功
 				});			
 			}
@@ -215,6 +216,17 @@ class UserObj{
 			return next(err);
 		}
 	}
+	
+	//获取登录用户信息
+	async getUserInfo(req,res,next){
+		let userInfo = req.userInfo;
+		res.json({
+			code:1,
+			userInfo
+		})
+	}
+	
+	
 	
 	//管理员退出
 	admin_logout(req,res,next){

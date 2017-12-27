@@ -3,6 +3,8 @@
 import jwt  from  "jsonwebtoken"
 import md5  from 'md5'
 import validator from 'validator'
+import config from '../config/config'
+const secret = config.secret;
 
 //数据模型
 import UserModel from '../models/user.model'	
@@ -58,57 +60,33 @@ class Check {
 			return next(err);
 		}
 		
-
-//		var t1 = req.headers['authorization']
-//		
-//		var content ={msg:"today  is  a  good  day"}; // 要生成token的主题信息
-//		var secretOrPrivateKey="I am a goog man!" // 这是加密的key（密钥） 
-//		var token = jwt.sign(content, secretOrPrivateKey, {
-//		                    expiresIn: 60*60*24  // 24小时过期
-//		               });
-//		console.log("token ：" +token );
-//		
-//		console.log(t1)
-//		jwt.verify(t1, secretOrPrivateKey, function (err, decode) {
-//          if (err) {  //  时间失效的时候/ 伪造的token          
-//             res.json({err:err})
-//          } else {
-//          	console.log(decode)
-//             
-//             
-//          }
-//      })
+	}
+	
+	setToken(data){
+	    let token = jwt.sign(data, secret, {
+	      	expiresIn: '24h' 	//24h
+	    })
+	    return token;
 	}
 	
 	checkToken(req,res,next){
-		var token = req.body.token || req.query.token || req.headers['authorization'];
-		console.log(token)
- 		if (token) {
- 			jwt.verify(token, 'app.get(superSecret)', function (err, decoded) {
-	            if (err) {
-	                return res.json({success: false, message: 'token信息错误.'});
-	            } else {
-	                console.log(decoded);
-	                next()
-	            }
-	        });
-
- 		}else {
-
-	        // 如果没有token，则返回错误
-	        return res.status(403).send({
-	            success: false,
-	            message: '没有提供token！'
-	        });
-	
-	    }	
- 			
- 
- 			
- 			
+	 	var token = req.body.token || req.query.token || req.headers['x-access-token'];
+	        
+	    if(token) {//存在token，解析token
+	      	jwt.verify(token, secret , function(err,decoded) {
+		        if(err) {
+		            // 解析失败直接返回失败警告
+		          	return res.status(401).json({success:false,msg:'token验证失败',err})
+		        }else {
+		            //解析成功加入请求信息，继续调用后面方法
+		          	req.userInfo = decoded;
+		          	next()
+		        }
+	      	})
+	    }else {
+	      	return res.status(401).json({success:false,msg:"token验证失败"})
+	    }
 	}
-	
-	
 	
 	checkAdmin(req, res, next) {
 		if(!req.session['manager']) {
