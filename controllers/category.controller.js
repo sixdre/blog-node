@@ -28,7 +28,7 @@ class CategoryObj{
 				     .limit(limit);
 			res.json({
 				code: 1,
-				categories,
+				data:categories,
 				total
 			});	
 		}catch(err){
@@ -37,14 +37,14 @@ class CategoryObj{
 		}
 	}
 	
-	async getCategoryById(req,res,next){
-		const id = req.params['category_id'];
+	async findOneById(req,res,next){
+		const id = req.params['id'];
 		
 		try{
 			let category = await CategoryModel.findOne({_id:id},{'__v':0});
 			res.json({
 				code:1,
-				category,
+				data:category,
 				message:'获取分类成功'
 			})
 		}catch(err){
@@ -54,37 +54,35 @@ class CategoryObj{
 		
 	}
 	
-	async add(req,res,next){
-		const categoryName = req.body.name;
-	    const nameArr = categoryName.split('/');
-	    try{
-	    	if(!categoryName || !categoryName.length){
-				throw new Error('请检查输入');
-			}else if(tool.isRepeat(nameArr)){
-	    	 	throw new Error('请检查输入不要有相同值');
-	    	}
-	    	nameArr.map(item =>{
-	    		if(!item.replace(/(^\s*)|(\s*$)/g,"").length){		//空的字符
-	    			throw new Error('请检查输入格式是否正确,不要输入空的字符');
-	    		}
-	    	});
-	    }catch(err){
-	    	res.json({
+	async create(req,res,next){
+		let name = req.body.name;
+	    let nameArr = name.split('/');
+	    let errorMsg = '';
+    	if(!name || !name.length){
+			errorMsg = '请检查输入';
+		}else if(tool.isRepeat(nameArr)){
+    	 	errorMsg = '请检查输入不要有相同值';
+    	}
+    	nameArr.forEach(item =>{
+    		if(!item.replace(/(^\s*)|(\s*$)/g,"").length){		//空的字符
+    			errorMsg = '请检查输入格式是否正确,不要输入空的字符';
+    		}
+    	});
+    	
+    	if(errorMsg.length){
+    		return res.json({
 	    		code:0,
 	    		type:"ERROR_PARAMS",
-	    		message:err.message
+	    		message:errorMsg
 	    	});
-	    	return ;
-	    }
-	   
-	   	
+    	}
+
 	   	try{
-	   		let rsNames=[];
 	   		let categories = await CategoryModel.find({});
-			categories.map(item =>{
-				rsNames.push(item.name)
+			let allNames = categories.map(item =>{
+				return item.name;
 			});
-			if(tool.hasSameValue(rsNames,nameArr)){
+			if(tool.hasSameValue(allNames,nameArr)){
 				res.json({
 					code: -1,
 					type: 'ERROR_TO_ADD_CATEGORY',
@@ -111,9 +109,8 @@ class CategoryObj{
 	}
 	
 	async update(req,res,next){
-		const id = req.params['category_id'];
-		let {name}=req.body;
-		
+		const id = req.params['id'];
+		let name = req.body.name;
 		if(!name.length){
 			res.json({
 				code: 0,
@@ -122,47 +119,30 @@ class CategoryObj{
 			})
 			return ;
 		}
-		
 		try{
-			let cate=await CategoryModel.findOne({name: name})
+			let cate = await CategoryModel.findOne({name: name})
 			if(cate){
-				throw new Error('已有此标签,不可重复')
+				return res.json({
+					code: 0,
+					type: 'ERROR_TO_ADD_TAG',
+					message:'已有此名字的分类'
+				})
 			}
-		}catch(err){
-			console.log('已有此标签,不可重复');
-			res.json({
-				code: -1,
-				type: 'ERROR_TO_ADD_TAG',
-				message: err.message
-			})
-			return;
-		}
-		
-		try{
 			await CategoryModel.update({_id: id}, {name: name})
 			res.json({
 				code: 1,
 				message: '更新成功'
 			});
+			
 		}catch(err){
-			console.log('分类更新失败'+err);
-			return 	next(err);
+			return next(err);
 		}
 	}
 	
 	async remove(req,res,next){
-		let id = req.params['category_id'];
-		if(!id){
-			res.json({
-				code: 0,
-				type: 'ERROR_PARAMS',
-				message:'参数错误'
-			});
-			return; 
-		}
-		
+		let ids = req.params['id'].split(',');
 		try{
-			await CategoryModel.remove({_id: id});
+			await CategoryModel.remove({_id: { "$in": ids }});
 			res.json({
 				code: 1,
 				message: '删除成功'

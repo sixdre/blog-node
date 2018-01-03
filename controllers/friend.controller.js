@@ -78,7 +78,7 @@ class FriendObj{
 	}
 	
 	async update(req,res,next){
-		const id = req.params['friend_id'];
+		const id = req.params['id'];
 		let {title,url,sort} = req.body;
 
 		try{
@@ -102,7 +102,7 @@ class FriendObj{
 	}
 	
 	async remove(req,res,next){
-		let id = req.params['friend_id'];
+		let id = req.params['id'];
 		if(!id){
 			res.send({
 				code: 0,

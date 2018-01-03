@@ -7,6 +7,10 @@ import validator from 'validator'
 import auth from '../middleware/auth'
 //数据模型
 import UserModel from '../models/user.model'	
+import ArticleModel from '../models/article.model'
+import CategoryModel from "../models/category.model"
+import TagModel from '../models/tag.model'	
+import WordModel from '../models/word.model'	
 
 class UserObj{
 	constructor(){
@@ -30,7 +34,7 @@ class UserObj{
 				     .limit(limit);
 			res.json({
 				code: 1,
-				users,
+				data:users,
 				total,
 				message: '获取用户列表成功'
 			});	
@@ -191,7 +195,9 @@ class UserObj{
 	async admin_login(req,res,next){
 		let {username,password} = req.body;
 		try{
-			let manager=await UserModel.findOne({username:username});
+			let manager = await UserModel.findOne({ username: username }, ['username', 'password', 'email','create_time','isAdmin']);
+			//返回指定字段 或者使用下面
+			//{username:1,password:1,email:1,create_time:1,isAdmin:1}
 			if(!manager|| !manager.isAdmin){
 				res.json({
 					code:-1,
@@ -202,9 +208,9 @@ class UserObj{
 					code : -2,
 					message:'密码错误'	//密码错误
 				});			
-			}else{
+			} else {
+				var token = auth.setToken(JSON.parse(JSON.stringify(manager)));
 				req.session["manager"] = manager;
-				var token = auth.setToken(manager);
 				res.json({
 					code : 1,
 					token,
@@ -220,10 +226,22 @@ class UserObj{
 	//获取登录用户信息
 	async getUserInfo(req,res,next){
 		let userInfo = req.userInfo;
-		res.json({
-			code:1,
-			userInfo
-		})
+		try {
+			let words = await WordModel.find({ "state.isRead": false }).populate('user', 'username');
+			let articleTotal = await ArticleModel.count({});
+			let categorys = await CategoryModel.find({});
+			let tags = await TagModel.find({});
+			res.json({
+				code:1,
+				userInfo:userInfo,
+				articleTotal:articleTotal,			//文章总数
+				words:words,			//留言
+				categorys:categorys,	//文章分类
+				tags:tags				//文章标签
+			});
+		} catch (err) {
+			
+		}
 	}
 	
 	

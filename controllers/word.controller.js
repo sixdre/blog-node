@@ -29,10 +29,10 @@ class WordObj{
 			}else if(reply=='1'){
 				query.isReply= true;
 			}
-			const words=await WordModel.find(query).populate('user','username');
+			const words = await WordModel.find(query).populate('user','username');
 			res.json({
 				code:1,
-				words,
+				data:words,
 				query,
 				message:'获取留言成功'
 			});

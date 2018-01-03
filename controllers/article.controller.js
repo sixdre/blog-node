@@ -7,7 +7,6 @@ import _ from 'underscore'
 import ArticleModel from '../models/article.model'
 import CategoryModel from "../models/category.model"
 import CommentModel from '../models/comment.model'
-import ArticleService from '../services/article'
 import UploadComponent from '../prototype/upload'
 
 const tool = require('../utility/tool');
@@ -31,21 +30,34 @@ class ArticleObj extends UploadComponent{
 			title
 		}
 		try{
-			let data = await ArticleService.get(queryObj);
-			res.json(data);
+			let {articles,totalPage,total} = await ArticleModel.findList(queryObj);
+			res.json({
+				code:1,
+				data:articles,
+				total:total,			//文章总数
+                totalPage:totalPage,		//总计页数
+                page       
+			});
 		}catch(err){
 			console.log('获取文章列表出错:' + err);
 			return next(err);
 		}
 	}
 	//根据id获取文章
-	async getArticleById(req, res, next) {
-		let id = req.params['article_id'];
+	async findOneById(req, res, next) {
+		let id = req.params['id'];
 		try{
-			let article = await ArticleService.getById(id);
+			let article = await ArticleModel.findById(id,{content:0,__v:0})
+								.populate('category','-__v').populate('tags','-__v');
+			if(!article||article.status==0){
+				return res.json({
+					code: 0,
+					message: '文章不存在或已被删除'
+				});
+			}
 			res.json({
 				code: 1,
-				article,
+				data:article,
 				message: 'success'
 			});
 		}catch(err){
@@ -60,12 +72,11 @@ class ArticleObj extends UploadComponent{
 		try{
 			let articles = await ArticleModel.find({'tags':{'$in':[tagId]}},{content:0,tagcontent:0,__v:0})
 								.skip(Number(offset)).limit(Number(limit))
-								.populate('category','-__v').populate('tags','-__v');
-							
+								.populate('category','-__v').populate('tags','-__v');			
 			res.json({
 				code:1,
-				type:'SUCCESS',
-				articles
+				msg:'success',
+				data:articles
 			});
 		}catch(err){
 			console.log('获取文章出错'+err);
@@ -82,8 +93,8 @@ class ArticleObj extends UploadComponent{
 							.populate('category','-__v').populate('tags','-__v');
 			res.json({
 				code:1,
-				type:'SUCCESS',
-				articles
+				msg:'success',
+				data:articles
 			});
 		}catch(err){
 			console.log('获取文章出错'+err);
@@ -124,7 +135,7 @@ class ArticleObj extends UploadComponent{
 	}
 
 	async update(req, res, next) {
-		const id = req.params['article_id'];
+		const id = req.params['id'];
 		let newArticle = req.body.article;
 
 		try {
@@ -157,7 +168,7 @@ class ArticleObj extends UploadComponent{
 	}
 
 	async updatePv(req,res,next){
-		const id = req.params['article_id'];
+		const id = req.params['id'];
 		console.log(id)
 		try{
 			await ArticleModel.update({_id:id}, {'$inc': {'nums.pv': 1}});
@@ -173,8 +184,8 @@ class ArticleObj extends UploadComponent{
 	}
 
 
-	async deleteOne(req, res, next) {
-		const id = req.params['article_id'];
+	async removeOne(req, res, next) {
+		const id = req.params['id'];
 		try {
 			let article = await ArticleModel.findById(id);
 			if(!article){
@@ -199,18 +210,19 @@ class ArticleObj extends UploadComponent{
 		}
 	}
 
-	remove(req, res, next) {
-		const ids = req.params['article_id'].split(',');
-		ArticleModel.find({ _id: { "$in": ids } })
-			.then(function(articles) {
-				return Promise.all(articles.map(function(article) {
-					return CategoryModel.update({
+	async remove(req, res, next) {
+		const ids = req.params['id'].split(',');
+		try{
+			let articles = await ArticleModel.find({ _id: { "$in": ids } });
+			let pro = articles.map((article) =>{
+				return new Promise(function(resolve, reject){
+					return  CategoryModel.update({
 						_id: article.category
 					}, {
 						$pull: {
 							"articles": article._id
 						}
-					}).then(function() {
+					}).then(function(){
 						if(!article.status) { //彻底删除
 							return ArticleModel.remove({
 								_id: article._id
@@ -222,21 +234,29 @@ class ArticleObj extends UploadComponent{
 								'status': 0
 							});
 						}
-					});
-				}));
-			}).then(function() {
-				res.json({
-					code: 1,
-					message: '删除成功'
-				});
-			}).catch(function(err) {
-				console.log('文章批量删除失败:' + err);
-				return next(err);
+					}).then(function(){
+						resolve('ok')
+					}).catch(function(err){
+						reject(err)
+					})
+				})
 			})
+			
+			await Promise.all(pro);
+			res.json({
+				code: 1,
+				message: '删除成功'
+			});
+			
+		}catch(err){
+			console.log('文章批量删除失败:' + err);
+			return next(err);
+		}
+
 	}
 
 	async addLikes(req, res, next) {
-		let id = req.params['article_id'];
+		let id = req.params['id'];
 		let userId = req.session["User"]._id;
 		if(!id || !userId) {
 			res.json({
@@ -277,7 +297,7 @@ class ArticleObj extends UploadComponent{
 				})
 				.sort(sort);
 			res.json({
-				comments: comments
+				data: comments
 			})
 		} catch(err) {
 			console.log(err);

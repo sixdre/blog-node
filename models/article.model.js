@@ -8,9 +8,6 @@ const Schema = mongoose.Schema,
 
 autoIncrement.initialize(mongoose.connection);
 
-const BaseQuery = require('../models/dbHelper'),
-	aQuery = BaseQuery.ArticlesQuery;
-
 //文章
 const ArticleSchema = new Schema({
 	author: { 			//作者
@@ -90,12 +87,55 @@ ArticleSchema.path('source').validate(function(value){
 
 
 
+//根据条件查询
+ArticleSchema.statics.findList = function({page = 1,limit = 10,flag = 2,title = ''}){
+	return new Promise(async (resolve,reject)=>{
+        page = parseInt(page);
+        limit = parseInt(limit);
+        flag = parseInt(flag);
+        let queryObj = {
+            title: {
+                '$regex': title
+            },
+            status:flag
+        }
+        if(flag == 3){		//查询全部
+            delete queryObj.status;
+        }
+        
+        try {
+            const total = await this.model('Article').count(queryObj);
+            const totalPage =Math.ceil(total/limit);
+
+            if(!total||page>totalPage) {
+                resolve({
+                    code: -1,
+                    page,
+                    total,
+                    articles:[]
+                });
+                return;
+            }
+            const articles = await this.model('Article').find(queryObj,{content:0,tagcontent:0,__v:0})
+                .sort({ "create_time": -1 }).skip(limit * (page-1))
+                .limit(limit).populate('category','name').populate('tags','name');
+          
+            resolve({
+                articles,
+                total,			//文章总数
+                totalPage,		//总计页数
+                page	        //当前页
+            });
+        } catch(err) {
+            reject('获取文章列表出错:' + err);
+        }
+    })
+}
+
+
+
 //查找上一篇
 ArticleSchema.statics.findPrev = function(bid, callback) {
-	let query = aQuery();
-	query.bId = {
-		'$lt': bid
-	}
 	return this.model('Article')
 		.findOne(query).sort({
 			bId: -1
@@ -112,10 +152,6 @@ ArticleSchema.statics.findPrev = function(bid, callback) {
 
 //查找下一篇
 ArticleSchema.statics.findNext = function(bid, callback) {
-	let query = aQuery();
-	query.bId = {
-		'$gt': bid
-	}
 	return this.model('Article')
 		.findOne(query).sort({
 			bId: 1
@@ -130,78 +166,6 @@ ArticleSchema.statics.findNext = function(bid, callback) {
 		});
 }
 
-//通过自增bId来查找
-ArticleSchema.statics.findByBId = function(id, callback) {
-	return this.model('Article').findOne({
-		bId: id
-	}, function(error, doc) {
-		if(error) {
-			console.log(error);
-			callback(null);
-		} else {
-			callback(doc);
-		}
-	});
-
-}
-
-//查询热门文章 (根据浏览数来排序)--客户端
-ArticleSchema.statics.findByHot = function(limit, callback) {
-	let query = aQuery();
-	return this.model('Article')
-		.find(query)
-		.sort({
-			'nums.pv': -1
-		})
-		.limit(limit)
-		.exec(function(error, hot) {
-			if(error) {
-				console.log(error);
-				callback([]);
-			} else {
-				callback(hot);
-			}
-		});
-}
-
-//根据文章标题进行查找
-ArticleSchema.statics.findByTitle = function(title, callback) {
-	return this.model('Article')
-		.find({
-			title: {
-				$regex: '' + title + ''
-			}
-		})
-		.sort({
-			create_time: -1
-		})
-		.exec(function(error, doc) {
-			if(error) {
-				console.log(error);
-				callback([]);
-			} else {
-				callback(doc);
-			}
-		});
-}
-//根据文章文章id进行更新阅读浏览数
-ArticleSchema.statics.findBybIdUpdate = function(id, callback) {
-	return this.model('Article')
-		.update({
-			bId: id
-		}, {
-			'$inc': {
-				'nums.pv': 1
-			}
-		})
-		.exec(function(error) {
-			if(error) {
-				console.log(error);
-			} else {
-				callback();
-			}
-		});
-}
 
 
 ArticleSchema.plugin(autoIncrement.plugin, {
@@ -210,6 +174,7 @@ ArticleSchema.plugin(autoIncrement.plugin, {
 	startAt: 1,       //开始位置，自定义
 	incrementBy: 1    //每次自增数量
 });
+
 ArticleSchema.pre('save', function(next) {
 	this.nums.likeNum=this.likes.length;
 	if(this.isNew) {
