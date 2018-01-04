@@ -7,8 +7,7 @@ import path from 'path'
 import fs from 'fs'
 import UploadComponent from '../prototype/upload'
 //数据模型
-import FileModel from '../models/file.model'	
-import BannerModel from '../models/banner.model'
+import {FileModel,BannerModel} from '../models/'
 
 const tool = require('../utility/tool');
 

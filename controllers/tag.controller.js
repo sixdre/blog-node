@@ -3,7 +3,7 @@
  */
 "use strict";
 //数据模型
-import TagModel from '../models/tag.model'	
+import {TagModel} from '../models/'
 const tool = require('../utility/tool');
 
 class TagObj{
@@ -44,7 +44,7 @@ class TagObj{
 		const id = req.params['id'];
 		
 		try{
-			let tag = await TagModel.findOne({_id:id},{'__v':0});
+			let tag = await TagModel.findById(id,{'__v':0});
 			res.json({
 				code:1,
 				data:tag,

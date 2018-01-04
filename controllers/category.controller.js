@@ -3,7 +3,7 @@
  */
 "use strict";
 //数据模型
-import CategoryModel from "../models/category.model"
+import {CategoryModel} from '../models/'
 const tool = require('../utility/tool');
 
 class CategoryObj{
@@ -41,7 +41,7 @@ class CategoryObj{
 		const id = req.params['id'];
 		
 		try{
-			let category = await CategoryModel.findOne({_id:id},{'__v':0});
+			let category = await CategoryModel.findById(id,{'__v':0});
 			res.json({
 				code:1,
 				data:category,

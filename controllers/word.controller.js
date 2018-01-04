@@ -4,7 +4,7 @@
 "use strict";
 
 //数据模型
-import WordModel from '../models/word.model'	
+import {WordModel} from '../models/'
 
 class WordObj{
 	constructor(){

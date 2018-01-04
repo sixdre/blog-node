@@ -4,9 +4,7 @@
 "use strict";
 import _ from 'underscore'
 
-import ArticleModel from '../models/article.model'
-import CategoryModel from "../models/category.model"
-import CommentModel from '../models/comment.model'
+import {ArticleModel,CategoryModel,CommentModel} from '../models/'
 import UploadComponent from '../prototype/upload'
 
 const tool = require('../utility/tool');

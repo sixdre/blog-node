@@ -6,11 +6,9 @@ import md5  from 'md5'
 import validator from 'validator'
 import auth from '../middleware/auth'
 //数据模型
-import UserModel from '../models/user.model'	
-import ArticleModel from '../models/article.model'
-import CategoryModel from "../models/category.model"
-import TagModel from '../models/tag.model'	
-import WordModel from '../models/word.model'	
+
+import {UserModel,ArticleModel,CategoryModel,TagModel,WordModel} from '../models/'
+
 
 class UserObj{
 	constructor(){

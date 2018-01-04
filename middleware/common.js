@@ -4,9 +4,7 @@ import async from 'async'
 import events from 'events' //事件处理模块
 
 const tool = require('../utility/tool');
-import ArticleModel from '../models/article.model'
-import CategoryModel from "../models/category.model" 
-import FriendModel from "../models/friend.model" 
+import {ArticleModel,CategoryModel,FriendModel} from '../models/'
 
 /*
  * 加载网站公共的数据（页面导航，友情链接 

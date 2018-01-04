@@ -10,6 +10,7 @@ import WordCtrl from '../controllers/word.controller'
 import FriendCtrl from '../controllers/friend.controller'
 import UserCtrl from '../controllers/user.controller'
 import FileCtrl from '../controllers/file.controller'
+import permissionCtrl from '../controllers/permission.controller'
 import Auth from '../middleware/auth'
 
 const router = express.Router();
@@ -130,6 +131,35 @@ router.post('/upload/addBanner', upload.single('banner'),FileCtrl.addBanner)
 router.get('/allFiles', Auth.checkToken, FileCtrl.getFiles);
 //下载文件
 router.get('/download', FileCtrl.download);
+
+
+
+
+router.get('/menus',permissionCtrl.getMenus);
+router.post('/menus',permissionCtrl.createMenu);
+router.put('/menus/:id',permissionCtrl.updateMenu);
+router.delete('/menus/:id',permissionCtrl.removeMenu);
+router.get('/permissions',permissionCtrl.getPermissionList);
+router.post('/permissions',permissionCtrl.createPermission);
+router.put('/permissions/:id',permissionCtrl.updatePermission);
+router.get('/roles',permissionCtrl.getRoles);
+router.post('/roles',permissionCtrl.createRole);
+router.get('/roles/:id/permission',permissionCtrl.getPermissionByRoleId);
+router.post('/roles/:id/permission',permissionCtrl.saveRolePermission);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 export default router;

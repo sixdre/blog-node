@@ -7,7 +7,7 @@ import config from '../config/config'
 const secret = config.secret;
 
 //数据模型
-import UserModel from '../models/user.model'	
+import {UserModel} from '../models/'
 class Check {
 	constructor() {
 
