@@ -46,7 +46,7 @@ class ArticleObj extends UploadComponent{
 		let id = req.params['id'];
 		try{
 			let article = await ArticleModel.findById(id,{content:0,__v:0})
-								.populate('category','-__v').populate('tags','-__v');
+								.populate('category','name').populate('tags','name');
 			if(!article||article.status==0){
 				return res.json({
 					code: 0,
@@ -70,7 +70,7 @@ class ArticleObj extends UploadComponent{
 		try{
 			let articles = await ArticleModel.find({'tags':{'$in':[tagId]}},{content:0,tagcontent:0,__v:0})
 								.skip(Number(offset)).limit(Number(limit))
-								.populate('category','-__v').populate('tags','-__v');			
+								.populate('category','name').populate('tags','name');			
 			res.json({
 				code:1,
 				msg:'success',
@@ -88,7 +88,7 @@ class ArticleObj extends UploadComponent{
 		try{
 			let articles = await ArticleModel.find({'category':{'$in':[cId]}},{'content':0,'tagcontent':0,'__v':0})
 							.skip(Number(offset)).limit(Number(limit))
-							.populate('category','-__v').populate('tags','-__v');
+							.populate('category','name').populate('tags','name');
 			res.json({
 				code:1,
 				msg:'success',

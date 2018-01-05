@@ -44,6 +44,7 @@ class FileObj extends UploadComponent{
 			await newfile.save();
 			res.json({
 				code:1,
+				url:fileurl,
 				message:'文件上传成功'
 			});
 		}catch(err){

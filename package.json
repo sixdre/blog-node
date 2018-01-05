@@ -6,8 +6,8 @@
   "author": "xuhao",
   "license": "ISC",
   "scripts": {
-    "dev": "set NODE_ENV=development && nodemon bin/www",
-    "start": "set NODE_ENV=production && pm2 start bin/www"
+    "dev": "set  NODE_ENV=development&& nodemon bin/www",
+    "start": "set  NODE_ENV=production&& pm2 start bin/www"
   },
   "dependencies": {
     "async": "^2.1.4",

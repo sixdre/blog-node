@@ -1,0 +1,64 @@
+yield可以直接处理mongoose查询的值例如:
+var user = yield User.findById(id).exec();
+网站：http://mongorito.com/
+https://github.com/vadimdemedes/mongorito
+关于promise介绍
+http://liubin.org/promises-book/#ch2-promise-all
+http://efe.baidu.com/blog/promises-anti-pattern/
+http://www.jianshu.com/p/063f7e490e9a
+
+mongoose操作
+http://ourjs.com/detail/53ad24edb984bb4659000013
+
+
+关于async的介绍 http://blog.csdn.net/qqhjqs/article/details/51913942
+async.waterfall 串行有关联(多个函数或方法执行，每一步执行时都需要上一步执行的结果当参数)
+async.parallel 并行无关联(多个函数执行，之间没有任何的关系，也就是说谁执行都行，为了节约时间就可以使用并行流程来解决)
+async.series   串行无关联(多个函数或方法要依次执行，但是他们之间并没有什么联系，只有先后的顺序，比如我要写一个文件，
+				写完之后像用户发送邮件，这两者之间没有必然的联系，但是发邮件必须在写文件完成之后。) 
+async.auto  智能控制(当一个场景里，需要使用串行也需要使用并行的时候)
+
+并行和串行同时使用的话，会先将并行的结果输出
+
+关于app.locals和res.locals的区别
+https://cnodejs.org/topic/579ab34af0d4b46026ba55eb
+
+
+一些node.js个人博客
+https://cnodejs.org/topic/51b78b9ef78196a85c767863
+
+node.js 事件详解
+http://www.cnblogs.com/zhongweiv/p/nodejs_events.html
+
+redis
+http://www.redis.net.cn/tutorial/3503.html
+
+sweetalert2
+https://github.com/limonte/sweetalert2
+
+在angular中如果有异步请求就不需要调用$apply方法
+调用延时时间最好用angular 的$timeout
+注:http://blog.csdn.net/aitangyong/article/details/48972643
+
+
+http://www.cnblogs.com/zipon/p/5825973.html
+
+
+mongodb 会自动创建_v 代表这个数据的版本号 如果save的时候_v不同就会报错
+
+
+angular-cookies介绍
+http://www.cnblogs.com/ys-ys/p/5021085.html
+
+return res.redirect('back');//返回之前的页面
+
+
+//数组长度排序
+http://blog.csdn.net/gao36951/article/details/40678875
+
+http://www.qdfuns.com/notes/15910/c70811d914c54bc8c099b43747a63e71.html
+
+http://www.cnblogs.com/hahazexia/p/6027787.html
+
+//node 请求获取参数
+http://localhost:7892/admin/#/app/article/list/
