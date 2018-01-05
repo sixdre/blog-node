@@ -15,9 +15,8 @@ const permissionSchema=new Schema({
 		type:String,
 		default: 'get'
 	},
-	menuId:{
-		type: ObjectId,
-		ref: 'Menu'
+	tag:{
+		type:String,
 	},
 	meta:{
 		create_time:{

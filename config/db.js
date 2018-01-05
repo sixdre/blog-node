@@ -5,7 +5,7 @@ import path from 'path'
 import config from './config.js'
 
 
-mongoose.connect(config.mongodb, {server:{auto_reconnect:true}});
+mongoose.connect(config.mongodb);
 mongoose.Promise = global.Promise;
 
 const db = mongoose.connection;

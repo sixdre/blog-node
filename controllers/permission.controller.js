@@ -90,13 +90,13 @@ class PermissionController {
 	
 	//创建权限
 	async createPermission(req,res,next){
-		let {name,resource,type,menuId} = req.body;
+		let {name,resource,type,tag} = req.body;
 		try{
 			let obj = {		//创建
 				name,
 				resource,
 				type,
-				menuId
+				tag
 			}
 			await PermissionModel.create(obj);
 			res.json({
@@ -136,18 +136,27 @@ class PermissionController {
 		let {page=1,limit=5,group=0} = req.query;
 			page = Number(page),
 			limit = Number(limit);
-		try{
-			let skip = (page-1)*limit;
-			let count = await PermissionModel.count();
-			let permissions = await PermissionModel.find({})
+			try {
+				if (group == 0) {
+					let skip = (page-1)*limit;
+					let count = await PermissionModel.count();
+					let permissions = await PermissionModel.find({})
 						.skip(skip).limit(limit)
-						.populate('menuId','-__v')			
-			res.json({
-				code:'1',
-				count,
-				data:permissions,
-				msg:'权限列表获取成功'
-			})
+					res.json({
+						code: 1,
+						count,
+						data:permissions,
+						msg:'权限列表获取成功'
+					})
+				} else {
+					let data = await PermissionModel.aggregate([
+						{ $group: { '_id': "$tag", data: { $push: { '_id': '$_id', 'resource':'$resource', 'name': '$name' } } } }]);
+					res.json({
+						code: 1,
+						data,
+						msg:'权限列表获取成功'
+					})
+				}
 		
 		}catch(err){
 			return next(err);
@@ -158,7 +167,7 @@ class PermissionController {
 	async createRole(req,res,next){
 		let name = req.body.name;
 		try{
-			let role = await RoleModel.find({name: name});
+			let role = await RoleModel.findOne({name: name});
 			if(role){
 				res.json({
 					code:0,

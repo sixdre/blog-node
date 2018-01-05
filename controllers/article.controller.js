@@ -102,7 +102,7 @@ class ArticleObj extends UploadComponent{
 	
 	async create(req, res, next) {
 		let article = req.body.article;
-		article['author'] = req.session["manager"].username || '未知用户';
+		article['author'] = req.userInfo.username || '未知用户';
 		try {
 			if(req.file) {
 				let nameArray = req.file.originalname.split('.')

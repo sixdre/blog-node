@@ -212,6 +212,9 @@ class UserObj{
 				res.json({
 					code : 1,
 					token,
+					role:{
+						name:'测试'
+					},
 					message:'登陆成功'	//登陆成功
 				});			
 			}
