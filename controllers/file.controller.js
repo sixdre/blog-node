@@ -24,7 +24,7 @@ class FileObj extends UploadComponent{
 	}
 	
 	async addFile(req,res,next){
-		if(!req.file){
+		if(!req.files||!req.files.length){
 			res.json({
 				code:-2,
 				type:'NOT FILE',
@@ -32,16 +32,26 @@ class FileObj extends UploadComponent{
 			});
 			return ;
 		}
-		let {filename,size} = req.file;
-
 		try{
-			let fileurl = await this.upload(req);
-			const newfile=new FileModel({
-				filename:filename,
-				filesize:size,
-				filepath:fileurl
-			});
-			await newfile.save();
+			let Pro = req.files.map(item=>{
+				return new Promise((resolve, reject) => {
+					return this.upload(item).then(url=>{
+						FileModel.create({
+							filename:item.filename,
+							filesize:item.size,
+							filepath:url
+						});
+						resolve(url)
+					}).catch(err=>{
+						reject(err)
+					})
+
+				})
+			})
+			let fileurl = await Promise.all(Pro);
+			if(fileurl.length===1&&req.files.length===1){
+				fileurl=fileurl[0]
+			}
 			res.json({
 				code:1,
 				url:fileurl,
@@ -66,7 +76,7 @@ class FileObj extends UploadComponent{
 		let typeArray = ["jpg", "png", "gif", "jpeg"];
 		if(tool.contain(typeArray, type) && tool.checkUrl(req.body.link)) {
 			try{
-				let imgurl = await this.upload(req);
+				let imgurl = await this.upload(req.file);
 				let banner = new BannerModel({
 					dec: req.body.dec,
 					url: req.body.link,

@@ -14,6 +14,7 @@ import db from './config/db.js';
 import router from './routes'
 import ueditor from "ueditor"
 
+
 global.CONFIG = JSON.parse(fs.readFileSync('./config/settings.json').toString());
 
 const app = global.app = express();
@@ -21,7 +22,7 @@ const app = global.app = express();
 
 
 app.all('*', function(req, res, next) {  
-    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Origin', config.allowOrigin);
 	res.header('Access-Control-Allow-Headers', 'Content-Type, Content-Length, Authorization, Accept, X-Requested-With , x-access-token');
 	res.header('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE, OPTIONS');
 	if (req.method == 'OPTIONS') {

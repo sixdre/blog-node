@@ -3,7 +3,7 @@
  */
 "use strict";
 import _ from 'underscore'
-
+import request from 'request'
 import {ArticleModel,CategoryModel,CommentModel} from '../models/'
 import UploadComponent from '../prototype/upload'
 
@@ -17,6 +17,7 @@ class ArticleObj extends UploadComponent{
 	}
 	//获取文章
 	async getArticles(req, res, next) {
+		
 		let { page = 1, limit = 10, title = "", flag = 2 } = req.query;
 		page = parseInt(page);
 		limit = parseInt(limit);
@@ -29,6 +30,14 @@ class ArticleObj extends UploadComponent{
 		}
 		try{
 			let {articles,totalPage,total} = await ArticleModel.findList(queryObj);
+			// request('http://47.93.52.132:7893/api/articles', function (error, response, body) {
+			//   	if (!error && response.statusCode == 200) {
+			//   		let data = JSON.parse(body);
+			//   		data.data = data.articles;
+			//     	res.json(data);
+			//   	}
+			// })
+			
 			res.json({
 				code:1,
 				data:articles,
@@ -113,7 +122,7 @@ class ArticleObj extends UploadComponent{
 						message: '文章封面格式错误'
 					})
 				}
-				let imgurl = await this.upload(req);
+				let imgurl = await this.upload(req.file);
 				article.img = imgurl;
 			}
 			if(!article.abstract||!article.abstract.length){
@@ -146,7 +155,7 @@ class ArticleObj extends UploadComponent{
 						message: '文章封面格式错误'
 					})
 				}
-				let imgurl = await this.upload(req);
+				let imgurl = await this.upload(req.file);
 				newArticle.img = imgurl;
 			}
 			if(!newArticle.abstract||!newArticle.abstract.length){
@@ -167,8 +176,14 @@ class ArticleObj extends UploadComponent{
 
 	async updatePv(req,res,next){
 		const id = req.params['id'];
-		console.log(id)
 		try{
+			let article = await ArticleModel.findById(id);
+			if(!article){
+				return res.json({
+					code: 0,
+					message: '该文章不存在或已被删除'
+				});
+			}
 			await ArticleModel.update({_id:id}, {'$inc': {'nums.pv': 1}});
 			res.json({
 				code: 1,
@@ -188,8 +203,8 @@ class ArticleObj extends UploadComponent{
 			let article = await ArticleModel.findById(id);
 			if(!article){
 				return res.json({
-					code:-1,
-					message:'没有找到要删除的文章'
+					code:0,
+					message:'该文章不存在或已被删除'
 				})
 			}
 			await CategoryModel.update({ _id: article.category }, { $pull: { "articles": id } });
@@ -256,7 +271,7 @@ class ArticleObj extends UploadComponent{
 	async addLikes(req, res, next) {
 		let id = req.params['id'];
 		let userId = req.session["User"]._id;
-		if(!id || !userId) {
+		if(!userId) {
 			res.json({
 				code: 0,
 				type: 'ERROR_PARAMS',
@@ -265,6 +280,13 @@ class ArticleObj extends UploadComponent{
 			return;
 		}
 		try{
+			let article = await ArticleModel.findById(id);
+			if(!article){
+				return res.json({
+					code:0,
+					message:'该文章不存在或已被删除'
+				})
+			}
 			await ArticleModel.update({ _id: id}, { $addToSet: { "likes": userId } });
 			res.json({
 				code: 1,
@@ -288,13 +310,22 @@ class ArticleObj extends UploadComponent{
 			sort = { create_time: -1 }
 		}
 		try {
+			let article = await ArticleModel.findById(articleId);
+			if(!article){
+				return res.json({
+					code:0,
+					message:'该文章不存在或已被删除'
+				})
+			}
 			const comments = await CommentModel.find({ articleId: articleId })
 				.populate({
 					path:'from reply.from reply.to',
 					select:'username '
-				})
-				.sort(sort);
+				}).sort(sort);
+
 			res.json({
+				code:1,
+				msg:'评论获取成功',
 				data: comments
 			})
 		} catch(err) {
@@ -307,39 +338,50 @@ class ArticleObj extends UploadComponent{
 		let _comment = req.body;
 		const articleId=req.params['article_id'];
 		_comment.from = req.session["User"];
-		if(_comment.cId) {
-			let reply = {
-				from: _comment.from._id,
-				to: _comment.toId,
-				content: _comment.content,
-				create_time: new Date()
-			};
-			try {
+
+
+		try{
+			let article = await ArticleModel.findById(articleId);
+			if(!article){
+				return res.json({
+					code:0,
+					message:'该文章不存在或已被删除'
+				})
+			}
+			if(_comment.cId) {
+				let reply = {
+					from: _comment.from._id,
+					to: _comment.toId,
+					content: _comment.content,
+					create_time: new Date()
+				};
+				let cmt = await CommentModel.findById(_comment.cId);
+				if(!cmt){
+					return res.json({
+						code:0,
+						message:'此条评论不存在'
+					})
+				}
 				await CommentModel.update({ _id: _comment.cId }, { $addToSet: { "reply": reply } });
 				await ArticleModel.update({_id:articleId},{'$inc':{'nums.cmtNum':1}});
 				res.json({
 					code: 1,
 					message:'评论成功'
 				});
-			} catch(err) {
-				console.log('评论出错:' + err);
-				return 	next(err);
-			}
-		} else {
-			_comment.create_time = new Date();
-			_comment.articleId = articleId;
-			let newcomment = new CommentModel(_comment);
-			try {
+			}else{
+				_comment.create_time = new Date();
+				_comment.articleId = articleId;
+				let newcomment = new CommentModel(_comment);
 				await newcomment.save();
 				await ArticleModel.update({_id:articleId},{'$inc':{'nums.cmtNum':1}});
 				res.json({
 					code: 1,
 					message:'评论成功'
 				});
-			} catch(err) {
-				console.log('评论出错:' + err);
-				return 	next(err);
 			}
+		}catch(err){
+			console.log('评论出错:' + err);
+			return 	next(err);
 		}
 	}
 

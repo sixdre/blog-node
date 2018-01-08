@@ -124,7 +124,7 @@ router.put('/words/:id', Auth.checkToken,WordCtrl.reply);
 
 
 //添加文件
-router.post('/upload/addFile', upload.single('file'), FileCtrl.addFile);
+router.post('/upload/addFile', upload.any(), FileCtrl.addFile);	//.any() 为不限制上传文件名称
 //添加banner
 router.post('/upload/addBanner', upload.single('banner'),FileCtrl.addBanner)
 //获取所有文件

@@ -2,7 +2,7 @@
  * Created by xuhao on 2017/1/12.
  */
 let mongodb = 'mongodb://localhost/blog';
-
+let allowOrigin = 'http://localhost:8099';
 if(process.env.NODE_ENV === 'production'){
 	mongodb = 'mongodb://root:123456@47.93.52.132:27017/blog?authSource=blog'
 }
@@ -19,6 +19,7 @@ const config={
 		}
 	},
 	secret:'blog',
+	allowOrigin:allowOrigin,
 	qiniu_config:{
         accessKey:'hM5qMEJfJNy2thESXZB2MMAx6H83mGGaeMAwyFfb',
         secretKey:'bNVNnsynNTyY9wbVS5KIybQrCSnNvs5g1WeZybaa',

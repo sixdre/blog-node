@@ -10,13 +10,13 @@ export default class UploadComponent {
 		this.qiniu = this.qiniu.bind(this)
 	}
 	
-	upload(req){
+	upload(file){
 		return new Promise((resolve,reject)=>{
-			if(!req.file){
+			if(!file){
 				reject('请选择文件');
 			}
-			const key = req.file.filename;
-			const repath = req.file.path;
+			const key = file.filename;
+			const repath = file.path;
 			const token = this.uptoken(this.qiniu_config.bucket);
 			this.qiniu(token.toString(), key, repath).then(function(refileurl){
 				fs.unlink(repath);
