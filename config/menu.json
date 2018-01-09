@@ -1,0 +1,48 @@
+{
+	"data":[{
+	    "path" : "/article",
+	    "name" : "文章管理",
+	    "icon" : "el-icon-article",
+	    "hidden" : false
+	},{
+	    "path" : "/article/publish",
+	    "name" : "文章发布",
+	    "icon" : "el-icon-article",
+	    "hidden" : false
+	},{
+	    "path" : "/article/list",
+	    "name" : "文章列表",
+	    "icon" : "el-icon-article",
+	    "hidden" : false
+	},{
+	    "path" : "/permission",
+	    "name" : "权限管理",
+	    "icon" : "el-icon-article",
+	    "hidden" : false
+	},{
+	    "path" : "/permission/list",
+	    "name" : "权限列表",
+	    "icon" : "el-icon-article",
+	    "hidden" : false
+	},{
+	    "path" : "/permission/role",
+	    "name" : "角色列表",
+	    "icon" : "el-icon-article",
+	    "hidden" : false
+	},{
+	    "path" : "/permission/menu",
+	    "name" : "菜单列表",
+	    "icon" : "el-icon-article",
+	    "hidden" : false
+	},{
+	    "path" : "/permission/allot",
+	    "name" : "权限分配",
+	    "icon" : "el-icon-article",
+	    "hidden" : true
+	},{
+	    "path" : "/users",
+	    "name" : "用户管理",
+	    "icon" : "el-icon-article",
+	    "hidden" : false
+	}]
+}

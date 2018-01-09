@@ -62,6 +62,7 @@ class ArticleObj extends UploadComponent{
 					message: '文章不存在或已被删除'
 				});
 			}
+			await ArticleModel.update({_id:id}, {'$inc': {'nums.pv': 1}});
 			res.json({
 				code: 1,
 				data:article,

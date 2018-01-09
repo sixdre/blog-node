@@ -1,13 +1,17 @@
 'use strict';
 import mongoose from 'mongoose'
+import fs from 'fs'
 const  Schema = mongoose.Schema  
     , ObjectId = Schema.ObjectId;
- 
+
+var menus = JSON.parse(fs.readFileSync('./config/menu.json').toString()).data;
+
 //菜单表
 const menuSchema=new Schema({
 	pid:{
 		type:String,
-		required:true 
+		required:true,
+		default:'0' 
 	},
 	path:{
 		type:String,
@@ -25,6 +29,10 @@ const menuSchema=new Schema({
 		required:true,
 		default: false
 	},
+	sort:{
+		type:Number,
+		default:1
+	},
 	meta:{
 		create_time:{
 			type:Date,
@@ -37,6 +45,7 @@ const menuSchema=new Schema({
 	}
 })
 
+
 menuSchema.pre("save",function(next){
 	if(this.isNew){
 		this.meta.create_time=this.meta.update_time=Date.now();
@@ -47,8 +56,17 @@ menuSchema.pre("save",function(next){
 })
 
 
+
 const Menu = mongoose.model("Menu",menuSchema);
 
+Menu.findOne((err, data) => {
+	if (!data) {
+		menus.map( async item =>{
+			console.log(item)
+			await Menu.create(item);
+		});
+	}
+})
 
 export default Menu
 

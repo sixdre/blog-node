@@ -17,9 +17,17 @@ class FileObj extends UploadComponent{
 		this.addFile = this.addFile.bind(this)
 	}
 	
-	getFiles(req,res,next){		//待开发
+	async getFiles(req,res,next){		
+		let { page = 1, limit = 10} = req.query;
+		page = parseInt(page);
+		limit = parseInt(limit);
+
+		const count = await FileModel.count();
+		let data = await FileModel.find({}).skip(limit * (page-1)).limit(limit);
 		res.json({
-			code: 1
+			code: 1,
+			data,
+			count
 		})
 	}
 	
@@ -39,6 +47,7 @@ class FileObj extends UploadComponent{
 						FileModel.create({
 							filename:item.filename,
 							filesize:item.size,
+							filetype:item.mimetype,
 							filepath:url
 						});
 						resolve(url)
@@ -102,14 +111,27 @@ class FileObj extends UploadComponent{
 	}
 	
 	
-	download(req,res,next){
-		console.log("文件存在");
-		let realPath = 'http://osf6cl53d.bkt.clouddn.com/file-1498981281347.jpg';
-		let OriginalName = 'file-1498981281347.jpg'
-		let body;
-		//res.download(realPath);
-		
-		 http.request({ host: "localhost", port: 7893, method: "get", path: realPath}, function (resp) {
+	async download(req,res,next){
+		let id = req.query.id;
+		if(!id){
+			return res.json({
+				code:0,
+				msg:'参数缺失'
+			})
+		}
+
+		try{
+			let file = await FileModel.findById(id);
+			if(!file){
+				return res.json({
+					code:0,
+					msg:'文件不存在或已被删除'
+				})
+			}
+			let realPath = file.filepath;
+			let OriginalName = file.filename;
+			let body;
+			http.request({ host: "localhost", port: 7893, method: "get", path: realPath}, function (resp) {
                resp.on("data", function (d) {
                    body=d;//Uint8Array
                }).on("end", function () {
@@ -120,11 +142,18 @@ class FileObj extends UploadComponent{
                    //结束本次请求，输出文件流
                    res.end(body);
                });
-           }).on("error", function () {
+            }).on("error", function () {
                res.sendStatus(500);
-           }).end();
+            }).end();
+		}catch(err){
+
+		}
+		
+
+		//res.download(realPath);
 		
 		
+	
 		
 //		fs.readFile(realPath, "binary", function (err, file) {
 //		    if (err) {
