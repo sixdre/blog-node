@@ -114,6 +114,13 @@ class ArticleObj extends UploadComponent{
 		let article = req.body.article;
 		article['author'] = req.userInfo.username || '未知用户';
 		try {
+			let rart = await ArticleModel.findOne({title:article.title});
+			if(rart){
+				return res.json({
+					code: 0,
+					message: '文章标题已存在'
+				})
+			}
 			if(req.file) {
 				let nameArray = req.file.originalname.split('.')
 				let type = nameArray[nameArray.length - 1];
@@ -147,6 +154,13 @@ class ArticleObj extends UploadComponent{
 		let newArticle = req.body.article;
 
 		try {
+			let rart = await ArticleModel.findOne({title:newArticle.title});
+			if(rart){
+				return res.json({
+					code: 0,
+					message: '文章标题已存在'
+				})
+			}
 			if(req.file) {
 				let nameArray = req.file.originalname.split('.')
 				let type = nameArray[nameArray.length - 1];

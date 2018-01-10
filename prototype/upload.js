@@ -19,8 +19,8 @@ export default class UploadComponent {
 			const repath = file.path;
 			const token = this.uptoken(this.qiniu_config.bucket);
 			this.qiniu(token.toString(), key, repath).then(function(refileurl){
-				fs.unlink(repath);
 				resolve(refileurl);
+				fs.unlink(repath)
 			},function(err){
 				console.log('保存至七牛失败', err);
 				fs.unlink(repath)

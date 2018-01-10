@@ -3,6 +3,7 @@
  */
 "use strict";
 import http from 'http'
+import request from 'request'
 import path from 'path'
 import fs from 'fs'
 import UploadComponent from '../prototype/upload'
@@ -23,7 +24,7 @@ class FileObj extends UploadComponent{
 		limit = parseInt(limit);
 
 		const count = await FileModel.count();
-		let data = await FileModel.find({}).skip(limit * (page-1)).limit(limit);
+		let data = await FileModel.find({},{'__v':0}).skip(limit * (page-1)).limit(limit);
 		res.json({
 			code: 1,
 			data,
@@ -49,12 +50,11 @@ class FileObj extends UploadComponent{
 							filesize:item.size,
 							filetype:item.mimetype,
 							filepath:url
-						});
+						})
 						resolve(url)
 					}).catch(err=>{
 						reject(err)
 					})
-
 				})
 			})
 			let fileurl = await Promise.all(Pro);
@@ -130,21 +130,31 @@ class FileObj extends UploadComponent{
 			}
 			let realPath = file.filepath;
 			let OriginalName = file.filename;
-			let body;
-			http.request({ host: "localhost", port: 7893, method: "get", path: realPath}, function (resp) {
-               resp.on("data", function (d) {
-                   body=d;//Uint8Array
-               }).on("end", function () {
-                   //设置响应内容类型为文件流,浏览器端表现为下载文件
-                   res.contentType("application/octet-stream");
-                   //设置文件名，注意名称需要进行url编码
-                   res.setHeader("Content-Disposition", "attachment;filename=" + encodeURI(OriginalName));
-                   //结束本次请求，输出文件流
-                   res.end(body);
-               });
-            }).on("error", function () {
-               res.sendStatus(500);
-            }).end();
+
+			var stream = fs.createWriteStream('./'+OriginalName);
+
+			request(realPath).pipe(stream).on('close', function(){
+				console.log(OriginalName+'下载完毕');
+			
+			}); 
+
+
+			// let body;
+			// http.request({ host: "localhost", port: 7893, method: "get", path: realPath}, function (resp) {
+   //             resp.on("data", function (d) {
+   //             	console.log(d)
+   //                 body=d;//Uint8Array
+   //             }).on("end", function () {
+   //                 //设置响应内容类型为文件流,浏览器端表现为下载文件
+   //                 res.contentType("application/octet-stream");
+   //                 //设置文件名，注意名称需要进行url编码
+   //                 res.setHeader("Content-Disposition", "attachment;filename=" + encodeURI(OriginalName));
+   //                 //结束本次请求，输出文件流
+   //                 res.end(body);
+   //             });
+   //          }).on("error", function () {
+   //             res.sendStatus(500);
+   //          }).end();
 		}catch(err){
 
 		}

@@ -15,7 +15,14 @@ const FileSchema=new Schema({
     }
 })
 
+FileSchema.pre('save', function(next) {
+	this.create_time = Date.now()
+	next();
+});
+
+
 const File = mongoose.model("File",FileSchema);
+
 
 export default File
 

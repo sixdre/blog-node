@@ -2,7 +2,7 @@
 //后台管理路由
 import express  from 'express' 
 import multer from 'multer'		
-
+import UUID  from 'uuid'
 import ArticleCtrl from '../controllers/article.controller'
 import CategoryCtrl from '../controllers/category.controller'
 import TagCtrl from '../controllers/tag.controller'
@@ -23,8 +23,9 @@ const storage = multer.diskStorage({
 		fileSize: 100000000
 	},
 	filename: function(req, file, cb) {
+		//console.log(file)
 		var fileFormat = (file.originalname).split(".");
-		cb(null, file.fieldname + '-' + Date.now() + "." + fileFormat[fileFormat.length - 1]);
+		cb(null, UUID.v4() + "." + fileFormat[fileFormat.length - 1]);
 	}
 });
 
