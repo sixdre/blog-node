@@ -98,6 +98,8 @@ router.del('/friends/:id', Auth.checkToken,FriendCtrl.remove);
 
 //获取注册用户
 router.get('/users', Auth.checkToken, UserCtrl.getUsers)
+//删除用户
+router.delete('/users/:id', Auth.checkToken, UserCtrl.remove)
 //获取当前登录用户信息
 router.get('/userInfo', Auth.checkToken, UserCtrl.getUserInfo)
 //登陆

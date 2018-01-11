@@ -60,7 +60,7 @@ class TagObj{
 
 	async create(req,res,next){
 		let name = req.body.name;
-	    let nameArr = tagName.split('/');
+	    let nameArr = name.split('/');
 	    let errorMsg = '';
 	    if(!name || !name.length){
 			errorMsg = '请检查输入';
@@ -93,11 +93,26 @@ class TagObj{
 				});
 				return ;
 			}
-			nameArr.map(async name =>{
-				await TagModel.create({
-					name:name
-				});
+
+			let Pro = nameArr.map((name)=>{
+				return new Promise(function(resolve, reject){
+					try{
+						TagModel.create({name:name}).then(function(){
+							resolve('ok');
+						})
+					}catch(err){
+						reject(err)
+					}
+				})
 			})
+			
+			await Promise.all(Pro);
+
+			// nameArr.map(async name =>{
+			// 	await TagModel.create({
+			// 		name:name
+			// 	});
+			// })
 			res.json({
 				code: 1,
 				type: 'SUCCESS_TO_ADD_TAG',

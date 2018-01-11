@@ -10,8 +10,14 @@ class PermissionController {
 	async getMenus(req,res,next){
 		try{
 			let menus = await MenuModel.find({},{'__v':0,'meta':0}).sort({'sort':'asc'});
+			let parents = await MenuModel.find({'pid':0},{'__v':0,'meta':0}).sort({'sort':'asc'});
 			let data = transformTozTreeFormat(JSON.parse(JSON.stringify(menus)))
+			parents.push({
+				_id:'0',
+				name:'无'
+			})
 			res.json({
+				parents,
 				menus,
 				data
 			})
@@ -50,7 +56,7 @@ class PermissionController {
 	//更新菜单
 	async updateMenu(req,res,next){
 		let id = req.params['id'];
-		let {path,name,icon,hidden,sort} = req.body;
+		let {path,name,icon,hidden,sort,pid} = req.body;
 		if(validator.isEmpty(path)||validator.isEmpty(name)){
 			return res.json({
 				code:0,
@@ -63,7 +69,8 @@ class PermissionController {
 				name,
 				icon,
 				sort,
-				hidden
+				hidden,
+				pid
 			}
 			await MenuModel.update({_id:id},obj);
 			res.json({

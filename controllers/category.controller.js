@@ -90,11 +90,24 @@ class CategoryObj{
 				});
 				return ;
 			}
-			nameArr.map(async name =>{
-				await CategoryModel.create({
-					name:name
-				});
-			});
+
+			let Pro = nameArr.map((name)=>{
+				return new Promise(function(resolve, reject){
+					try{
+						CategoryModel.create({name:name}).then(function(){
+							resolve('ok');
+						})
+					}catch(err){
+						reject(err)
+					}
+				})
+			})
+			await Promise.all(Pro);
+			// nameArr.map(async name =>{
+			// 	await CategoryModel.create({
+			// 		name:name
+			// 	});
+			// });
 			res.json({
 				code: 1,
 				type: 'SUCCESS_TO_ADD_CATEGORY',

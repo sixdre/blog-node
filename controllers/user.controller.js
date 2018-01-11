@@ -43,6 +43,34 @@ class UserObj{
 		
 	}
 	
+	async remove(req,res,next){
+		const ids = req.params['id'].split(',');
+		try{
+			let users = await UserModel.find({ _id: { "$in": ids } });
+			let pro = users.map((user) =>{
+				return new Promise(function(resolve, reject){
+					try{
+ 						UserModel.remove({_id: user._id}).then(()=>{
+ 							resolve('ok')
+ 						})
+					}catch(err){
+						reject(err)
+					}
+				})
+			})
+			await Promise.all(pro);
+			res.json({
+				code: 1,
+				msg: '删除成功'
+			});
+			
+		}catch(err){
+			console.log('删除失败:' + err);
+			return next(err);
+		}
+	}
+
+
 	async regist(req,res,next){
 		
 		let {username,password,email} = req.body;

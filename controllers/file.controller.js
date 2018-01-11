@@ -44,14 +44,15 @@ class FileObj extends UploadComponent{
 		try{
 			let Pro = req.files.map(item=>{
 				return new Promise((resolve, reject) => {
-					return this.upload(item).then(url=>{
+					return this.upload(item).then(function(url){
 						FileModel.create({
 							filename:item.filename,
 							filesize:item.size,
 							filetype:item.mimetype,
 							filepath:url
+						}).then(function(){
+							resolve(url)
 						})
-						resolve(url)
 					}).catch(err=>{
 						reject(err)
 					})
