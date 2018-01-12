@@ -1,20 +1,48 @@
 "use strict";
-import socket_io from 'socket.io'
-const socketio = {};  
+import socketIo from 'socket.io'
+import _  from 'underscore'
+module.exports =  function(app){
+	var io = socketIo(app);
+	var hashName = {};
+	
 
- 
-//获取io  
-socketio.getSocketio = function(server){  
-    var io = socket_io.listen(server);  
-  	io.sockets.on('connection', function (socket) {  
-//      console.log('连接成功');  
-//      socket.on('click1',function(){  
-//          console.log('监听点击事件');  
-//          var datas = [1,2,3,4,5];  
-//          socket.emit('click2', {datas: datas});  
-//    		socket.broadcast.emit('click2',  {datas: datas});  
-//      })  
-    })  
-};  
-  
-module.exports = socketio;
+	function broadcast() {
+	    io.sockets.emit("connectNum", Object.keys(hashName).length);
+	    io.sockets.emit("users", hashName);
+	}
+
+	//提供私有socket
+	function privateSocket(toId) {
+	    return( _.findWhere(io.sockets.sockets, {id: toId}));
+
+	}
+
+	//返回给当前客户端提示
+	function tipToClient(socket,msg) {
+	    privateSocket(socket.id).emit('tip', msg);
+	}
+
+
+	io.on('connection', function (socket) {
+	    console.log('connection succed!');
+	    broadcast();
+
+	    socket.on('setName', function (data) {
+	        var name = data;
+	        if (hashName[name]) {//若已经存在则重新注册
+	            tipToClient(socket,"tip: " + name + " 已注册！");
+	            return;
+	        }
+	        tipToClient(socket,"tip: " + name + " 注册成功");
+	        hashName[name] = socket.id;
+	        console.log(hashName);
+	        broadcast();
+	    });
+
+
+	    socket.on('disconnect', function () {
+	        console.log('connection is disconnect!');
+	    });
+	});
+}
+
