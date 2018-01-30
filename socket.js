@@ -2,7 +2,7 @@
 import socketIo from 'socket.io'
 import _  from 'underscore'
 module.exports =  function(app){
-	var io = socketIo(app);
+	global.io = socketIo(app);
 	var hashName = {};
 	
 
@@ -28,6 +28,7 @@ module.exports =  function(app){
 	    broadcast();
 
 	    socket.on('setName', function (data) {
+	    	console.log(data)
 	        var name = data;
 	        if (hashName[name]) {//若已经存在则重新注册
 	            tipToClient(socket,"tip: " + name + " 已注册！");
@@ -39,7 +40,11 @@ module.exports =  function(app){
 	        broadcast();
 	    });
 
-
+		socket.on('client message', function (data) {
+	    	//广播给除自己以外的客户端
+			socket.emit('server message', data);
+	    });
+	    
 	    socket.on('disconnect', function () {
 	        console.log('connection is disconnect!');
 	    });

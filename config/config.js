@@ -2,7 +2,8 @@
  * Created by xuhao on 2017/1/12.
  */
 let mongodb = 'mongodb://localhost/blog';
-let allowOrigin = 'http://localhost:8099';
+//let allowOrigin = 'http://localhost:8099';
+let allowOrigin = '*';
 if(process.env.NODE_ENV === 'production'){
 	mongodb = 'mongodb://root:123456@47.93.52.132:27017/blog?authSource=blog'
 }
