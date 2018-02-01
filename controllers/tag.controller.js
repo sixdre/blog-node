@@ -3,7 +3,7 @@
  */
 "use strict";
 //数据模型
-import {TagModel} from '../models/'
+import {TagModel,ArticleModel} from '../models/'
 const tool = require('../utility/tool');
 
 class TagObj{
@@ -12,27 +12,61 @@ class TagObj{
 	}
 	
 	async getTags(req,res,next){
-		let {skip=0,limit=0} = req.query;
-		skip = parseInt(skip);
-		limit = parseInt(limit);
-		
+		let {type='',name} = req.query;
+		let message;
 		try{
-			const total = await	TagModel.count();
-			if(!total){
-				res.json({ 	
-					code: -1,
-					message: 'no more'
-				});
-				return ;
+			if(type==='group'){		//根据已有文章进行分组统计
+				let group = await ArticleModel.aggregate([
+							{ $unwind : "$tags"},
+							{ $group:{ _id: "$tags",count:{ $sum: 1 } }}]);
+							
+				let Pro = group.map(function(item){
+					return new Promise(function(resolve, reject){
+						TagModel.findById(item._id).then(function(rs){
+							if(rs){
+								item.name = rs.name;
+							}else{
+								item.name = '未分类';
+							}
+							resolve(item);
+						},function(err){
+							reject(err)
+						})
+					})
+				})			
+				let data = await Promise.all(Pro);
+				let total = data.length;
+				res.json({
+					code: 1,
+					data,
+					total
+				});	
+			}else if(name&&name.length){	//根据名称搜索
+				let data = await TagModel.findOne({name:name},{'__v':0});
+				if(!data){
+					message = '该标签不存在'
+				}
+				res.json({
+					code:1,
+					data,
+					message
+				})
+			}else{
+				const total = await	TagModel.count();
+				if(!total){
+					res.json({ 	
+						code: -1,
+						message: 'no more'
+					});
+					return ;
+				}
+				const tags = await TagModel.find({},{'__v':0});
+				res.json({
+					code: 1,
+					data:tags,
+					total,
+				});	
 			}
-			const tags = await TagModel.find({})
-					.skip(skip)
-				     .limit(limit);
-			res.json({
-				code: 1,
-				data:tags,
-				total
-			});	
 		}catch(err){
 			console.log('获取标签列表出错:' + err);
 			return next(err);

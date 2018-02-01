@@ -3,7 +3,7 @@
  */
 "use strict";
 //数据模型
-import {CategoryModel} from '../models/'
+import {CategoryModel,ArticleModel} from '../models/'
 const tool = require('../utility/tool');
 
 class CategoryObj{
@@ -11,26 +11,49 @@ class CategoryObj{
 		
 	}
 	async getCategories(req,res,next){
-		let {skip=0,limit=0} = req.query;
-		skip = parseInt(skip);
-		limit = parseInt(limit);
+		let {type=''} = req.query;
 		try{
-			const total = await	CategoryModel.count();
-			if(!total){
-				res.json({ 	
-					code: -1,
-					message: 'no more'
-				});
-				return ;
+			if(type==='group'){		//根据已有文章进行分组统计
+				let group = await ArticleModel.aggregate([
+							{ $group:{ _id: "$category",count:{ $sum: 1 } }}]);
+
+				let Pro = group.map(function(item){
+					return new Promise(function(resolve, reject){
+						CategoryModel.findById(item._id).then(function(rs){
+							if(rs){
+								item.name = rs.name;
+							}else{
+								item.name = '未分类';
+							}
+							resolve(item);
+						},function(err){
+							reject(err)
+						})
+					})
+				})			
+				let data = await Promise.all(Pro);
+				let total = data.length
+				res.json({
+					code: 1,
+					data,
+					total
+				});	
+			}else{
+				const total = await	CategoryModel.count();
+				if(!total){
+					res.json({ 	
+						code: -1,
+						message: 'no more'
+					});
+					return ;
+				}
+				const categories = await CategoryModel.find({});
+				res.json({
+					code: 1,
+					data:categories,
+					total
+				});	
 			}
-			const categories = await CategoryModel.find({})
-					.skip(skip)
-				     .limit(limit);
-			res.json({
-				code: 1,
-				data:categories,
-				total
-			});	
 		}catch(err){
 			console.log('获取分类列表出错:' + err);
 			return 	next(err);

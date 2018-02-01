@@ -89,12 +89,17 @@ class Check {
 	}
 	
 	checkAdmin(req, res, next) {
-		if(!req.session['manager']) {
-			return res.status(403).json({ message: '请重新登陆' })
-			//		return res.sendStatus(403)
+		// if(!req.session['manager']) {
+		// 	return res.status(403).json({ message: '请重新登陆' })
+		// 	//		return res.sendStatus(403)
+		// }
+		// //res.setHeader('AUTH', 'admin')
+		// next();
+		if(!req.userInfo.isAdmin ==false) {
+			return res.status(403).json({ message: '您不是管理员，请联系站长' })
 		}
-		//res.setHeader('AUTH', 'admin')
 		next();
+
 	}
 
 	checkLoginByAjax(req, res, next) {

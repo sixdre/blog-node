@@ -156,9 +156,11 @@ class UserObj{
 					message:"密码不正确！"
 				})
 			}else{
+				var token = auth.setToken(JSON.parse(JSON.stringify(user)));
 				req.session["User"] = user;
 				res.json({
 					code:1,
+					token,
 					message:"登录成功！"
 				});
 //				res.redirect('back');
