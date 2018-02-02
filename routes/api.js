@@ -38,7 +38,7 @@ router.get('/articles/:id',ArticleCtrl.findOneById);
 //文章发布
 router.post('/articles',Auth.checkToken,Auth.checkAdmin, upload.single('cover'),ArticleCtrl.create);
 //文章更新
-router.put('/articles/:id',Auth.checkToken,Auth.checkAdmin, upload.single('cover'),ArticleCtrl.update);
+router.put('/articles/:id',Auth.checkToken,Auth.checkAdmin, upload.single('cover'),ArticleCtrl.create);
 //文章删除
 router.del('/articles/:id',Auth.checkToken,Auth.checkAdmin,ArticleCtrl.remove);
 //文章点赞

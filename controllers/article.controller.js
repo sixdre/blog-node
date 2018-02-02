@@ -4,7 +4,7 @@
 "use strict";
 import _ from 'underscore'
 import request from 'request'
-import {ArticleModel,CategoryModel,CommentModel} from '../models/'
+import {ArticleModel,CategoryModel,CommentModel,TagModel} from '../models/'
 import UploadComponent from '../prototype/upload'
 
 const tool = require('../utility/tool');
@@ -13,7 +13,6 @@ class ArticleObj extends UploadComponent{
 	constructor() {
 		super()
 		this.create = this.create.bind(this)
-		this.update = this.update.bind(this)
 	}
 	//获取文章
 	async get(req, res, next) {
@@ -116,9 +115,41 @@ class ArticleObj extends UploadComponent{
 	}
 	
 	async create(req, res, next) {
+		const id = req.params['id'];
 		let article = req.body.article;
-		article['author'] = req.userInfo.username || '未知用户';
+		// let msg = '';
+		// if(!Array.isArray(article.tags)||!article.tags.length){
+		// 	msg
+		// }
 		try {
+			//检查tag如果已有tag就查询获取tagid否则创建新的tag
+			let Pro = article.tags.map((item)=>{
+				return new Promise(function(resolve, reject){
+					TagModel.findOne({name:item}).then(function(d){
+						if(d){
+							resolve(d._id)
+						}else{
+							TagModel.create({name:item}).then(function(newTag){
+								resolve(newTag._id);
+							})
+						}
+					}).catch(function(err){
+						reject(err)
+					})
+				})
+			})
+			
+			article.tags = await Promise.all(Pro);
+
+			//检查category如果已有category就查询获取categoryid否则创建新的category
+			let ncate = await CategoryModel.findOne({name:article.category});
+			if(!ncate){
+				let dcate = await CategoryModel.create({name:article.category});
+				article.category = dcate._id;
+			}else{
+				article.category = ncate._id;
+			}
+
 			let rart = await ArticleModel.findOne({title:article.title});
 			if(rart){
 				return res.json({
@@ -141,9 +172,17 @@ class ArticleObj extends UploadComponent{
 			if(!article.abstract||!article.abstract.length){
 				article.abstract = article.content.substring(0,50);
 			}
-			let newarticle = await new ArticleModel(article).save();
 
-			await CategoryModel.update({ '_id': newarticle.category }, { '$addToSet': { "articles": newarticle._id } });
+
+			if(id){		//更新
+				let barticle = await ArticleModel.findById(id);
+				let _article = _.extend(barticle, article);
+				await _article.save();
+			}else{	//新增
+				await new ArticleModel(article).save();
+				// await CategoryModel.update({ '_id': newarticle.category }, { '$addToSet': { "articles": newarticle._id } });
+			}
+
 			res.json({
 				code: 1,
 				message: '发布成功'
@@ -154,48 +193,7 @@ class ArticleObj extends UploadComponent{
 		}
 	}
 
-	async update(req, res, next) {
-		const id = req.params['id'];
-		let newArticle = req.body.article;
-
-		try {
-			let rart = await ArticleModel.findOne({title:newArticle.title});
-			if(rart){
-				return res.json({
-					code: 0,
-					message: '文章标题已存在'
-				})
-			}
-			if(req.file) {
-				let nameArray = req.file.originalname.split('.')
-				let type = nameArray[nameArray.length - 1];
-				if(!tool.checkUploadImg(type)) {
-					return res.json({
-						code: 0,
-						message: '文章封面格式错误'
-					})
-				}
-				let imgurl = await this.upload(req.file);
-				newArticle.img = imgurl;
-			}
-			if(!newArticle.abstract||!newArticle.abstract.length){
-				newArticle.abstract = newArticle.content.substring(0,50);
-			}
-			let article = await ArticleModel.findById(id);
-			let _article = _.extend(article, newArticle);
-			await _article.save();
-			res.json({
-				code: 1,
-				message: '更新成功'
-			});
-		} catch(err) {
-			console.log('更新文章失败:' + err);
-			return next(err);
-		}
-	}
-
-
-
+	
 
 	async removeOne(req, res, next) {
 		const id = req.params['id'];
