@@ -10,7 +10,7 @@ class WordObj{
 	constructor(){
 		
 	}
-	async getWords(req,res,next){
+	async get(req,res,next){
 		//read(0)表示为未读
 		//read(1)表示为已读
 		//reply(0)表示为未回复
@@ -42,7 +42,7 @@ class WordObj{
 		}
 	}
 	
-	async add(req,res,next){
+	async create(req,res,next){
 		let newWord=new WordModel({
 			message:req.body.content,
 			user:req.session["User"]._id

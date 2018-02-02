@@ -14,7 +14,7 @@ class UserObj{
 	constructor(){
 		
 	}
-	async getUsers(req,res,next){
+	async get(req,res,next){
 		let {skip=0,limit=0} = req.query;
 		skip = parseInt(skip);
 		limit = parseInt(limit);

@@ -10,11 +10,12 @@ class CategoryObj{
 	constructor(){
 		
 	}
-	async getCategories(req,res,next){
-		let {type=''} = req.query;
+	async get(req,res,next){
+		let {type='',name} = req.query;
 		try{
 			if(type==='group'){		//根据已有文章进行分组统计
 				let group = await ArticleModel.aggregate([
+							{ $match:{"status":2}},
 							{ $group:{ _id: "$category",count:{ $sum: 1 } }}]);
 
 				let Pro = group.map(function(item){
@@ -38,6 +39,16 @@ class CategoryObj{
 					data,
 					total
 				});	
+			}else if(name&&name.length){	//根据名称搜索
+				let data = await TagModel.findOne({name:name},{'__v':0});
+				if(!data){
+					message = '该标签不存在'
+				}
+				res.json({
+					code:1,
+					data,
+					message
+				})
 			}else{
 				const total = await	CategoryModel.count();
 				if(!total){

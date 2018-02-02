@@ -11,12 +11,13 @@ class TagObj{
 		
 	}
 	
-	async getTags(req,res,next){
+	async get(req,res,next){
 		let {type='',name} = req.query;
 		let message;
 		try{
 			if(type==='group'){		//根据已有文章进行分组统计
 				let group = await ArticleModel.aggregate([
+							{ $match:{"status":2}},
 							{ $unwind : "$tags"},
 							{ $group:{ _id: "$tags",count:{ $sum: 1 } }}]);
 							

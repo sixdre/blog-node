@@ -16,7 +16,7 @@ class ArticleObj extends UploadComponent{
 		this.update = this.update.bind(this)
 	}
 	//获取文章
-	async getArticles(req, res, next) {
+	async get(req, res, next) {
 		let { page = 1, limit = 10, title = "", flag = 2 } = req.query;
 		page = parseInt(page);
 		limit = parseInt(limit);
@@ -52,16 +52,20 @@ class ArticleObj extends UploadComponent{
 	//根据id获取文章
 	async findOneById(req, res, next) {
 		let id = req.params['id'];
+		let pv = req.query.pv;
 		try{
 			let article = await ArticleModel.findById(id,{content:0,__v:0})
-								.populate('category','name').populate('tags','name');
+								.populate('category','name').populate('tags','name')
+								.populate('likes','name');
 			if(!article||article.status==0){
 				return res.json({
 					code: 0,
 					message: '文章不存在或已被删除'
 				});
 			}
-			await ArticleModel.update({_id:id}, {'$inc': {'nums.pv': 1}});
+			if(pv){
+				await ArticleModel.update({_id:id}, {'$inc': {'nums.pv': 1}});
+			}
 			res.json({
 				code: 1,
 				data:article,
@@ -79,7 +83,8 @@ class ArticleObj extends UploadComponent{
 		try{
 			let articles = await ArticleModel.find({'tags':{'$in':[tagId]}},{content:0,tagcontent:0,__v:0})
 								.skip(Number(offset)).limit(Number(limit))
-								.populate('category','name').populate('tags','name');			
+								.populate('category','name')
+								.populate('tags','name').populate('likes','name');		
 			res.json({
 				code:1,
 				msg:'success',
@@ -97,7 +102,8 @@ class ArticleObj extends UploadComponent{
 		try{
 			let articles = await ArticleModel.find({'category':{'$in':[cId]}},{'content':0,'tagcontent':0,'__v':0})
 							.skip(Number(offset)).limit(Number(limit))
-							.populate('category','name').populate('tags','name');
+							.populate('category','name')
+							.populate('tags','name').populate('likes','name');		
 			res.json({
 				code:1,
 				msg:'success',
@@ -188,27 +194,7 @@ class ArticleObj extends UploadComponent{
 		}
 	}
 
-	async updatePv(req,res,next){
-		const id = req.params['id'];
-		try{
-			let article = await ArticleModel.findById(id);
-			if(!article){
-				return res.json({
-					code: 0,
-					message: '该文章不存在或已被删除'
-				});
-			}
-			await ArticleModel.update({_id:id}, {'$inc': {'nums.pv': 1}});
-			res.json({
-				code: 1,
-				message: '更新pv成功'
-			});
-		}catch(err){
-			console.log('更新pv失败');
-			return next(err);
-		}
 
-	}
 
 
 	async removeOne(req, res, next) {

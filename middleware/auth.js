@@ -95,7 +95,7 @@ class Check {
 		// }
 		// //res.setHeader('AUTH', 'admin')
 		// next();
-		if(!req.userInfo.isAdmin ==false) {
+		if(!req.userInfo.isAdmin) {
 			return res.status(403).json({ message: '您不是管理员，请联系站长' })
 		}
 		next();

@@ -3,18 +3,12 @@
 import express  from 'express' 
 import multer from 'multer'		
 import UUID  from 'uuid'
-import ArticleCtrl from '../controllers/article.controller'
-import CategoryCtrl from '../controllers/category.controller'
-import TagCtrl from '../controllers/tag.controller'
-import WordCtrl from '../controllers/word.controller'
-import FriendCtrl from '../controllers/friend.controller'
-import UserCtrl from '../controllers/user.controller'
-import FileCtrl from '../controllers/file.controller'
-import permissionCtrl from '../controllers/permission.controller'
+import {ArticleCtrl,CategoryCtrl,
+	TagCtrl,WordCtrl,FriendCtrl,
+	UserCtrl,FileCtrl,permissionCtrl} from '../controllers'
 import Auth from '../middleware/auth'
 
 const router = express.Router();
-
 
 //文件上传multer配置
 const storage = multer.diskStorage({
@@ -38,68 +32,87 @@ const upload = multer({
 router.del = router.delete;
 
 //获取文章
-router.get('/articles',ArticleCtrl.getArticles);
+router.get('/articles',ArticleCtrl.get);
 //根据id获取
 router.get('/articles/:id',ArticleCtrl.findOneById);
 //文章发布
-router.post('/articles',Auth.checkToken, upload.single('cover'),ArticleCtrl.create);
+router.post('/articles',Auth.checkToken,Auth.checkAdmin, upload.single('cover'),ArticleCtrl.create);
 //文章更新
-router.put('/articles/:id',Auth.checkToken, upload.single('cover'),ArticleCtrl.update);
-//更新文章pv
-router.put('/articles/:id/pv',ArticleCtrl.updatePv);
+router.put('/articles/:id',Auth.checkToken,Auth.checkAdmin, upload.single('cover'),ArticleCtrl.update);
 //文章删除
-router.del('/articles/:id',Auth.checkToken,ArticleCtrl.remove);
+router.del('/articles/:id',Auth.checkToken,Auth.checkAdmin,ArticleCtrl.remove);
 //文章点赞
-router.put('/articles/:id/likes',Auth.checkLoginByAjax,ArticleCtrl.addLikes);
+router.put('/articles/:id/likes',Auth.checkToken,ArticleCtrl.addLikes);
 
 //获取文章评论
-router.get('/comments/article/:article_id',ArticleCtrl.getComments);
+router.get('/articles/:article_id/comments',ArticleCtrl.getComments);
 //文章评论
-router.post('/comments/article/:article_id',Auth.checkLoginByAjax,ArticleCtrl.addComment);
+router.post('/articles/:article_id/comments',Auth.checkToken,ArticleCtrl.addComment);
 //评论点赞
-router.post('/comments/:comment_id/like',Auth.checkLoginByAjax,ArticleCtrl.addCommentLike);
+router.post('/comments/:comment_id/like',Auth.checkToken,ArticleCtrl.addCommentLike);
 
 
 //获取category数据
-router.get("/categories",CategoryCtrl.getCategories);
+router.get("/categories",CategoryCtrl.get);
 //获取指定的category
 router.get("/categories/:id", CategoryCtrl.findOneById);
 //获取某一分类下的文章
 router.get("/categories/:category_id/articles",ArticleCtrl.getArticlesByCategoryId);
 //分类添加
-router.post("/categories", Auth.checkToken,CategoryCtrl.create);
+router.post("/categories", Auth.checkToken,Auth.checkAdmin,CategoryCtrl.create);
 //分类更新
-router.put("/categories/:id", Auth.checkToken,CategoryCtrl.update);
+router.put("/categories/:id", Auth.checkToken,Auth.checkAdmin,CategoryCtrl.update);
 //分类删除
-router.del('/categories/:id', Auth.checkToken,CategoryCtrl.remove);
+router.del('/categories/:id', Auth.checkToken,Auth.checkAdmin,CategoryCtrl.remove);
 
 //获取标签数据
-router.get('/tags',TagCtrl.getTags);
+router.get('/tags',TagCtrl.get);
 //获取指定id的标签
 router.get('/tags/:id', TagCtrl.findOneById);
 //获取标签下的文章
 router.get('/tags/:tag_id/articles',ArticleCtrl.getArticlesByTagId);
 //新增标签
-router.post('/tags', Auth.checkToken,TagCtrl.create);
+router.post('/tags', Auth.checkToken,Auth.checkAdmin,TagCtrl.create);
 //更新标签
-router.put('/tags/:id', Auth.checkToken, TagCtrl.update);
+router.put('/tags/:id', Auth.checkToken, Auth.checkAdmin,TagCtrl.update);
 //删除标签
-router.del('/tags/:id', Auth.checkToken,TagCtrl.remove);
+router.del('/tags/:id', Auth.checkToken,Auth.checkAdmin,TagCtrl.remove);
 
 //获取友情链接数据 
-router.get('/friends',FriendCtrl.getFriends);
+router.get('/friends',FriendCtrl.get);
 //添加友情链接
-router.post('/friends',Auth.checkToken,FriendCtrl.add);
+router.post('/friends',Auth.checkToken,Auth.checkAdmin,FriendCtrl.create);
 //更新友链
-router.put('/friends/:id', Auth.checkToken,FriendCtrl.update);
+router.put('/friends/:id', Auth.checkToken,Auth.checkAdmin,FriendCtrl.update);
 //删除友情链接
-router.del('/friends/:id', Auth.checkToken,FriendCtrl.remove);
+router.del('/friends/:id', Auth.checkToken,Auth.checkAdmin,FriendCtrl.remove);
+
+
+//获取留言
+router.get('/words',WordCtrl.get);
+//提交留言
+router.post('/words',Auth.checkToken,WordCtrl.create);
+//留言回复
+router.put('/words/:id', Auth.checkToken,Auth.checkAdmin,WordCtrl.reply);
+
+
+
+//获取所有文件
+router.get('/allFiles', Auth.checkToken,Auth.checkAdmin, FileCtrl.get);
+//添加文件
+router.post('/upload/addFile', upload.any(), FileCtrl.addFile);	//.any() 为不限制上传文件名称
+//添加banner
+router.post('/upload/addBanner', upload.single('banner'),FileCtrl.addBanner)
+//下载文件
+router.get('/download', FileCtrl.download);
+
+
 
 
 //获取注册用户
-router.get('/users', Auth.checkToken, UserCtrl.getUsers)
+router.get('/users', Auth.checkToken,Auth.checkAdmin, UserCtrl.get)
 //删除用户
-router.delete('/users/:id', Auth.checkToken, UserCtrl.remove)
+router.delete('/users/:id', Auth.checkToken,Auth.checkAdmin, UserCtrl.remove)
 //获取当前登录用户信息
 router.get('/userInfo', Auth.checkToken, UserCtrl.getUserInfo)
 //登陆
@@ -115,25 +128,6 @@ router.post('/admin_regist',UserCtrl.admin_regist);
 //管理员退出
 router.get('/admin_logout',UserCtrl.admin_logout)
 
-
-
-//获取留言
-router.get('/words',WordCtrl.getWords);
-//提交留言
-router.post('/words',Auth.checkLoginByAjax,WordCtrl.add);
-//留言回复
-router.put('/words/:id', Auth.checkToken,WordCtrl.reply);
-
-
-
-//添加文件
-router.post('/upload/addFile', upload.any(), FileCtrl.addFile);	//.any() 为不限制上传文件名称
-//添加banner
-router.post('/upload/addBanner', upload.single('banner'),FileCtrl.addBanner)
-//获取所有文件
-router.get('/allFiles', Auth.checkToken, FileCtrl.getFiles);
-//下载文件
-router.get('/download', FileCtrl.download);
 
 
 

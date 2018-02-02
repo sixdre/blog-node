@@ -9,7 +9,7 @@ class FriendObj{
 	constructor(){
 		
 	}
-	async getFriends(req,res,next){
+	async get(req,res,next){
 		let {page=1,limit=parseInt(CONFIG.FriendLimit)} = req.query;
 		
 		limit=parseInt(limit);
@@ -25,9 +25,9 @@ class FriendObj{
 								.skip((page-1)*limit).limit(limit);
 			res.json({
 				code:1,
-				allPage:allPage,
-				current_page:page,
-				friends:friends||[]
+				total,
+				page,
+				data:friends
 			})
 
 		}catch(err){
@@ -36,7 +36,7 @@ class FriendObj{
 		}
 	}
 	
-	async add(req,res,next){
+	async create(req,res,next){
 		let {title,url,sort} = req.body;
 		
 		if(!title||!url){
@@ -103,13 +103,6 @@ class FriendObj{
 	
 	async remove(req,res,next){
 		let id = req.params['id'];
-		if(!id){
-			res.send({
-				code: 0,
-				type: 'ERROR_PARAMS'
-			})
-			return ;
-		}
 		try{
 			await FriendModel.remove({_id: id});
 			res.json({
