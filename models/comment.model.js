@@ -9,7 +9,10 @@ const CommentSchema = new Schema({
 	reply: [{
 		from: { type: ObjectId, ref: 'User' },
 		to: { type: ObjectId, ref: 'User' },
-		content: String,
+		content:{
+			type:String,
+			required:true 
+		},
 		likes: [{
 			type: ObjectId,
 			ref: 'User'
@@ -19,7 +22,10 @@ const CommentSchema = new Schema({
 			default:Date.now()
 		},
 	}],
-	content: String,
+	content:{
+		type:String,
+		required:true 
+	},
 	likes: [{
 		type: ObjectId,
 		ref: 'User'

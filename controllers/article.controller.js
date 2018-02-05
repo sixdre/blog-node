@@ -334,11 +334,15 @@ class ArticleObj extends UploadComponent{
 
 	async addComment(req, res, next) {
 		let _comment = req.body;
-		const articleId=req.params['article_id'];
-		_comment.from = req.session["User"];
-
-
+		if(_.isEmpty(_comment.content)){
+			return res.json({
+				code:0,
+				message:'请输入内容'
+			})
+		}
 		try{
+			const articleId=req.params['article_id'];
+			const fromId = req.userInfo;
 			let article = await ArticleModel.findById(articleId);
 			if(!article){
 				return res.json({
@@ -346,13 +350,13 @@ class ArticleObj extends UploadComponent{
 					message:'该文章不存在或已被删除'
 				})
 			}
-			if(_comment.cId) {
-				let reply = {
-					from: _comment.from._id,
-					to: _comment.toId,
-					content: _comment.content,
-					create_time: new Date()
-				};
+			if(_comment.cId) {		//说明是回复评论
+				if(_.isEmpty(_comment.toId)){
+					return res.json({
+						code:0,
+						message:'参数缺失'
+					})
+				}
 				let cmt = await CommentModel.findById(_comment.cId);
 				if(!cmt){
 					return res.json({
@@ -360,6 +364,12 @@ class ArticleObj extends UploadComponent{
 						message:'此条评论不存在'
 					})
 				}
+				let reply = {
+					from: fromId,
+					to: _comment.toId,
+					content: _comment.content,
+					create_time:Date.now()
+				};
 				await CommentModel.update({ _id: _comment.cId }, { $addToSet: { "reply": reply } });
 				await ArticleModel.update({_id:articleId},{'$inc':{'nums.cmtNum':1}});
 				res.json({
@@ -369,7 +379,12 @@ class ArticleObj extends UploadComponent{
 			}else{
 				_comment.create_time = new Date();
 				_comment.articleId = articleId;
-				let newcomment = new CommentModel(_comment);
+				let newcomment = new CommentModel({
+					articleId:articleId,
+					from:fromId,
+					content:_comment.content,
+					create_time:Date.now()
+				});
 				await newcomment.save();
 				await ArticleModel.update({_id:articleId},{'$inc':{'nums.cmtNum':1}});
 				res.json({
