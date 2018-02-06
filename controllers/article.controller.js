@@ -400,44 +400,44 @@ class ArticleObj extends UploadComponent{
 
 	async addCommentLike(req, res, next) {
 		const commentId = req.params['comment_id'],
-			replyId = req.body.replyId,
-			user = req.session['User'];
+			user = req.userInfo;
 
 		try {
 			let comment = await CommentModel.findById(commentId);
-			if(!comment) {
-				res.json({
-					code: 0,
-					message: '操作失败，没有找到该评论！'
-				});
-				return;
-			}
-			if(!replyId) { //评论点赞
-				if(comment.likes.indexOf(user._id) > -1) {
+			if(!comment) {		//没有在主评论找到的话就去回复中查询
+				let data = await CommentModel.findOne({'reply._id':commentId});
+				if(!data){
 					return res.json({
-						code: -2,
-						message: '您已点赞'
-					});
+						code:0,
+						message:'没有找到该评论'
+					})
 				}
-				comment.likes.push(user._id);
-				await comment.save();
-				res.json({
-					code: 1,
-					message: '点赞更新成功'
-				});
-			} else {
-				let reply = comment.reply;
+				let reply = data.reply;
 				reply.forEach((value) =>{
-					if(value._id == replyId) {
+					if(value._id == commentId) {
 						if(value.likes.indexOf(user._id) > -1) {
 							return res.json({
-								code: -2,
+								code: 0,
 								message: '您已点赞'
 							})
 						}
 						value.likes.push(user._id);
 					}
 				});
+				await data.save();
+				res.json({
+					code: 1,
+					message: '点赞更新成功'
+				});
+				
+			}else{
+				if(comment.likes.indexOf(user._id) > -1) {
+					return res.json({
+						code: 0,
+						message: '您已点赞'
+					});
+				}
+				comment.likes.push(user._id);
 				await comment.save();
 				res.json({
 					code: 1,
