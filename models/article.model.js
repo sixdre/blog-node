@@ -51,6 +51,10 @@ const ArticleSchema = new Schema({
 			default: 0
 		}
 	},
+	is_private: {		 	//是否为私有
+		type: Boolean,
+		default: false
+	},
 	top: {		 		// 置顶文章
 		type: Boolean,
 		default: false
@@ -94,6 +98,7 @@ ArticleSchema.statics.findList = function({page = 1,limit = 10,flag = 2,title = 
         limit = parseInt(limit);
         flag = parseInt(flag);
         let queryObj = {
+        	is_private:false,
             title: {
                 '$regex': title
             },

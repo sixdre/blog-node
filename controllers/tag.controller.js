@@ -17,7 +17,7 @@ class TagObj{
 		try{
 			if(type==='group'){		//根据已有文章进行分组统计
 				let group = await ArticleModel.aggregate([
-							{ $match:{"status":2}},
+							{ $match:{"status":2,"is_private":false}},
 							{ $unwind : "$tags"},
 							{ $group:{ _id: "$tags",count:{ $sum: 1 } }}]);
 							

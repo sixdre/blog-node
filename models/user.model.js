@@ -18,8 +18,12 @@ const UserSchema = new Schema({
 		type: String,
 		required: true
 	},
+	avatar:{
+		type: String,
+		default:'https://sfault-avatar.b0.upaiyun.com/161/227/1612276764-55f6bdd353b39_big64'
+	},
 	isAdmin: { type: Boolean, default: false },
-	create_time: { type: Date,default:Date.now()} //创建时间
+	create_time: { type: Date,default:Date.now()} //注册时间
 })
 
 //查找所有

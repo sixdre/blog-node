@@ -223,7 +223,7 @@ class UserObj{
 	async admin_login(req,res,next){
 		let {username,password} = req.body;
 		try{
-			let manager = await UserModel.findOne({ username: username }, ['username', 'password', 'email','create_time','isAdmin']);
+			let manager = await UserModel.findOne({ username: username }, ['username', 'password', 'email','avatar','create_time','isAdmin']);
 			//返回指定字段 或者使用下面
 			//{username:1,password:1,email:1,create_time:1,isAdmin:1}
 			if(!manager|| !manager.isAdmin){
@@ -242,8 +242,10 @@ class UserObj{
 				res.json({
 					code : 1,
 					token,
-					role:{
-						name:'测试'
+					userInfo:{
+						role:'测试',
+						username:manager.username,
+						avatar:manager.avatar
 					},
 					message:'登陆成功'	//登陆成功
 				});			

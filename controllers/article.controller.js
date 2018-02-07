@@ -13,6 +13,7 @@ class ArticleObj extends UploadComponent{
 	constructor() {
 		super()
 		this.create = this.create.bind(this)
+		this.remove = this.remove.bind(this);
 	}
 	//获取文章
 	async get(req, res, next) {
@@ -53,7 +54,7 @@ class ArticleObj extends UploadComponent{
 		let id = req.params['id'];
 		let pv = req.query.pv;
 		try{
-			let article = await ArticleModel.findById(id,{content:0,__v:0})
+			let article = await ArticleModel.findOne({_id:id,is_private:false},{content:0,__v:0})
 								.populate('category','name').populate('tags','name')
 								.populate('likes','name');
 			if(!article||article.status==0){
@@ -80,7 +81,7 @@ class ArticleObj extends UploadComponent{
 		let tagId = req.params['tag_id'];
 		const {offset=0,limit = 100} = req.query;
 		try{
-			let articles = await ArticleModel.find({'tags':{'$in':[tagId]}},{content:0,tagcontent:0,__v:0})
+			let articles = await ArticleModel.find({'tags':{'$in':[tagId]},is_private:false},{content:0,tagcontent:0,__v:0})
 								.skip(Number(offset)).limit(Number(limit))
 								.populate('category','name')
 								.populate('tags','name').populate('likes','name');		
@@ -99,7 +100,7 @@ class ArticleObj extends UploadComponent{
 		const cId = req.params['category_id'];
 		const {offset=0,limit = 100} = req.query;
 		try{
-			let articles = await ArticleModel.find({'category':{'$in':[cId]}},{'content':0,'tagcontent':0,'__v':0})
+			let articles = await ArticleModel.find({'category':{'$in':[cId]},is_private:false},{'content':0,'tagcontent':0,'__v':0})
 							.skip(Number(offset)).limit(Number(limit))
 							.populate('category','name')
 							.populate('tags','name').populate('likes','name');		
@@ -193,63 +194,45 @@ class ArticleObj extends UploadComponent{
 		}
 	}
 
-	
-
-	async removeOne(req, res, next) {
-		const id = req.params['id'];
-		try {
-			let article = await ArticleModel.findById(id);
-			if(!article){
-				return res.json({
-					code:0,
-					message:'该文章不存在或已被删除'
-				})
+	removeOne(item) {
+		return new Promise(async function(resolve, reject){
+			try{
+				if(item.status===0) { //彻底删除
+					await ArticleModel.remove({
+						_id: item._id
+					})
+				} else{ 			//（假删除）
+					await ArticleModel.update({
+						_id: item._id
+					}, {
+						'status': 0
+					});
+				}
+				resolve('ok');
+			}catch(err){
+				reject(err)
 			}
-			await CategoryModel.update({ _id: article.category }, { $pull: { "articles": id } });
-			if(!article.status) {
-				await ArticleModel.remove({ _id: id });
-			}else{
-				await ArticleModel.update({ _id: id }, { 'status': 0 });
-			}
-			res.json({
-				code: 1,
-				message: '删除成功'
-			});
-		} catch(err) {
-			console.log('删除文章出错' + err);
-			return next(err);
-		}
+			
+		})
 	}
 
 	async remove(req, res, next) {
 		const ids = req.params['id'].split(',');
+		const userInfo = req.userInfo;
 		try{
 			let articles = await ArticleModel.find({ _id: { "$in": ids } });
-			let pro = articles.map((article) =>{
-				return new Promise(function(resolve, reject){
-					return  CategoryModel.update({
-						_id: article.category
-					}, {
-						$pull: {
-							"articles": article._id
+			let pro = articles.map((item)=>{
+				return new Promise(async (resolve, reject)=>{
+					try{
+						if(!item.is_private){	//不是私有的管理员可以删除
+							await this.removeOne(item);
+						}else if(item.is_private&&item.author==userInfo.username){	//私有的只能作者可以删除
+							await this.removeOne(item);
 						}
-					}).then(function(){
-						if(!article.status) { //彻底删除
-							return ArticleModel.remove({
-								_id: article._id
-							});
-						} else { 			//（假删除）
-							return ArticleModel.update({
-								_id: article._id
-							}, {
-								'status': 0
-							});
-						}
-					}).then(function(){
-						resolve('ok')
-					}).catch(function(err){
+						resolve('ok');
+					}catch(err){
 						reject(err)
-					})
+					}
 				})
 			})
 			
@@ -278,7 +261,7 @@ class ArticleObj extends UploadComponent{
 			return;
 		}
 		try{
-			let article = await ArticleModel.findById(id);
+			let article = await ArticleModel.findOne({_id:id,is_private:false});
 			if(!article){
 				return res.json({
 					code:0,
@@ -347,7 +330,7 @@ class ArticleObj extends UploadComponent{
 		try{
 			const articleId=req.params['article_id'];
 			const fromId = req.userInfo;
-			let article = await ArticleModel.findById(articleId);
+			let article = await ArticleModel.findOne({_id:articleId,is_private:false});
 			if(!article){
 				return res.json({
 					code:0,

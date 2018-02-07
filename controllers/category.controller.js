@@ -15,7 +15,7 @@ class CategoryObj{
 		try{
 			if(type==='group'){		//根据已有文章进行分组统计
 				let group = await ArticleModel.aggregate([
-							{ $match:{"status":2}},
+							{ $match:{"status":2,"is_private":false}},
 							{ $group:{ _id: "$category",count:{ $sum: 1 } }}]);
 
 				let Pro = group.map(function(item){
