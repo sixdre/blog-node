@@ -6,7 +6,7 @@
 import {TagModel,ArticleModel} from '../models/'
 const tool = require('../utility/tool');
 
-class TagObj{
+export default class TagObj{
 	constructor(){
 		
 	}
@@ -207,5 +207,4 @@ class TagObj{
 	
 }
 
-export default new TagObj()
 

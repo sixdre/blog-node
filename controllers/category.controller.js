@@ -6,7 +6,7 @@
 import {CategoryModel,ArticleModel} from '../models/'
 const tool = require('../utility/tool');
 
-class CategoryObj{
+export default class CategoryObj{
 	constructor(){
 		
 	}
@@ -205,5 +205,5 @@ class CategoryObj{
 }
 
 
-export default new CategoryObj()
+
 

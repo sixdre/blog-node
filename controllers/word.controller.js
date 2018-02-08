@@ -6,7 +6,7 @@
 //数据模型
 import {WordModel} from '../models/'
 
-class WordObj{
+export default class WordObj{
 	constructor(){
 		
 	}
@@ -89,5 +89,4 @@ class WordObj{
 	
 }
 
-export default new WordObj()
 

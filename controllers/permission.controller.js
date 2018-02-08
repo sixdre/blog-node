@@ -2,7 +2,7 @@ import {PermissionModel,MenuModel,RoleModel} from '../models/'
 import transformTozTreeFormat from '../utility/tree'
 import validator from 'validator'
 
-class PermissionController {
+export default class PermissionController {
 	constructor() {
 		
 	}
@@ -273,6 +273,3 @@ class PermissionController {
 	
 }
 
-
-
-export default new PermissionController();

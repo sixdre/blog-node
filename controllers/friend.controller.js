@@ -5,7 +5,7 @@
 //数据模型
 import {FriendModel} from '../models/'
 	
-class FriendObj{
+export default class FriendObj{
 	constructor(){
 		
 	}
@@ -117,7 +117,7 @@ class FriendObj{
 }
 
 
-export default new FriendObj();
+
 
 
 

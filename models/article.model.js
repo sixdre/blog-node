@@ -55,6 +55,10 @@ const ArticleSchema = new Schema({
 		type: Boolean,
 		default: false
 	},
+	allow_comment:{			//允许评论
+		type: Boolean,
+		default: true
+	},
 	top: {		 		// 置顶文章
 		type: Boolean,
 		default: false

@@ -10,7 +10,7 @@ import auth from '../middleware/auth'
 import {UserModel,ArticleModel,CategoryModel,TagModel,WordModel} from '../models/'
 
 
-class UserObj{
+export default class UserObj{
 	constructor(){
 		
 	}
@@ -290,6 +290,6 @@ class UserObj{
 	
 }
 
-export default new UserObj()
+
 
 

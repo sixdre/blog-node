@@ -12,7 +12,7 @@ import {FileModel,BannerModel} from '../models/'
 
 const tool = require('../utility/tool');
 
-class FileObj extends UploadComponent{
+export default class FileObj extends UploadComponent{
 	constructor(){
 		super()
 		this.addFile = this.addFile.bind(this)
@@ -188,5 +188,5 @@ class FileObj extends UploadComponent{
 	
 }
 
-export default new FileObj();
+
 

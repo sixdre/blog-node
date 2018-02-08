@@ -8,58 +8,9 @@ const secret = config.secret;
 
 //数据模型
 import {UserModel} from '../models/'
-class Check {
+class Auth {
 	constructor() {
 
-	}
-	
-	async check(req,res,next){
-		let {username,password} = req.body;
-		try{
-			if (validator.isEmpty(username)) {
-				throw new Error('请输入用户名');
-			}else if(validator.isEmpty(password)){
-				throw new Error('请输入密码');
-			}
-		}catch(err){
-			console.log('用户填写参数出错', err.message);
-			res.send({
-				status: -2,
-				type: 'ERROR_PARAMS',
-				message: err.message
-			});
-			return;
-		}  
-		  
-		try{
-			let user = await UserModel.findOne({username:username});
-			if(!user){
-				res.json({
-					code:-1,
-					message:"该用户没有注册！"
-				})
-			}else if(user.password!==md5(password)){
-				res.json({
-					code:0,
-					message:"密码不正确！"
-				})
-			}else{
-				req.session["User"] = user;
-				var token = jwt.sign(user, 'app.get(superSecret)', {
-		            'expiresIn': 1440 // 设置过期时间
-		        });
-				res.json({
-					code:1,
-					token,
-					message:"登录成功！"
-				});
-//				res.redirect('back');
-			}
-		}catch(err){
-			console.log('登录失败:' + err);
-			return next(err);
-		}
-		
 	}
 	
 	setToken(data){
@@ -102,20 +53,20 @@ class Check {
 
 	}
 
-	checkLoginByAjax(req, res, next) {
-		if(!req.session["User"]) {
-			return res.status(403).json({ message: '请重新登陆' })
-		}
-		next();
-	}
+	// checkLoginByAjax(req, res, next) {
+	// 	if(!req.session["User"]) {
+	// 		return res.status(403).json({ message: '请重新登陆' })
+	// 	}
+	// 	next();
+	// }
 
-	checkLoginByNative(req, res, next) {
-		if(!req.session["User"]) {
-			return res.redirect('login');
-		}
-		next();
-	}
+	// checkLoginByNative(req, res, next) {
+	// 	if(!req.session["User"]) {
+	// 		return res.redirect('login');
+	// 	}
+	// 	next();
+	// }
 
 }
 
-export default new Check();
+export default new Auth();

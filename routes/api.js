@@ -3,7 +3,7 @@
 import express  from 'express' 
 import multer from 'multer'		
 import UUID  from 'uuid'
-import {ArticleCtrl,CategoryCtrl,
+import {ArticleCtrl,CategoryCtrl,CommentCtrl,
 	TagCtrl,WordCtrl,FriendCtrl,
 	UserCtrl,FileCtrl,permissionCtrl} from '../controllers'
 import Auth from '../middleware/auth'
@@ -38,18 +38,18 @@ router.get('/articles/:id',ArticleCtrl.findOneById);
 //文章发布
 router.post('/articles',Auth.checkToken,Auth.checkAdmin, upload.single('cover'),ArticleCtrl.create);
 //文章更新
-router.put('/articles/:id',Auth.checkToken,Auth.checkAdmin, upload.single('cover'),ArticleCtrl.create);
+router.put('/articles/:id',Auth.checkToken,Auth.checkAdmin, upload.single('cover'),ArticleCtrl.update);
 //文章删除
 router.del('/articles/:id',Auth.checkToken,Auth.checkAdmin,ArticleCtrl.remove);
 //文章点赞
 router.put('/articles/:id/likes',Auth.checkToken,ArticleCtrl.addLikes);
 
 //获取文章评论
-router.get('/articles/:article_id/comments',ArticleCtrl.getComments);
+router.get('/articles/:article_id/comments',CommentCtrl.getComments);
 //文章评论
-router.post('/articles/:article_id/comments',Auth.checkToken,ArticleCtrl.addComment);
+router.post('/articles/:article_id/comments',Auth.checkToken,CommentCtrl.addComment);
 //评论点赞
-router.post('/comments/:comment_id/like',Auth.checkToken,ArticleCtrl.addCommentLike);
+router.post('/comments/:comment_id/like',Auth.checkToken,CommentCtrl.addCommentLike);
 
 
 //获取category数据
@@ -143,18 +143,6 @@ router.get('/roles',permissionCtrl.getRoles);
 router.post('/roles',permissionCtrl.createRole);
 router.get('/roles/:id/permission',permissionCtrl.getPermissionByRoleId);
 router.post('/roles/:id/permission',permissionCtrl.saveRolePermission);
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
