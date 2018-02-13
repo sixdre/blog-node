@@ -14,6 +14,44 @@ export default class UserObj{
 	constructor(){
 		
 	}
+
+	//获取当前用户的文章
+	async getArticles(req,res,next){
+		const userName = req.userInfo.username;
+		try{
+			let {page = 1,limit = 10} = req.query;
+			page = parseInt(page);
+	        limit = parseInt(limit);
+			let total = await ArticleModel.count({'author':userName});
+			let articles = await ArticleModel.find({'author':userName},{content:0,tagcontent:0,__v:0})
+							.skip(limit * (page-1)).limit(limit).populate('category','name').populate('tags','name');
+			res.json({
+				code:1,
+				data:articles,
+				total,
+				msg:'success'
+			})
+
+		}catch(err){
+			return next(err);
+		}
+		
+
+	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 	async get(req,res,next){
 		let {skip=0,limit=0} = req.query;
 		skip = parseInt(skip);
@@ -161,6 +199,11 @@ export default class UserObj{
 				res.json({
 					code:1,
 					token,
+					userInfo:{
+						role:'测试',
+						username:user.username,
+						avatar:user.avatar
+					},
 					message:"登录成功！"
 				});
 //				res.redirect('back');
@@ -287,6 +330,18 @@ export default class UserObj{
 			message:'退出登陆成功'
 		});
 	}
+
+
+
+
+
+
+
+
+
+
+
+
 	
 }
 

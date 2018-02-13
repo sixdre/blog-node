@@ -131,6 +131,15 @@ router.get('/admin_logout',UserCtrl.admin_logout)
 
 
 
+router.get('/users/info/articles', Auth.checkToken,UserCtrl.getArticles)
+
+
+
+
+
+
+
+
 
 router.get('/menus',permissionCtrl.getMenus);
 router.post('/menus',permissionCtrl.createMenu);
