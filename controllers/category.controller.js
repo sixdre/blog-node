@@ -42,7 +42,7 @@ export default class CategoryObj{
 					total
 				});	
 			}else if(name&&name.length){	//根据名称搜索
-				let data = await TagModel.findOne({name:name},{'__v':0});
+				let data = await CategoryModel.findOne({name:name},{'__v':0});
 				if(!data){
 					message = '该标签不存在'
 				}

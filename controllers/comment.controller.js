@@ -76,23 +76,19 @@ export default class CommentObj{
 					content: _comment.content,
 					create_time:Date.now()
 				};
-				await CommentModel.update({ _id: _comment.cId }, { $addToSet: { "reply": reply } });
-				await ArticleModel.update({_id:articleId},{'$inc':{'nums.cmtNum':1}});
+				await CommentModel.reply(_comment.cId,articleId,reply);
 				res.json({
 					code: 1,
 					message:'评论成功'
 				});
 			}else{
-				_comment.create_time = new Date();
 				_comment.articleId = articleId;
 				let newcomment = new CommentModel({
 					articleId:articleId,
 					from:fromId,
-					content:_comment.content,
-					create_time:Date.now()
+					content:_comment.content
 				});
 				await newcomment.save();
-				await ArticleModel.update({_id:articleId},{'$inc':{'nums.cmtNum':1}});
 				res.json({
 					code: 1,
 					message:'评论成功'

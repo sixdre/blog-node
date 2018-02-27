@@ -94,9 +94,36 @@ ArticleSchema.path('source').validate(function(value){
 },'文章来源字段不合法')
 
 
+ArticleSchema.plugin(autoIncrement.plugin, {
+	model: 'Article', //数据模块
+	field: 'bId', 	  //字段名
+	startAt: 1,       //开始位置，自定义
+	incrementBy: 1    //每次自增数量
+});
 
+ArticleSchema.pre('save', function(next) {
+	this.nums.likeNum=this.likes.length;
+	if(this.isNew) {
+		this.create_time = this.update_time = Date.now()
+	} else {
+		this.update_time = Date.now()
+	}
+	next();
+});
 
+// ArticleSchema.pre('find', function(next) {
+//   	console.log('1')
+  	
+//   	next()
+// });
 
+// ArticleSchema.post('find', function(result) {
+	
+// 	console.log('2')
+	
+// });
+
+//获取article的Tagname;
 ArticleSchema.methods.getTagName = function(){
 	let tagNames = this.tags.map(item=>item.name);
 	return tagNames;
@@ -110,6 +137,7 @@ ArticleSchema.methods.setTagName = function(tagNames){
 	data.tagNames = tagNames;
 	return data;
 }
+
 
 
 //根据条件获取文章列表
@@ -165,111 +193,6 @@ ArticleSchema.statics.updatePv = function(id,pv=1){
 
 
 
-
-
-
-
-
-
-
-//根据条件查询
-ArticleSchema.statics.findList = function({page = 1,limit = 10,flag = 2,title = ''}){
-	return new Promise(async (resolve,reject)=>{
-        page = parseInt(page);
-        limit = parseInt(limit);
-        flag = parseInt(flag);
-        let queryObj = {
-        	is_private:false,
-            title: {
-                '$regex': title
-            },
-            status:flag
-        }
-        if(flag == 3){		//查询全部
-            delete queryObj.status;
-        }
-        
-        try {
-            const total = await this.model('Article').count(queryObj);
-            const totalPage =Math.ceil(total/limit);
-
-            if(!total||page>totalPage) {
-                resolve({
-                    code: -1,
-                    page,
-                    total,
-                    articles:[]
-                });
-                return;
-            }
-            const articles = await this.model('Article').find(queryObj,{content:0,tagcontent:0,__v:0})
-                .sort({ "create_time": -1 }).skip(limit * (page-1))
-                .limit(limit).populate('category','name').populate('tags','name');
-          
-            resolve({
-                articles,
-                total,			//文章总数
-                totalPage,		//总计页数
-                page	        //当前页
-            });
-        } catch(err) {
-            reject('获取文章列表出错:' + err);
-        }
-    })
-}
-
-
-
-//查找上一篇
-ArticleSchema.statics.findPrev = function(bid, callback) {
-	return this.model('Article')
-		.findOne(query).sort({
-			bId: -1
-		}).limit(1)
-		.exec(function(error, doc) {
-			if(error) {
-				console.log(error);
-				callback([]);
-			} else {
-				callback(doc);
-			}
-		});
-}
-
-//查找下一篇
-ArticleSchema.statics.findNext = function(bid, callback) {
-	return this.model('Article')
-		.findOne(query).sort({
-			bId: 1
-		}).limit(1) //此处.sort({bId: -1}).limit(1) 可省
-		.exec(function(error, doc) {
-			if(error) {
-				console.log(error);
-				callback([]);
-			} else {
-				callback(doc);
-			}
-		});
-}
-
-
-
-ArticleSchema.plugin(autoIncrement.plugin, {
-	model: 'Article', //数据模块
-	field: 'bId', 	  //字段名
-	startAt: 1,       //开始位置，自定义
-	incrementBy: 1    //每次自增数量
-});
-
-ArticleSchema.pre('save', function(next) {
-	this.nums.likeNum=this.likes.length;
-	if(this.isNew) {
-		this.create_time = this.update_time = Date.now()
-	} else {
-		this.update_time = Date.now()
-	}
-	next();
-});
 
 const Article = mongoose.model('Article', ArticleSchema);
 
