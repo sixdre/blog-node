@@ -23,8 +23,10 @@ export default class CategoryObj{
 						CategoryModel.findById(item._id).then(function(rs){
 							if(rs){
 								item.name = rs.name;
+								item.desc = rs.desc;
 							}else{
 								item.name = '未分类';
+								item.desc = '暂无描述';
 							}
 							resolve(item);
 						},function(err){

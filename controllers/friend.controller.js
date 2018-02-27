@@ -10,24 +10,21 @@ export default class FriendObj{
 		
 	}
 	async get(req,res,next){
-		let {page=1,limit=parseInt(CONFIG.FriendLimit)} = req.query;
-		
-		limit=parseInt(limit);
-		page=parseInt(page);
-		
+		let {page=1,limit=10} = req.query;
 		try{
 			const total = await FriendModel.count({});
 			const allPage = Math.ceil(total/limit);
 			if(page>allPage){
 				page=1;
 			}
-			const friends = await FriendModel.find({}).sort({'sort':-1})
-								.skip((page-1)*limit).limit(limit);
+			const results = await FriendModel.getListToPage({})
 			res.json({
 				code:1,
-				total,
+				message:'操作成功',
+				data:results.data,
+				total:results.total,
 				page,
-				data:friends
+				pageSize
 			})
 
 		}catch(err){

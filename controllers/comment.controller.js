@@ -9,10 +9,8 @@ export default class CommentObj{
 
 	async getComments(req, res, next) {
 		let articleId = req.params['article_id'];
-		let { order_by, page = 1 ,limit = 10} = req.query;
+		let { order_by, page = 1 ,pageSize = 10} = req.query;
 		let sort = { likeNum: -1 }
-		page = parseInt(page)
-		limit = parseInt(limit)
 		if(order_by == "timeSeq") {
 			sort = { create_time: 1 }
 		} else if(order_by == "timeRev") {
@@ -26,19 +24,13 @@ export default class CommentObj{
 					message:'该文章不存在或已被删除'
 				})
 			}
-			const total = await CommentModel.count();
-			const comments = await CommentModel.find({ articleId: articleId })
-				.populate({
-					path:'from reply.from reply.to',
-					select:'username '
-				}).skip((page-1)*limit)
-				.limit(limit).sort(sort);
-
+			const results = await CommentModel.getListToPage({articleId:articleId},page,pageSize,sort)
 			res.json({
 				code:1,
 				msg:'评论获取成功',
-				data: comments,
-				total
+				data: results.data,
+				total:results.total,
+				pageSize
 			})
 		} catch(err) {
 			console.log(err);

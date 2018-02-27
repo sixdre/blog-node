@@ -13,6 +13,10 @@ const CategorySchema = new Schema({
 		type: ObjectId,
 		ref: 'Article'
 	}],
+	desc:{		//描述
+		type: String,
+		default:'暂无描述'
+	},
 	create_time: {
 		type: Date,
 		default:Date.now()

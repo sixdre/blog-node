@@ -95,6 +95,83 @@ ArticleSchema.path('source').validate(function(value){
 
 
 
+
+
+ArticleSchema.methods.getTagName = function(){
+	let tagNames = this.tags.map(item=>item.name);
+	return tagNames;
+}
+
+ArticleSchema.methods.setTagName = function(tagNames){
+	if(!tagNames){
+		tagNames = this.getTagName();
+	}
+	let data = this.toObject();
+	data.tagNames = tagNames;
+	return data;
+}
+
+
+//根据条件获取文章列表
+ArticleSchema.statics.getList = function(queryobj){
+	return this.find(queryobj,{content:0,tagcontent:0,__v:0})
+	                .populate('category','name')
+	                .populate('tags','name')
+	                .populate('likes','name');
+}
+
+//列表分页
+ArticleSchema.statics.getListToPage = function(queryobj,page=1,pageSize=10){
+	let baseQuery = {
+		'is_private':false,	//非私有文章
+		'status':2	//有效的文章
+	}
+	if(queryobj.status&&queryobj.status==3){		//查询全部
+        delete queryobj.status;
+        delete baseQuery.status;
+    }
+	let params = Object.assign(baseQuery, queryobj);
+	page = parseInt(page);
+	pageSize = parseInt(pageSize);
+	return new Promise(async (resolve,reject)=>{
+		try{
+			let total =  await this.count(params);
+			let data = await this.getList(params)
+							.skip(pageSize * (page-1)).limit(pageSize)
+							.sort({ "create_time": -1 });
+			resolve({
+				data,
+				total,
+				pageSize
+			})
+		}catch(err){
+			reject(err);
+		}
+	})
+}
+
+
+//根据id查询
+ArticleSchema.statics.getOneById = function(id,is_private=false){
+	return this.findOne({'_id':id,is_private:is_private},{content:0,__v:0})
+                .populate('category','name')
+                .populate('tags','name')
+                .populate('likes','name');
+}
+//更新pv
+ArticleSchema.statics.updatePv = function(id,pv=1){
+	return this.update({_id:id}, {'$inc': {'nums.pv': pv}});
+}
+
+
+
+
+
+
+
+
+
+
 //根据条件查询
 ArticleSchema.statics.findList = function({page = 1,limit = 10,flag = 2,title = ''}){
 	return new Promise(async (resolve,reject)=>{

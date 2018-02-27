@@ -38,6 +38,48 @@ FriendSchema.pre("save",function(next){
 
 FriendSchema.index({ title: 1});
 
+
+
+
+FriendSchema.statics.getListToPage = function(queryobj={},page=1,pageSize=10){
+	page = parseInt(page);
+	pageSize = parseInt(pageSize);
+	return new Promise(async (resolve,reject)=>{
+		try{
+			let total =  await this.count(queryobj);
+			let data = await this.find(queryobj)
+							.skip(pageSize * (page-1)).limit(pageSize)
+							.sort({ "sort": -1 });
+			resolve({
+				data,
+				total,
+				pageSize
+			})
+		}catch(err){
+			reject(err);
+		}
+	})
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 const Friend = mongoose.model("Friend",FriendSchema);
 
 

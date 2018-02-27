@@ -18,31 +18,20 @@ export default class ArticleObj extends UploadComponent{
 	//获取文章
 	async get(req, res, next) {
 		let { page = 1, limit = 10, title = "", flag = 2 } = req.query;
-		page = parseInt(page);
-		limit = parseInt(limit);
-		flag = parseInt(flag);
-		let queryObj={
-			page,
-			limit,
-			flag,
-			title
+		let queryParams={
+			status:parseInt(flag),
+			title: {
+                '$regex': title
+            },
 		}
 		try{
-			let {articles,totalPage,total} = await ArticleModel.findList(queryObj);
-			// request('http://47.93.52.132:7893/api/articles', function (error, response, body) {
-			//   	if (!error && response.statusCode == 200) {
-			//   		let data = JSON.parse(body);
-			//   		data.data = data.articles;
-			//     	res.json(data);
-			//   	}
-			// })
-			
+			let results = await ArticleModel.getListToPage(queryParams,page,limit)
 			res.json({
 				code:1,
-				data:articles,
-				total:total,			//文章总数
-                totalPage:totalPage,		//总计页数
-                page       
+				data:results.data,
+				total:results.total,
+				limit:results.pageSize
+				
 			});
 		}catch(err){
 			console.log('获取文章列表出错:' + err);
@@ -54,19 +43,17 @@ export default class ArticleObj extends UploadComponent{
 		let id = req.params['id'];
 		let pv = req.query.pv;
 		try{
-			let article = await ArticleModel.findOne({_id:id,is_private:false},{content:0,__v:0})
-								.populate('category','name').populate('tags','name')
-								.populate('likes','name');
+			let article = await ArticleModel.getOneById(id);
 			if(!article||article.status==0){
 				return res.json({
 					code: 0,
 					message: '文章不存在或已被删除'
 				});
 			}
-			var data = article.toObject();
-			data.tagNames = data.tags.map(item=>item.name);
+			let data = article.setTagName();
 			if(pv){
-				await ArticleModel.update({_id:id}, {'$inc': {'nums.pv': 1}});
+				await ArticleModel.updatePv(id);
+				data.nums.pv+=1;
 			}
 			res.json({
 				code: 1,
@@ -81,17 +68,18 @@ export default class ArticleObj extends UploadComponent{
 
 	async getArticlesByTagId(req,res,next){
 		let tagId = req.params['tag_id'];
-		const {offset=0,limit = 100} = req.query;
+		let {page=1,pageSize = 100} = req.query;
 		try{
-			let articles = await ArticleModel.find({'tags':{'$in':[tagId]},is_private:false},{content:0,tagcontent:0,__v:0})
-								.skip(Number(offset)).limit(Number(limit))
-								.populate('category','name')
-								.populate('tags','name').populate('likes','name');	
-
+			let queryParams = {
+				'tags':{'$in':[tagId]}
+			}
+			let results = await ArticleModel.getListToPage(queryParams,page,pageSize);
 			res.json({
 				code:1,
 				msg:'success',
-				data:articles
+				data:results.data,
+				total:results.total,
+				pageSize:results.pageSize
 			});
 		}catch(err){
 			console.log('获取文章出错'+err);
@@ -101,16 +89,18 @@ export default class ArticleObj extends UploadComponent{
 	
 	async getArticlesByCategoryId(req,res,next){
 		const cId = req.params['category_id'];
-		const {offset=0,limit = 100} = req.query;
+		let {page=1,pageSize = 100} = req.query;
 		try{
-			let articles = await ArticleModel.find({'category':{'$in':[cId]},is_private:false},{'content':0,'tagcontent':0,'__v':0})
-							.skip(Number(offset)).limit(Number(limit))
-							.populate('category','name')
-							.populate('tags','name').populate('likes','name');		
+			let queryParams ={
+				'category':{'$in':[cId]}
+			}
+			let results = await ArticleModel.getListToPage(queryParams,page,pageSize);
 			res.json({
 				code:1,
 				msg:'success',
-				data:articles
+				data:results.data,
+				total:results.total,
+				pageSize:results.pageSize
 			});
 		}catch(err){
 			console.log('获取文章出错'+err);

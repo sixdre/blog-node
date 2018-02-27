@@ -46,25 +46,53 @@ CommentSchema.pre('save', function(next) {
 	next();
 });
 
-//静态方法
-CommentSchema.statics = {
-	findAll: function(cb) {
-		return this
-			.find({})
-			.sort('create_time')
-			.exec(cb)
-	},
-	findBySort: function(aId, orderBy) { //aId 文章id,orderBy 排序方式
-		return this.find({ articleId: aId })
+
+
+//列表分页
+CommentSchema.statics.getListToPage = function(queryobj,page=1,pageSize=10,order_by){
+	page = parseInt(page);
+	pageSize = parseInt(pageSize);
+	return new Promise(async (resolve,reject)=>{
+		try{
+			let total =  await this.count(queryobj);
+			let data = await this.find(queryobj).populate({
+					path:'from reply.from reply.to likes reply.likes',
+					select:'username'
+				}).skip(pageSize * (page-1)).limit(pageSize).sort(order_by);
+			resolve({
+				data,
+				total,
+				pageSize
+			})
+		}catch(err){
+			reject(err);
+		}
+	})
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+CommentSchema.statics.findAll=function(cb) {
+	return this.find({}).sort('create_time').exec(cb)
+},
+
+CommentSchema.statics.findBySort=function(aId,orderBy) {
+	return this.find({ articleId: aId })
 			.populate('from')
 			.populate('reply.from reply.to')
 			.sort(orderBy).exec();
-	}
-	//	pointLikes:function(cId,Rid){		//cId 评论id，Rid评论回复id
-	//		return this.
-	//	}
+},
 
-}
 
 CommentSchema.index({ articleId: 1});
 
