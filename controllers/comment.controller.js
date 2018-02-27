@@ -48,7 +48,7 @@ export default class CommentObj{
 		}
 		try{
 			const articleId=req.params['article_id'];
-			const fromId = req.userInfo;
+			const fromId = req.userInfo._id;
 			let article = await ArticleModel.findOne({_id:articleId,is_private:false});
 			if(!article){
 				return res.json({
@@ -70,24 +70,24 @@ export default class CommentObj{
 						message:'此条评论不存在'
 					})
 				}
-				let reply = {
-					from: fromId,
-					to: _comment.toId,
-					content: _comment.content,
-					create_time:Date.now()
-				};
-				await CommentModel.reply(_comment.cId,articleId,reply);
+				let reply = await new CommentModel({
+							articleId:articleId,
+							from: fromId,
+							to: _comment.toId,
+							content: _comment.content,
+							isM:false
+						}).save();
+				await CommentModel.reply(_comment.cId,articleId,reply._id);
 				res.json({
 					code: 1,
 					message:'评论成功'
 				});
 			}else{
-				_comment.articleId = articleId;
 				let newcomment = new CommentModel({
 					articleId:articleId,
 					from:fromId,
 					content:_comment.content
-				});
+				})
 				await newcomment.save();
 				res.json({
 					code: 1,
@@ -102,44 +102,24 @@ export default class CommentObj{
 
 	async addCommentLike(req, res, next) {
 		const commentId = req.params['comment_id'],
-			user = req.userInfo;
+			userId = req.userInfo._id;
 
 		try {
 			let comment = await CommentModel.findById(commentId);
 			if(!comment) {		//没有在主评论找到的话就去回复中查询
-				let data = await CommentModel.findOne({'reply._id':commentId});
-				if(!data){
-					return res.json({
-						code:0,
-						message:'没有找到该评论'
-					})
-				}
-				let reply = data.reply;
-				reply.forEach((value) =>{
-					if(value._id == commentId) {
-						if(value.likes.indexOf(user._id) > -1) {
-							return res.json({
-								code: 0,
-								message: '您已点赞'
-							})
-						}
-						value.likes.push(user._id);
-					}
-				});
-				await data.save();
 				res.json({
-					code: 1,
-					message: '点赞成功'
-				});
-				
+					code:0,
+					message:'没有找到该评论'
+				})
 			}else{
-				if(comment.likes.indexOf(user._id) > -1) {
+				console.log('sss')
+				if(comment.likes.indexOf(userId) > -1) {
 					return res.json({
 						code: 0,
 						message: '您已点赞'
 					});
 				}
-				comment.likes.push(user._id);
+				comment.likes.push(userId);
 				await comment.save();
 				res.json({
 					code: 1,
