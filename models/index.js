@@ -1,15 +1,16 @@
-import Article from './article.model'
-import Banner from './banner.model'
-import Category from './category.model'
-import Comment from './comment.model'
+import Article from './article/article.model'
+import Category from './article/category.model'
+import Comment from './article/comment.model'
+import Tag from './article/tag.model'
+
+import Friend from './friend/friend.model'
+import User from './user/user.model'
+import Word from './word/word.model'
+import Menu from './permission/menu.model'
+import Permission from './permission/permission.model'
+import Role from './permission/role.model'
 import File from './file.model'
-import Friend from './friend.model'
-import Menu from './menu.model'
-import Permission from './permission.model'
-import Role from './role.model'
-import Tag from './tag.model'
-import User from './user.model'
-import Word from './word.model'
+import Banner from './banner.model'
 
 
 export const ArticleModel = Article;

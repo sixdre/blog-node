@@ -6,11 +6,11 @@ import http from 'http'
 import request from 'request'
 import path from 'path'
 import fs from 'fs'
-import UploadComponent from '../prototype/upload'
+import UploadComponent from '../../prototype/upload'
 //数据模型
-import {FileModel,BannerModel} from '../models/'
+import {FileModel,BannerModel} from '../../models/'
 
-const tool = require('../utility/tool');
+const tool = require('../../utility/tool');
 
 export default class FileObj extends UploadComponent{
 	constructor(){

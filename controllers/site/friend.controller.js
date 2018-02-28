@@ -3,7 +3,7 @@
  */
 "use strict";
 //数据模型
-import {FriendModel} from '../models/'
+import {FriendModel} from '../../models/'
 	
 export default class FriendObj{
 	constructor(){

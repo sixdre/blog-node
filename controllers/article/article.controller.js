@@ -3,11 +3,12 @@
  */
 "use strict";
 import _ from 'underscore'
+import validator from 'validator'
 import request from 'request'
-import {ArticleModel,CategoryModel,CommentModel,TagModel} from '../models/'
-import UploadComponent from '../prototype/upload'
+import {ArticleModel,CategoryModel,CommentModel,TagModel} from '../../models/'
+import UploadComponent from '../../prototype/upload'
 
-const tool = require('../utility/tool');
+const tool = require('../../utility/tool');
 
 export default class ArticleObj extends UploadComponent{
 	constructor() {
@@ -68,6 +69,14 @@ export default class ArticleObj extends UploadComponent{
 	async findOneById(req, res, next) {
 		let id = req.params['id'];
 		let pv = req.query.pv;
+		if (!validator.isMongoId(id)) {
+			res.json({
+				code: 0,
+				type: 'ERROR_PARAMS',
+				message: '文章ID参数错误'
+			})
+			return 
+		}
 		try{
 			let article = await ArticleModel.getOneById(id);
 			if(!article||article.status==0){
@@ -95,6 +104,14 @@ export default class ArticleObj extends UploadComponent{
 	async getArticlesByTagId(req,res,next){
 		let tagId = req.params['tag_id'];
 		let {page=1,pageSize = 100} = req.query;
+		if (!validator.isMongoId(tagId)) {
+			res.json({
+				code: 0,
+				type: 'ERROR_PARAMS',
+				message: '标签ID参数错误'
+			})
+			return 
+		}
 		try{
 			let queryParams = {
 				'tags':{'$in':[tagId]}
@@ -116,6 +133,14 @@ export default class ArticleObj extends UploadComponent{
 	async getArticlesByCategoryId(req,res,next){
 		const cId = req.params['category_id'];
 		let {page=1,pageSize = 100} = req.query;
+		if (!validator.isMongoId(cId)) {
+			res.json({
+				code: 0,
+				type: 'ERROR_PARAMS',
+				message: '类型ID参数错误'
+			})
+			return 
+		}
 		try{
 			let queryParams ={
 				'category':{'$in':[cId]}
@@ -304,7 +329,7 @@ export default class ArticleObj extends UploadComponent{
 					try{
 						if(!item.is_private){	//不是私有的管理员可以删除
 							await this.removeOne(item);
-						}else if(item.is_private&&item.author==userInfo.username){	//私有的只能作者可以删除
+						}else if(item.is_private&&item.author._id==userInfo._id){	//私有的只能作者可以删除
 							await this.removeOne(item);
 						}
 						resolve('ok');
@@ -329,14 +354,14 @@ export default class ArticleObj extends UploadComponent{
 
 	async addLikes(req, res, next) {
 		let id = req.params['id'];
-		let userId = req.session["User"]._id;
-		if(!userId) {
+		let userId = req.userInfo._id;
+		if (!validator.isMongoId(id)) {
 			res.json({
 				code: 0,
 				type: 'ERROR_PARAMS',
-				message: '参数错误'
-			});
-			return;
+				message: '文章ID参数错误'
+			})
+			return 
 		}
 		try{
 			let article = await ArticleModel.findOne({_id:id,is_private:false});

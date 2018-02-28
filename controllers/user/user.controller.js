@@ -4,10 +4,10 @@
 "use strict";
 import md5  from 'md5'
 import validator from 'validator'
-import auth from '../middleware/auth'
+import auth from '../../middleware/auth'
 //数据模型
 
-import {UserModel,ArticleModel,CategoryModel,TagModel,WordModel} from '../models/'
+import {UserModel,ArticleModel,CategoryModel,TagModel,WordModel} from '../../models/'
 
 
 export default class UserObj{

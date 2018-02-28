@@ -3,12 +3,21 @@
  */
 "use strict";
 import _ from 'underscore'
-import {ArticleModel,CommentModel} from '../models/'
+import {ArticleModel,CommentModel} from '../../models/'
+import validator from 'validator'
 
 export default class CommentObj{
 
-	async getComments(req, res, next) {
+	async getCommentsByArticleId(req, res, next) {
 		let articleId = req.params['article_id'];
+		if (!validator.isMongoId(articleId)) {
+			res.send({
+				code: 0,
+				type: 'ERROR_PARAMS',
+				message: '文章ID参数错误'
+			})
+			return 
+		}
 		let { order_by, page = 1 ,pageSize = 10} = req.query;
 		let sort = { likeNum: -1 }
 		if(order_by == "timeSeq") {
@@ -40,15 +49,26 @@ export default class CommentObj{
 
 	async addComment(req, res, next) {
 		let _comment = req.body;
-		if(_.isEmpty(_comment.content)){
-			return res.json({
-				code:0,
-				message:'请输入内容'
+		const articleId=req.params['article_id'];
+		const fromId = req.userInfo._id;
+		try{
+			if (validator.isEmpty(_comment.content)) {
+				throw new Error('请输入内容')
+			}else if(!validator.isMongoId(articleId)){
+				throw new Error('articleId参数错误')
+			}else if(!validator.isMongoId(fromId)){
+				throw new Error('fromId参数错误')
+			}
+		}catch(err){
+			console.log(err.message);
+			res.json({
+				code: 0,
+				type: 'ERROR_PARAMS',
+				message: err.message,
 			})
+			return
 		}
 		try{
-			const articleId=req.params['article_id'];
-			const fromId = req.userInfo._id;
 			let article = await ArticleModel.findOne({_id:articleId,is_private:false});
 			if(!article){
 				return res.json({
@@ -56,13 +76,19 @@ export default class CommentObj{
 					message:'该文章不存在或已被删除'
 				})
 			}
-			if(_comment.cId) {		//说明是回复评论
-				if(_.isEmpty(_comment.toId)){
-					return res.json({
-						code:0,
-						message:'参数缺失'
-					})
-				}
+
+			if(validator.isEmpty(_comment.cId)){
+				let newcomment = new CommentModel({
+					articleId:articleId,
+					from:fromId,
+					content:_comment.content
+				})
+				await newcomment.save();
+				res.json({
+					code: 1,
+					message:'评论成功'
+				});
+			}else if(validator.isMongoId(_comment.cId)&&validator.isMongoId(_comment.toId)){	//说明是回复评论
 				let cmt = await CommentModel.findById(_comment.cId);
 				if(!cmt){
 					return res.json({
@@ -83,16 +109,11 @@ export default class CommentObj{
 					message:'评论成功'
 				});
 			}else{
-				let newcomment = new CommentModel({
-					articleId:articleId,
-					from:fromId,
-					content:_comment.content
-				})
-				await newcomment.save();
 				res.json({
-					code: 1,
-					message:'评论成功'
-				});
+					code: 0,
+					type: 'ERROR_PARAMS',
+					message: '参数错误',
+				})
 			}
 		}catch(err){
 			console.log('评论出错:' + err);
@@ -103,7 +124,19 @@ export default class CommentObj{
 	async addCommentLike(req, res, next) {
 		const commentId = req.params['comment_id'],
 			userId = req.userInfo._id;
-
+			try{
+				if(!validator.isMongoId(commentId)){
+					throw new Error('commentId参数错误')
+				}
+			}catch(err){
+				console.log(err.message);
+				res.json({
+					code: 0,
+					type: 'ERROR_PARAMS',
+					message: err.message,
+				})
+				return
+			}
 		try {
 			let comment = await CommentModel.findById(commentId);
 			if(!comment) {		//没有在主评论找到的话就去回复中查询
@@ -112,7 +145,6 @@ export default class CommentObj{
 					message:'没有找到该评论'
 				})
 			}else{
-				console.log('sss')
 				if(comment.likes.indexOf(userId) > -1) {
 					return res.json({
 						code: 0,

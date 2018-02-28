@@ -47,7 +47,7 @@ router.del('/articles/:id',Auth.checkToken,Auth.checkAdmin,ArticleCtrl.remove);
 router.put('/articles/:id/likes',Auth.checkToken,ArticleCtrl.addLikes);
 
 //获取文章评论
-router.get('/articles/:article_id/comments',CommentCtrl.getComments);
+router.get('/articles/:article_id/comments',CommentCtrl.getCommentsByArticleId);
 //文章评论
 router.post('/articles/:article_id/comments',Auth.checkToken,CommentCtrl.addComment);
 //评论点赞

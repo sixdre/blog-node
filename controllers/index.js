@@ -1,12 +1,12 @@
-import ArticleController from './article.controller'
-import CategoryController from './category.controller'
-import CommentController from './comment.controller'
-import TagController from './tag.controller'
-import WordController from './word.controller'
-import FriendController from './friend.controller'
-import UserController from './user.controller'
-import FileController from './file.controller'
-import permissionController from './permission.controller'
+import ArticleController from './article/article.controller'
+import CategoryController from './article/category.controller'
+import TagController from './article/tag.controller'
+import CommentController from './article/comment.controller'
+import WordController from './word/word.controller'
+import FriendController from './site/friend.controller'
+import FileController from './site/file.controller'
+import UserController from './user/user.controller'
+import permissionController from './permission/permission.controller'
 
 
 export const ArticleCtrl = new ArticleController();

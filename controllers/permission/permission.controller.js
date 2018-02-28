@@ -1,5 +1,5 @@
-import {PermissionModel,MenuModel,RoleModel} from '../models/'
-import transformTozTreeFormat from '../utility/tree'
+import {PermissionModel,MenuModel,RoleModel} from '../../models/'
+import transformTozTreeFormat from '../../utility/tree'
 import validator from 'validator'
 
 export default class PermissionController {

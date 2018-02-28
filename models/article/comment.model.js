@@ -1,6 +1,6 @@
 'use strict';
 import mongoose from 'mongoose'
-import {ArticleModel} from './index';
+import ArticleModel from './article.model';
 
 const  Schema = mongoose.Schema,
 	ObjectId = Schema.Types.ObjectId;

@@ -3,8 +3,9 @@
  */
 "use strict";
 //数据模型
-import {CategoryModel,ArticleModel} from '../models/'
-const tool = require('../utility/tool');
+import {CategoryModel,ArticleModel} from '../../models/'
+import validator from 'validator'
+const tool = require('../../utility/tool');
 
 export default class CategoryObj{
 	constructor(){
