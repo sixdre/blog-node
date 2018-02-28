@@ -40,24 +40,21 @@ CommentSchema.pre('save', function(next) {
 	if(this.isNew) {
 		this.create_time = Date.now();
 	} 
-	next();
-	// ArticleModel.update({_id:this.articleId},{'$inc':{'nums.cmtNum':1}}).then(function(){
-	// 	next();
-	// },function(err){
-	// 	next(err);
-	// })
+	ArticleModel.update({_id:this.articleId},{'$inc':{'nums.cmtNum':1}}).then(function(){
+		next();
+	},function(err){
+		next(err);
+	})
 });
 
 
 /*添加回复
 @param id 			评论id
 @param articleId 	文章id
-@param reply 		回复实体
+@param reply 		回复评论id
 */
 CommentSchema.statics.reply = function(id,articleId,reply){
-	return this.update({ _id: id }, { $addToSet: { "reply": reply } }).then(function(){
-		return ArticleModel.update({_id:articleId},{'$inc':{'nums.cmtNum':1}})
-	})
+	return this.update({ _id: id }, { $addToSet: { "reply": reply } });
 }
 
 

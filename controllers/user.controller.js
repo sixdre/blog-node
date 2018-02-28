@@ -15,36 +15,6 @@ export default class UserObj{
 		
 	}
 
-	//获取当前用户的文章
-	async getArticles(req,res,next){
-		const userName = req.userInfo.username;
-		let { page = 1, limit = 10, title = "", flag = 2 } = req.query;
-		let queryParams={
-			'author':userName,
-			status:parseInt(flag),
-			title: {
-                '$regex': title
-            },
-		}
-		try{
-			let results = await ArticleModel.getListToPage(queryParams,page,limit)
-			res.json({
-				code:1,
-				data:results.data,
-				total:results.total,
-				limit:results.pageSize
-				
-			});
-		}catch(err){
-			console.log('获取文章列表出错:' + err);
-			return next(err);
-		}
-		
-	}
-
-
-
-
 	async get(req,res,next){
 		let {skip=0,limit=0} = req.query;
 		skip = parseInt(skip);

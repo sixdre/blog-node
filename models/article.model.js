@@ -11,16 +11,20 @@ autoIncrement.initialize(mongoose.connection);
 //文章
 const ArticleSchema = new Schema({
 	author: { 			//作者
-		type: String
+		type: ObjectId,
+		ref: 'User',
+		required: true 
 	},
 	title: {			//标题
 		unique: true,
 		index: true,
-		type: String
+		type: String,
+		required: true 
 	}, 		
 	category: { 		//类型分类
 		type: ObjectId,
-		ref: 'Category'
+		ref: 'Category',
+		required: true 
 	},
 	tags: [{ 			//标签
 		type: ObjectId,
@@ -143,9 +147,10 @@ ArticleSchema.methods.setTagName = function(tagNames){
 //根据条件获取文章列表
 ArticleSchema.statics.getList = function(queryobj){
 	return this.find(queryobj,{content:0,tagcontent:0,__v:0})
+					.populate('author','username avatar')
 	                .populate('category','name')
 	                .populate('tags','name')
-	                .populate('likes','name');
+	                .populate('likes','username avatar');
 }
 
 //列表分页
@@ -182,9 +187,10 @@ ArticleSchema.statics.getListToPage = function(queryobj,page=1,pageSize=10){
 //根据id查询
 ArticleSchema.statics.getOneById = function(id,is_private=false){
 	return this.findOne({'_id':id,is_private:is_private},{content:0,__v:0})
+                .populate('author','username avatar')
                 .populate('category','name')
                 .populate('tags','name')
-                .populate('likes','name');
+                .populate('likes','username avatar');
 }
 //更新pv
 ArticleSchema.statics.updatePv = function(id,pv=1){

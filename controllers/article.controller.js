@@ -38,6 +38,32 @@ export default class ArticleObj extends UploadComponent{
 			return next(err);
 		}
 	}
+	//获取登录用户的文章
+	async getLoginUserArticles(req,res,next){
+		const userId = req.userInfo._id;
+		let { page = 1, limit = 10, title = "", flag = 2 } = req.query;
+		let queryParams={
+			'author':userId,
+			status:parseInt(flag),
+			title: {
+                '$regex': title
+            },
+		}
+		try{
+			let results = await ArticleModel.getListToPage(queryParams,page,limit)
+			res.json({
+				code:1,
+				data:results.data,
+				total:results.total,
+				limit:results.pageSize
+				
+			});
+		}catch(err){
+			console.log('获取文章列表出错:' + err);
+			return next(err);
+		}
+		
+	}
 	//根据id获取文章
 	async findOneById(req, res, next) {
 		let id = req.params['id'];
@@ -110,7 +136,7 @@ export default class ArticleObj extends UploadComponent{
 	
 	async create(req, res, next) {
 		let article = req.body.article;
-		article.author = req.userInfo.username||'未知用户';
+		article.author = req.userInfo._id;
 		try {
 			let rart = await ArticleModel.findOne({title:article.title});
 			if(rart){
