@@ -4,7 +4,7 @@ import fs from 'fs'
 const  Schema = mongoose.Schema  
     , ObjectId = Schema.ObjectId;
 
-var menus = JSON.parse(fs.readFileSync('./config/menu.json').toString()).data;
+var menus = JSON.parse(fs.readFileSync('./InitData/menu.json').toString()).data;
 
 //菜单表
 const menuSchema=new Schema({

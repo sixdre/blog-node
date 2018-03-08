@@ -14,36 +14,14 @@ export default class CategoryObj{
 	async get(req,res,next){
 		let {type='',name} = req.query;
 		try{
-			if(type==='group'){		//根据已有文章进行分组统计
-				let group = await ArticleModel.aggregate([
-							{ $match:{"status":2,"is_private":false}},
-							{ $group:{ _id: "$category",count:{ $sum: 1 } }}]);
-
-				let Pro = group.map(function(item){
-					return new Promise(function(resolve, reject){
-						CategoryModel.findById(item._id).then(function(rs){
-							if(rs){
-								item.name = rs.name;
-								item.desc = rs.desc;
-							}else{
-								item.name = '未分类';
-								item.desc = '暂无描述';
-							}
-							resolve(item);
-						},function(err){
-							reject(err)
-						})
-					})
-				})			
-				let data = await Promise.all(Pro);
-				let total = data.length
+			if(type==='group'){		//根据已有文章进行分组统计		
+				let data = await CategoryModel.getToGroup();
 				res.json({
 					code: 1,
-					data,
-					total
+					data
 				});	
 			}else if(name&&name.length){	//根据名称搜索
-				let data = await CategoryModel.findOne({name:name},{'__v':0});
+				let data = await CategoryModel.findOne({name:name}).select('-__v -articles');
 				if(!data){
 					message = '该标签不存在'
 				}
@@ -53,19 +31,10 @@ export default class CategoryObj{
 					message
 				})
 			}else{
-				const total = await	CategoryModel.count();
-				if(!total){
-					res.json({ 	
-						code: -1,
-						message: 'no more'
-					});
-					return ;
-				}
-				const categories = await CategoryModel.find({});
+				let data = await CategoryModel.find().select('-__v -articles');
 				res.json({
 					code: 1,
-					data:categories,
-					total
+					data
 				});	
 			}
 		}catch(err){
@@ -76,7 +45,14 @@ export default class CategoryObj{
 	
 	async findOneById(req,res,next){
 		const id = req.params['id'];
-		
+		if (!validator.isMongoId(id)) {
+			res.json({
+				code: 0,
+				type: 'ERROR_PARAMS',
+				message: '分类ID参数错误'
+			})
+			return 
+		}
 		try{
 			let category = await CategoryModel.findById(id,{'__v':0});
 			res.json({
@@ -90,7 +66,6 @@ export default class CategoryObj{
 		}
 		
 	}
-	
 	async create(req,res,next){
 		let name = req.body.name;
 	    let nameArr = name.split('/');
@@ -161,13 +136,20 @@ export default class CategoryObj{
 	async update(req,res,next){
 		const id = req.params['id'];
 		let name = req.body.name;
-		if(!name.length){
+		try{
+			if (validator.isEmpty(name.trim())) {
+				throw new Error('名称不得为空')
+			}else if(!validator.isMongoId(id)){
+				throw new Error('分类Id参数错误')
+			}
+		}catch(err){
+			console.log(err.message);
 			res.json({
 				code: 0,
 				type: 'ERROR_PARAMS',
-				message:'参数错误'
+				message: err.message,
 			})
-			return ;
+			return
 		}
 		try{
 			let cate = await CategoryModel.findOne({name: name})

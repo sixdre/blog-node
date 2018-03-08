@@ -1,5 +1,6 @@
 "use strict";
 import mongoose from 'mongoose'
+import userData from '../../InitData/user'
 const	Schema = mongoose.Schema,
 	ObjectId = Schema.ObjectId;
 
@@ -45,13 +46,14 @@ UserSchema.index({username:1});
 
 const User = mongoose.model('User', UserSchema);
 
-//User.findOne((err, data) => {
-//	if (!data) {
-//		Category.create({
-//			name:'未分类'
-//		});
-//	}
-//})
+User.findOne((err, data) => {
+	if (!data) {
+		for (let i = 0; i < userData.length; i++) {
+			User.create(userData[i]);
+		}
+	}
+})
+
 
 
 export default User

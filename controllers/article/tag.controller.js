@@ -17,56 +17,22 @@ export default class TagObj{
 		let message;
 		try{
 			if(type==='group'){		//根据已有文章进行分组统计
-				let group = await ArticleModel.aggregate([
-							{ $match:{"status":2,"is_private":false}},
-							{ $unwind : "$tags"},
-							{ $group:{ _id: "$tags",count:{ $sum: 1 } }}]);
-							
-				let Pro = group.map(function(item){
-					return new Promise(function(resolve, reject){
-						TagModel.findById(item._id).then(function(rs){
-							if(rs){
-								item.name = rs.name;
-							}else{
-								item.name = '未分类';
-							}
-							resolve(item);
-						},function(err){
-							reject(err)
-						})
-					})
-				})			
-				let data = await Promise.all(Pro);
-				let total = data.length;
+				let data = await TagModel.getToGroup();
 				res.json({
 					code: 1,
-					data,
-					total
+					data
 				});	
 			}else if(name&&name.length){	//根据名称搜索
 				let data = await TagModel.findOne({name:name},{'__v':0});
-				if(!data){
-					message = '该标签不存在'
-				}
 				res.json({
 					code:1,
-					data,
-					message
+					data
 				})
 			}else{
-				const total = await	TagModel.count();
-				if(!total){
-					res.json({ 	
-						code: -1,
-						message: 'no more'
-					});
-					return ;
-				}
-				const tags = await TagModel.find({},{'__v':0});
+				let data = await TagModel.find({},{'__v':0});
 				res.json({
 					code: 1,
-					data:tags,
-					total,
+					data
 				});	
 			}
 		}catch(err){
@@ -78,7 +44,14 @@ export default class TagObj{
 	
 	async findOneById(req,res,next){
 		const id = req.params['id'];
-		
+		if (!validator.isMongoId(id)) {
+			res.json({
+				code: 0,
+				type: 'ERROR_PARAMS',
+				message: '标签ID参数错误'
+			})
+			return 
+		}
 		try{
 			let tag = await TagModel.findById(id,{'__v':0});
 			res.json({
@@ -164,13 +137,20 @@ export default class TagObj{
 	async update(req,res,next){
 		const id = req.params['id'];
 		let name = req.body.name;
-		if(!name.length){
+		try{
+			if (validator.isEmpty(name.trim())) {
+				throw new Error('名称不得为空')
+			}else if(!validator.isMongoId(id)){
+				throw new Error('标签Id参数错误')
+			}
+		}catch(err){
+			console.log(err.message);
 			res.json({
 				code: 0,
 				type: 'ERROR_PARAMS',
-				message:'参数错误'
+				message: err.message,
 			})
-			return ;
+			return
 		}
 		try{
 			let tag=await TagModel.findOne({name: name})
