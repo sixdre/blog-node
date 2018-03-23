@@ -5,7 +5,7 @@
 import _ from 'underscore'
 import validator from 'validator'
 import request from 'request'
-import {ArticleModel,CategoryModel,CommentModel,TagModel} from '../../models/'
+import {ArticleModel,CategoryModel,CommentModel,TagModel,UserModel} from '../../models/'
 import UploadComponent from '../../prototype/upload'
 
 const tool = require('../../utility/tool');
@@ -352,10 +352,11 @@ export default class ArticleObj extends UploadComponent{
 
 	}
 
-	async addLikes(req, res, next) {
-		let id = req.params['id'];
+	//点赞
+	async toggleLike(req, res, next) {
+		let aid = req.params['id'];
 		let userId = req.userInfo._id;
-		if (!validator.isMongoId(id)) {
+		if (!validator.isMongoId(aid)) {
 			res.json({
 				code: 0,
 				type: 'ERROR_PARAMS',
@@ -364,21 +365,89 @@ export default class ArticleObj extends UploadComponent{
 			return 
 		}
 		try{
-			let article = await ArticleModel.findOne({_id:id,is_private:false});
+			let article = await ArticleModel.findOne({_id:aid,is_private:false});
 			if(!article){
 				return res.json({
 					code:0,
 					message:'该文章不存在或已被删除'
 				})
 			}
-			await ArticleModel.update({ _id: id}, { $addToSet: { "likes": userId } });
+			let user = await UserModel.findOne({ _id: userId});
+			let conditionOne,conditionTwo,like,count=0;
+			let isLikes = user.likeArts.indexOf(aid);
+			if(isLikes !== -1){
+				conditionOne = {'$pull':{'likeArts':aid}};
+			  	conditionTwo = {'$inc':{'nums.likeNum':-1}};
+			  	count = article.nums.likeNum-1;
+			  	like = false;
+			}else{
+				conditionOne = {'$addToSet':{'likeArts':aid}};
+			  	conditionTwo = {'$inc':{'nums.likeNum':1}};
+			  	like = true;
+			  	count= article.nums.likeNum+1;
+			}
+			await UserModel.update({ _id: userId}, conditionOne);
+			await ArticleModel.update({ _id: aid}, conditionTwo);
 			res.json({
 				code: 1,
-				type: 'SUCCESS_TO_ADD_LIKES',
-				message: '点赞成功'
+				count:count,
+				isLike:like,
+				type: 'SUCCESS_TO_LIKES',
+				message: '操作成功'
 			});
+
 		}catch(err){
 			console.log('点赞失败:'+err);
+			return next(err);
+		}
+	}
+
+	//收藏
+	async toggleCollect(req, res, next) {
+		let aid = req.params['id'];
+		let userId = req.userInfo._id;
+		if (!validator.isMongoId(aid)) {
+			res.json({
+				code: 0,
+				type: 'ERROR_PARAMS',
+				message: '文章ID参数错误'
+			})
+			return 
+		}
+		try{
+			let article = await ArticleModel.findOne({_id:aid,is_private:false});
+			if(!article){
+				return res.json({
+					code:0,
+					message:'该文章不存在或已被删除'
+				})
+			}
+			let user = await UserModel.findOne({ _id: userId});
+			let isCollect = user.collectArts.indexOf(aid);
+
+			let conditionOne,conditionTwo,collect,count=0;
+			if(isCollect !== -1){
+				conditionOne = {'$pull':{'collectArts':aid}};
+			  	conditionTwo = {'$inc':{'nums.collectNum':-1}};
+			  	count = article.nums.collectNum-1;
+			  	collect = false;
+			}else{
+				conditionOne = {'$addToSet':{'collectArts':aid}};
+			  	conditionTwo = {'$inc':{'nums.collectNum':1}};
+			  	count = article.nums.collectNum+1;
+			  	collect = true;
+			}
+			await UserModel.update({ _id: userId}, conditionOne);
+			await ArticleModel.update({ _id: aid}, conditionTwo);
+			res.json({
+				code: 1,
+				count:count,
+				isCollect:collect,
+				type: 'SUCCESS_TO_COLLECTION',
+				message: '操作成功'
+			});
+		}catch(err){
+			console.log('操作失败:'+err);
 			return next(err);
 		}
 	}

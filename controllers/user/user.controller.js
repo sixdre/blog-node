@@ -2,9 +2,9 @@
  * 用户控制器
  */
 "use strict";
-import md5  from 'md5'
 import validator from 'validator'
 import auth from '../../middleware/auth'
+import _ from 'underscore'
 //数据模型
 
 import {UserModel,ArticleModel,CategoryModel,TagModel,WordModel} from '../../models/'
@@ -44,6 +44,37 @@ export default class UserObj{
 		
 	}
 	
+	//更新用户信息
+	async update(req,res,next){
+		let userId = req.userInfo._id;
+		let id = req.params['id'];
+		if(userId!==id){
+			return res.json({ 	
+				code: 0,
+				message: '操作失败'
+			});
+		}
+		try{
+			let user = await UserModel.findOne({"_id":id});
+			if(!user){
+				return res.json({ 	
+					code: 0,
+					message: '用户不存在或已被删除'
+				});
+			}
+			await _.extend(user,req.body).save();
+			return res.json({ 	
+				code: 1,
+				message: '操作成功'
+			});
+		}catch(err){
+			console.log('更新用户信息失败:' + err);
+			return next(err);
+		}
+	}
+
+
+
 	async remove(req,res,next){
 		const ids = req.params['id'].split(',');
 		try{
@@ -109,7 +140,7 @@ export default class UserObj{
 			}
 			let newUser=new UserModel({
 				username:username,
-				password:md5(password),
+				password:password,
 				email:email
 			});
 			
@@ -151,26 +182,31 @@ export default class UserObj{
 					code:-1,
 					message:"该用户没有注册！"
 				})
-			}else if(user.password!==md5(password)){
-				res.json({
-					code:0,
-					message:"密码不正确！"
-				})
-			}else{
-				var token = auth.setToken(JSON.parse(JSON.stringify(user)));
-				req.session["User"] = user;
-				res.json({
-					code:1,
-					token,
-					userInfo:{
-						role:'测试',
-						username:user.username,
-						avatar:user.avatar
-					},
-					message:"登录成功！"
-				});
-//				res.redirect('back');
 			}
+
+			user.comparePassword(password,function(err, isMatch) {
+	            if (err) throw err;
+	            if(isMatch){
+	            	var token = auth.setToken(JSON.parse(JSON.stringify(user)));
+	            	req.session["User"] = user;
+					res.json({
+						code:1,
+						token,
+						userInfo:{
+							role:'测试',
+							username:user.username,
+							avatar:user.avatar
+						},
+						message:"登录成功！"
+					});
+	            }else{
+	            	res.json({
+						code:0,
+						message:"密码不正确！"
+					})
+	            }
+	        });
+
 		}catch(err){
 			console.log('登录失败:' + err);
 			return next(err);
@@ -211,7 +247,7 @@ export default class UserObj{
 			let manager = new UserModel({
 				username: username,
 				email:email,
-				password: md5(password)
+				password:password
 			});
 			manager.isAdmin=true;
 			await manager.save();
@@ -233,29 +269,33 @@ export default class UserObj{
 			//返回指定字段 或者使用下面
 			//{username:1,password:1,email:1,create_time:1,isAdmin:1}
 			if(!manager|| !manager.isAdmin){
-				res.json({
+				return res.json({
 					code:-1,
 					message:'账号不存在'
 			    });
-			}else if(manager.password !== md5(password)){
-				res.json({
-					code : -2,
-					message:'密码错误'	//密码错误
-				});			
-			} else {
-				var token = auth.setToken(JSON.parse(JSON.stringify(manager)));
-				req.session["manager"] = manager;
-				res.json({
-					code : 1,
-					token,
-					userInfo:{
-						role:'测试',
-						username:manager.username,
-						avatar:manager.avatar
-					},
-					message:'登陆成功'	//登陆成功
-				});			
 			}
+			manager.comparePassword(password,function(err, isMatch) {
+	            if (err) throw err;
+	            if(isMatch){
+	            	var token = auth.setToken(JSON.parse(JSON.stringify(manager)));
+					req.session["manager"] = manager;
+					res.json({
+						code : 1,
+						token,
+						userInfo:{
+							role:'测试',
+							username:manager.username,
+							avatar:manager.avatar
+						},
+						message:'登陆成功'	//登陆成功
+					});			
+	            }else{
+	            	res.json({
+						code : -2,
+						message:'密码错误'	//密码错误
+					});			
+	            }
+	        });
 		}catch(err){
 			console.log('管理员登陆出错:' + err);
 			return next(err);

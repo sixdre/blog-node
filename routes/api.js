@@ -44,7 +44,10 @@ router.put('/articles/:id',Auth.checkToken,Auth.checkAdmin, upload.single('cover
 //文章删除
 router.del('/articles/:id',Auth.checkToken,Auth.checkAdmin,ArticleCtrl.remove);
 //文章点赞
-router.put('/articles/:id/likes',Auth.checkToken,ArticleCtrl.addLikes);
+router.put('/articles/:id/likes',Auth.checkToken,ArticleCtrl.toggleLike);
+//文章收藏
+router.put('/articles/:id/collect',Auth.checkToken,ArticleCtrl.toggleCollect);
+
 
 //获取文章评论
 router.get('/articles/:article_id/comments',CommentCtrl.getCommentsByArticleId);
@@ -115,6 +118,8 @@ router.get('/download', FileCtrl.download);
 router.get('/users', Auth.checkToken,Auth.checkAdmin, UserCtrl.get)
 //删除用户
 router.delete('/users/:id', Auth.checkToken,Auth.checkAdmin, UserCtrl.remove)
+//更新用户信息
+router.put('/users/:id', Auth.checkToken,UserCtrl.update)
 //获取当前登录用户信息
 router.get('/userInfo', Auth.checkToken, UserCtrl.getUserInfo)
 //登陆

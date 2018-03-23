@@ -37,12 +37,12 @@ const ArticleSchema = new Schema({
 	source: { 	  		//文章来源(出处)
 		type: String
 	},
-	likes: [{ 			//点赞用户
-		type: ObjectId,
-		ref: 'User'
-	}], 
 	nums:{
 		cmtNum:{ 		//评论数
+			type: Number,
+			default: 0
+		},
+		collectNum:{ 		//收藏数
 			type: Number,
 			default: 0
 		},
@@ -83,9 +83,17 @@ const ArticleSchema = new Schema({
 		type: Date,
 		default:Date.now()
 	}
+},{
+  	toJSON: {virtuals: true},
+  	toObject: {
+        virtuals: true
+    },
 })
 
-
+ArticleSchema.virtual('author_name')
+  .get(function() {
+    return this.author.username
+  });
 
 /*
  * 字段验证
@@ -150,7 +158,6 @@ ArticleSchema.statics.getList = function(queryobj){
 					.populate('author','username avatar')
 	                .populate('category','name')
 	                .populate('tags','name')
-	                .populate('likes','username avatar');
 }
 
 //列表分页
@@ -190,7 +197,6 @@ ArticleSchema.statics.getOneById = function(id,is_private=false){
                 .populate('author','username avatar')
                 .populate('category','name')
                 .populate('tags','name')
-                .populate('likes','username avatar');
 }
 //更新pv
 ArticleSchema.statics.updatePv = function(id,pv=1){
