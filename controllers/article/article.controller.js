@@ -210,9 +210,7 @@ export default class ArticleObj extends UploadComponent{
 				let imgurl = await this.upload(req.file);
 				article.img = imgurl;
 			}
-			if(!article.abstract||!article.abstract.length){
-				article.abstract = article.content.substring(0,50);
-			}
+	
 			await new ArticleModel(article).save();			
 			res.json({
 				code: 1,
@@ -277,10 +275,7 @@ export default class ArticleObj extends UploadComponent{
 				let imgurl = await this.upload(req.file);
 				article.img = imgurl;
 			}
-			if(!article.abstract||!article.abstract.length){
-				article.abstract = article.content.substring(0,50);
-			}
-
+			
 			let barticle = await ArticleModel.findById(id);
 			let _article = _.extend(barticle, article);
 			await _article.save();

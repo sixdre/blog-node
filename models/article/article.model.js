@@ -114,7 +114,7 @@ ArticleSchema.plugin(autoIncrement.plugin, {
 });
 
 ArticleSchema.pre('save', function(next) {
-	this.nums.likeNum=this.likes.length;
+	this.nums.likeNum=this.likes?this.likes.length:0;
 	if(this.isNew) {
 		this.create_time = this.update_time = Date.now()
 	} else {
