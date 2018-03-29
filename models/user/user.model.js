@@ -82,7 +82,7 @@ const User = mongoose.model('User', UserSchema);
 User.findOne((err, data) => {
 	if (!data) {
 		for (let i = 0; i < userData.length; i++) {
-			new UserModel(userData[i]).save();
+			new User(userData[i]).save();
 		}
 	}
 })
