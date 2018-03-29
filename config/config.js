@@ -5,7 +5,7 @@ let mongodb = 'mongodb://localhost/blog';
 //let allowOrigin = 'http://localhost:8099';
 let allowOrigin = '*';
 if(process.env.NODE_ENV === 'production'){
-	// mongodb = 'mongodb://root:123456@47.93.52.132:27017/blog?authSource=blog'
+	mongodb = 'mongodb://root:123456@47.94.206.86:27017/blog?authSource=blog'
 	// allowOrigin = 'http://localhost:8099';
 }
 
