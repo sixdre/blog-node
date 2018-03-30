@@ -31,7 +31,6 @@ const ArticleSchema = new Schema({
 		ref: 'Tag'
 	}],
 	content: String, 	//内容
-	tagcontent: String, //带格式的内容
 	abstract:String,	//简介
 	img: String, 		//封面
 	source: { 	  		//文章来源(出处)
@@ -154,7 +153,7 @@ ArticleSchema.methods.setTagName = function(tagNames){
 
 //根据条件获取文章列表
 ArticleSchema.statics.getList = function(queryobj){
-	return this.find(queryobj,{content:0,tagcontent:0,__v:0})
+	return this.find(queryobj,{content:0,__v:0})
 					.populate('author','username avatar')
 	                .populate('category','name')
 	                .populate('tags','name')
@@ -193,7 +192,7 @@ ArticleSchema.statics.getListToPage = function(queryobj,page=1,pageSize=10){
 
 //根据id查询
 ArticleSchema.statics.getOneById = function(id,is_private=false){
-	return this.findOne({'_id':id,is_private:is_private},{content:0,__v:0})
+	return this.findOne({'_id':id,is_private:is_private},{__v:0})
                 .populate('author','username avatar')
                 .populate('category','name')
                 .populate('tags','name')

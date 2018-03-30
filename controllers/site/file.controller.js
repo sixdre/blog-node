@@ -24,7 +24,7 @@ export default class FileObj extends UploadComponent{
 		limit = parseInt(limit);
 
 		const count = await FileModel.count();
-		let data = await FileModel.find({},{'__v':0}).skip(limit * (page-1)).limit(limit);
+		let data = await FileModel.find({},{'__v':0}).skip(limit * (page-1)).limit(limit).sort({create_time:-1});
 		res.json({
 			code: 1,
 			data,

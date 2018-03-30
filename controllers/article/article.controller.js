@@ -5,8 +5,10 @@
 import _ from 'underscore'
 import validator from 'validator'
 import request from 'request'
+import MarkdownIt from 'markdown-it'
 import {ArticleModel,CategoryModel,CommentModel,TagModel,UserModel} from '../../models/'
 import UploadComponent from '../../prototype/upload'
+
 
 const tool = require('../../utility/tool');
 
@@ -40,7 +42,7 @@ export default class ArticleObj extends UploadComponent{
 		}
 	}
 	//获取登录用户的文章
-	async getLoginUserArticles(req,res,next){
+	async getMyArticles(req,res,next){
 		const userId = req.userInfo._id;
 		let { page = 1, limit = 10, title = "", flag = 2 } = req.query;
 		let queryParams={
@@ -65,10 +67,46 @@ export default class ArticleObj extends UploadComponent{
 		}
 		
 	}
+
+	//网站前台获取文章详情
+	async getFrontArticle(req, res, next){
+		let id = req.params['id'];
+		if (!validator.isMongoId(id)) {
+			res.json({
+				code: 0,
+				type: 'ERROR_PARAMS',
+				message: '文章ID参数错误'
+			})
+			return 
+		}
+		try{
+			var md = new MarkdownIt({
+				html:true //启用html标记转换
+			});
+			let article = await ArticleModel.getOneById(id);
+			if(!article||article.status==0){
+				return res.json({
+					code: 0,
+					message: '文章不存在或已被删除'
+				});
+			}
+			await ArticleModel.updatePv(id);
+			article.nums.pv+=1;
+			article.content = md.render(article.content);
+			res.json({
+				code: 1,
+				data:article,
+				message: 'success'
+			});
+		}catch(err){
+			console.log('获取文章出错',+err);
+			return next(err);
+		}
+	}
+
 	//根据id获取文章
 	async findOneById(req, res, next) {
 		let id = req.params['id'];
-		let pv = req.query.pv;
 		if (!validator.isMongoId(id)) {
 			res.json({
 				code: 0,
@@ -85,11 +123,8 @@ export default class ArticleObj extends UploadComponent{
 					message: '文章不存在或已被删除'
 				});
 			}
-			let data = article.setTagName();
-			if(pv){
-				await ArticleModel.updatePv(id);
-				data.nums.pv+=1;
-			}
+			let data = article.toObject();
+			data.tagNames = article.getTagName();
 			res.json({
 				code: 1,
 				data:data,

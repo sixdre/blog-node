@@ -32,10 +32,12 @@ const upload = multer({
 router.del = router.delete;
 
 
-router.get('/users/info/articles', Auth.checkToken,ArticleCtrl.getLoginUserArticles)
+router.get('/users/info/articles', Auth.checkToken,ArticleCtrl.getMyArticles)
 //获取文章
 router.get('/articles',ArticleCtrl.get);
 //根据id获取
+router.get('/articles/:id/getFrontArticle',ArticleCtrl.getFrontArticle);
+//前台获取文章
 router.get('/articles/:id',ArticleCtrl.findOneById);
 //文章发布
 router.post('/articles',Auth.checkToken,Auth.checkAdmin, upload.single('cover'),ArticleCtrl.create);
