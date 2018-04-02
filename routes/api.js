@@ -32,12 +32,15 @@ const upload = multer({
 router.del = router.delete;
 
 
-router.get('/users/info/articles', Auth.checkToken,ArticleCtrl.getMyArticles)
+//获取登录用户的文章
+router.get('/articles/me',Auth.checkToken,ArticleCtrl.getMyArticles);
+//获取精华文章
+router.get('/articles/goodArticles',ArticleCtrl.getGoodArticles);
 //获取文章
 router.get('/articles',ArticleCtrl.get);
-//根据id获取
-router.get('/articles/:id/getFrontArticle',ArticleCtrl.getFrontArticle);
 //前台获取文章
+router.get('/articles/:id/front',ArticleCtrl.getFrontArticle);
+//根据id获取文章详情
 router.get('/articles/:id',ArticleCtrl.findOneById);
 //文章发布
 router.post('/articles',Auth.checkToken,Auth.checkAdmin, upload.single('cover'),ArticleCtrl.create);
@@ -59,6 +62,15 @@ router.post('/articles/:article_id/comments',Auth.checkToken,CommentCtrl.addComm
 router.post('/comments/:comment_id/like',Auth.checkToken,CommentCtrl.addCommentLike);
 
 
+
+
+
+
+
+
+/*类型*/
+
+
 //获取category数据
 router.get("/categories",CategoryCtrl.get);
 //获取指定的category
@@ -71,6 +83,10 @@ router.post("/categories", Auth.checkToken,Auth.checkAdmin,CategoryCtrl.create);
 router.put("/categories/:id", Auth.checkToken,Auth.checkAdmin,CategoryCtrl.update);
 //分类删除
 router.del('/categories/:id', Auth.checkToken,Auth.checkAdmin,CategoryCtrl.remove);
+
+
+
+/*标签*/
 
 //获取标签数据
 router.get('/tags',TagCtrl.get);

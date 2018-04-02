@@ -21,6 +21,9 @@ export default class ArticleObj extends UploadComponent{
 	//获取文章
 	async get(req, res, next) {
 		let { page = 1, limit = 10, title = "", flag = 2 } = req.query;
+		if(flag===''){
+			flag = 3;
+		}
 		let queryParams={
 			status:parseInt(flag),
 			title: {
@@ -45,6 +48,9 @@ export default class ArticleObj extends UploadComponent{
 	async getMyArticles(req,res,next){
 		const userId = req.userInfo._id;
 		let { page = 1, limit = 10, title = "", flag = 2 } = req.query;
+		if(flag===''){
+			flag = 3;
+		}
 		let queryParams={
 			'author':userId,
 			status:parseInt(flag),
@@ -67,6 +73,32 @@ export default class ArticleObj extends UploadComponent{
 		}
 		
 	}
+
+	//获取精华文章
+	async getGoodArticles(req,res,next){
+		let { page = 1, limit = 10} = req.query;
+		let queryParams={
+			good:true
+		}
+		try{
+			let results = await ArticleModel.getListToPage(queryParams,page,limit)
+			res.json({
+				code:1,
+				data:results.data,
+				total:results.total,
+				limit:results.pageSize
+			});
+		}catch(err){
+			console.log('获取文章列表出错:' + err);
+			return next(err);
+		}
+	}
+
+
+
+
+
+
 
 	//网站前台获取文章详情
 	async getFrontArticle(req, res, next){

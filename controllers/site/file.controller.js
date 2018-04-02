@@ -19,12 +19,17 @@ export default class FileObj extends UploadComponent{
 	}
 	
 	async get(req,res,next){		
-		let { page = 1, limit = 10} = req.query;
+		let { page = 1, limit = 10,filename} = req.query;
 		page = parseInt(page);
 		limit = parseInt(limit);
-
-		const count = await FileModel.count();
-		let data = await FileModel.find({},{'__v':0}).skip(limit * (page-1)).limit(limit).sort({create_time:-1});
+		let query = {}
+		if(filename){
+			query.filename =  {
+                '$regex': filename
+            }
+		}
+		const count = await FileModel.count(query);
+		let data = await FileModel.find(query,{'__v':0}).skip(limit * (page-1)).limit(limit).sort({create_time:-1});
 		res.json({
 			code: 1,
 			data,
