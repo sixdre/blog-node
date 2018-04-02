@@ -1,13 +1,13 @@
 /**
  * Created by xuhao on 2017/1/12.
  */
-let mongodb = 'mongodb://localhost/blog';
+let mongodb = 'mongodb://127.0.0.1/blog';
 //let allowOrigin = 'http://localhost:8099';
 let allowOrigin = '*';
-if(process.env.NODE_ENV === 'production'){
+/*if(process.env.NODE_ENV === 'production'){
 	mongodb = 'mongodb://root:123456@47.94.206.86:27017/blog?authSource=admin'
 	// allowOrigin = 'http://localhost:8099';
-}
+}*/
 
 const config={
     mongodb:mongodb,
