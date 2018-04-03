@@ -5,7 +5,7 @@ import multer from 'multer'
 import UUID  from 'uuid'
 import {ArticleCtrl,CategoryCtrl,CommentCtrl,
 	TagCtrl,WordCtrl,FriendCtrl,
-	UserCtrl,FileCtrl,permissionCtrl} from '../controllers'
+	UserCtrl,FileCtrl,permissionCtrl,graphCtrl} from '../controllers'
 import Auth from '../middleware/auth'
 
 const router = express.Router();
@@ -30,6 +30,9 @@ const upload = multer({
 
 
 router.del = router.delete;
+
+
+router.get('/graph',graphCtrl.graph);
 
 
 //获取登录用户的文章

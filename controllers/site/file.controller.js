@@ -28,12 +28,12 @@ export default class FileObj extends UploadComponent{
                 '$regex': filename
             }
 		}
-		const count = await FileModel.count(query);
+		const total = await FileModel.count(query);
 		let data = await FileModel.find(query,{'__v':0}).skip(limit * (page-1)).limit(limit).sort({create_time:-1});
 		res.json({
 			code: 1,
 			data,
-			count
+			total
 		})
 	}
 	

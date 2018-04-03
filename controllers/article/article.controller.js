@@ -229,6 +229,24 @@ export default class ArticleObj extends UploadComponent{
 	async create(req, res, next) {
 		let article = req.body.article;
 		article.author = req.userInfo._id;
+		try{
+			if (!article.title) {
+				throw new Error('标题不得为空');
+			}else if(!article.categoryName){
+				throw new Error('类型不得为空');
+			}else if(!article.content){
+				throw new Error('文章内容不得为空！');
+			}
+		}catch(err){
+			console.log('参数出错', err.message);
+			res.send({
+				status: -2,
+				type: 'ERROR_PARAMS',
+				message: err.message
+			});
+			return;
+		}
+
 		try {
 			let rart = await ArticleModel.findOne({title:article.title});
 			if(rart){
@@ -237,24 +255,27 @@ export default class ArticleObj extends UploadComponent{
 					message: '文章标题已存在'
 				})
 			}
-			//检查tag如果已有tag就查询获取tagid否则创建新的tag
-			let Pro = article.tagNames.map((item)=>{
-				return new Promise(function(resolve, reject){
-					TagModel.findOne({name:item}).then(function(d){
-						if(d){
-							resolve(d._id)
-						}else{
-							TagModel.create({name:item}).then(function(newTag){
-								resolve(newTag._id);
-							})
-						}
-					}).catch(function(err){
-						reject(err)
+			if(article.tagNames&&Array.isArray(article.tagNames)){
+				//检查tag如果已有tag就查询获取tagid否则创建新的tag
+				let Pro = article.tagNames.map((item)=>{
+					return new Promise(function(resolve, reject){
+						TagModel.findOne({name:item}).then(function(d){
+							if(d){
+								resolve(d._id)
+							}else{
+								TagModel.create({name:item}).then(function(newTag){
+									resolve(newTag._id);
+								})
+							}
+						}).catch(function(err){
+							reject(err)
+						})
 					})
 				})
-			})
+				
+				article.tags = await Promise.all(Pro);
+			}
 			
-			article.tags = await Promise.all(Pro);
 
 			//检查category如果已有category就查询获取categoryid否则创建新的category
 			let ncate = await CategoryModel.findOne({name:article.categoryName});
@@ -293,6 +314,23 @@ export default class ArticleObj extends UploadComponent{
 		const id = req.params['id'];
 		let article = req.body.article;
 		try{
+			if (!article.title) {
+				throw new Error('标题不得为空');
+			}else if(!article.categoryName){
+				throw new Error('类型不得为空');
+			}else if(!article.content){
+				throw new Error('文章内容不得为空！');
+			}
+		}catch(err){
+			console.log('参数出错', err.message);
+			res.send({
+				status: -2,
+				type: 'ERROR_PARAMS',
+				message: err.message
+			});
+			return;
+		}
+		try{
 			let rart = await ArticleModel.findOne({title:article.title});
 			if(rart&&String(rart._id)!==id){
 				return res.json({
@@ -300,26 +338,27 @@ export default class ArticleObj extends UploadComponent{
 					message: '文章标题已存在'
 				})
 			}
-
-			//检查tag如果已有tag就查询获取tagid否则创建新的tag
-			let Pro = article.tagNames.map((item)=>{
-				return new Promise(function(resolve, reject){
-					TagModel.findOne({name:item}).then(function(d){
-						if(d){
-							resolve(d._id)
-						}else{
-							TagModel.create({name:item}).then(function(newTag){
-								resolve(newTag._id);
-							})
-						}
-					}).catch(function(err){
-						reject(err)
+			if(article.tagNames&&Array.isArray(article.tagNames)){
+				//检查tag如果已有tag就查询获取tagid否则创建新的tag
+				let Pro = article.tagNames.map((item)=>{
+					return new Promise(function(resolve, reject){
+						TagModel.findOne({name:item}).then(function(d){
+							if(d){
+								resolve(d._id)
+							}else{
+								TagModel.create({name:item}).then(function(newTag){
+									resolve(newTag._id);
+								})
+							}
+						}).catch(function(err){
+							reject(err)
+						})
 					})
 				})
-			})
+				
+				article.tags = await Promise.all(Pro);
+			}
 			
-			article.tags = await Promise.all(Pro);
-
 			//检查category如果已有category就查询获取categoryid否则创建新的category
 			let ncate = await CategoryModel.findOne({name:article.categoryName});
 			if(!ncate){
