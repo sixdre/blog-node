@@ -16,15 +16,15 @@ const ArticleSchema = new Schema({
 		required: true 
 	},
 	title: {			//标题
-		unique: true,
+		// unique: true,
 		index: true,
 		type: String,
-		required: true 
+		// required: true 
 	}, 		
 	category: { 		//类型分类
 		type: ObjectId,
 		ref: 'Category',
-		required: true 
+		// required: true 
 	},
 	tags: [{ 			//标签
 		type: ObjectId,
@@ -94,6 +94,19 @@ ArticleSchema.virtual('author_name')
     return this.author.username
   });
 
+ArticleSchema.virtual('categoryName')
+  .get(function() {
+  	let categoryName = this.category?this.category.name:'';
+    return categoryName;
+  });
+
+ArticleSchema.virtual('tagNames')
+  .get(function() {
+  	let tagNames = this.tags.map(item=>item.name);
+    return tagNames;
+  });
+
+
 /*
  * 字段验证
  */
@@ -119,6 +132,14 @@ ArticleSchema.pre('save', function(next) {
 	} else {
 		this.update_time = Date.now()
 	}
+	if(this.status!==1){		//如果文章不是草稿需要验证类型 与标题
+		if(!this.category){
+			next(new Error('category is required'))
+		}
+		if(!this.title){
+			next(new Error('title is required'))
+		}
+	}
 	next();
 });
 
@@ -133,22 +154,6 @@ ArticleSchema.pre('save', function(next) {
 // 	console.log('2')
 	
 // });
-
-//获取article的Tagname;
-ArticleSchema.methods.getTagName = function(){
-	let tagNames = this.tags.map(item=>item.name);
-	return tagNames;
-}
-
-ArticleSchema.methods.setTagName = function(tagNames){
-	if(!tagNames){
-		tagNames = this.getTagName();
-	}
-	let data = this.toObject();
-	data.tagNames = tagNames;
-	return data;
-}
-
 
 
 //根据条件获取文章列表

@@ -37,6 +37,12 @@ router.get('/graph',graphCtrl.graph);
 
 //获取登录用户的文章
 router.get('/articles/me',Auth.checkToken,ArticleCtrl.getMyArticles);
+
+//获取当前用户的草稿文章
+router.get('/me/drafts',Auth.checkToken,ArticleCtrl.getMeDrafts);
+//文章发布
+router.post('/draft',Auth.checkToken,ArticleCtrl.createDraft);
+
 //获取精华文章
 router.get('/articles/goodArticles',ArticleCtrl.getGoodArticles);
 //获取文章

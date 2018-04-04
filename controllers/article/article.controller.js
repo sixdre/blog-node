@@ -155,11 +155,9 @@ export default class ArticleObj extends UploadComponent{
 					message: '文章不存在或已被删除'
 				});
 			}
-			let data = article.toObject();
-			data.tagNames = article.getTagName();
 			res.json({
 				code: 1,
-				data:data,
+				data:article,
 				message: 'success'
 			});
 		}catch(err){
@@ -226,6 +224,70 @@ export default class ArticleObj extends UploadComponent{
 		}
 	}
 	
+	//获取当前用户的草稿文章
+	async getMeDrafts(req,res,next){
+		let authorId = req.userInfo._id;
+		try{
+			let drafts = await ArticleModel.find({author:authorId,status:1})
+				.populate('author','username avatar')
+                .populate('category','name')
+                .populate('tags','name');
+            let has_draft = drafts.length>0?true:false;
+			res.json({
+				code: 1,
+				data:drafts,
+				has_draft,
+				message: '获取草稿成功'
+			});
+		}catch(err){
+			console.log('获取草稿出错'+err);
+			return next(err);
+		}
+	}
+
+
+
+	//保存草稿
+	async createDraft(req,res,next){
+		let article = req.body.article;
+		article.author = req.userInfo._id;
+		try{
+			if(article.id){
+				await ArticleModel.update({_id: article.id}, {
+					content:article.content,
+					title:article.title
+				})
+				res.json({
+					code: 1,
+					id:article.id,
+					message: '保存成功'
+				});
+			}else{
+				let art = await new ArticleModel({
+					author:article.author,
+					content:article.content,
+					title:article.title,
+					status:1
+				}).save();			
+				res.json({
+					code: 1,
+					id:art._id,
+					message: '保存成功'
+				});
+			}
+			
+			
+		}catch(err){
+			console.log('保存出错'+err);
+			return next(err);
+		}
+		
+	}
+
+
+
+
+
 	async create(req, res, next) {
 		let article = req.body.article;
 		article.author = req.userInfo._id;
