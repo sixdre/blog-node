@@ -17,7 +17,7 @@ const ArticleSchema = new Schema({
 	},
 	title: {			//标题
 		// unique: true,
-		index: true,
+		// index: true,
 		type: String,
 		// required: true 
 	}, 		
@@ -79,6 +79,10 @@ const ArticleSchema = new Schema({
 		default:Date.now()
 	},
 	update_time: {		//更新时间或修改时间
+		type: Date,
+		default:Date.now()
+	},
+	draft_time:{		//定为草稿的时间
 		type: Date,
 		default:Date.now()
 	}

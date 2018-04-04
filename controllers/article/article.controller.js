@@ -3,6 +3,7 @@
  */
 "use strict";
 import _ from 'underscore'
+import moment from 'moment'
 import validator from 'validator'
 import request from 'request'
 import MarkdownIt from 'markdown-it'
@@ -17,7 +18,25 @@ export default class ArticleObj extends UploadComponent{
 		super()
 		this.create = this.create.bind(this)
 		this.remove = this.remove.bind(this);
+		this.update = this.update.bind(this)
 	}
+	//获取类型和标签
+	async getCateTag(req,res,next){
+		try{
+			let categories = await CategoryModel.find({}).select('name desc');
+			let tags = await TagModel.find({}).select('name');
+			res.json({
+				code:1,
+				data:{
+					categories,
+					tags
+				},
+			});
+		}catch(err){
+			return next(err);
+		}
+	}
+
 	//获取文章
 	async get(req, res, next) {
 		let { page = 1, limit = 10, title = "", flag = 2 } = req.query;
@@ -228,7 +247,7 @@ export default class ArticleObj extends UploadComponent{
 	async getMeDrafts(req,res,next){
 		let authorId = req.userInfo._id;
 		try{
-			let drafts = await ArticleModel.find({author:authorId,status:1})
+			let drafts = await ArticleModel.find({author:authorId,status:1}).select('content title')
 				.populate('author','username avatar')
                 .populate('category','name')
                 .populate('tags','name');
@@ -251,15 +270,20 @@ export default class ArticleObj extends UploadComponent{
 	async createDraft(req,res,next){
 		let article = req.body.article;
 		article.author = req.userInfo._id;
+		if(!article.title&&!article.content){
+			return res.send('ok')
+		}
 		try{
 			if(article.id){
-				await ArticleModel.update({_id: article.id}, {
+				await ArticleModel.update({_id: article.id,status:1}, {
 					content:article.content,
-					title:article.title
+					title:article.title,
+					draft_time:Date.now(),
 				})
 				res.json({
 					code: 1,
 					id:article.id,
+					time:moment(Date.now()).format('YYYY-MM-DD HH:mm:ss'),
 					message: '保存成功'
 				});
 			}else{
@@ -272,6 +296,7 @@ export default class ArticleObj extends UploadComponent{
 				res.json({
 					code: 1,
 					id:art._id,
+					time:moment(art.create_time).format('YYYY-MM-DD HH:mm:ss'),
 					message: '保存成功'
 				});
 			}
@@ -284,13 +309,12 @@ export default class ArticleObj extends UploadComponent{
 		
 	}
 
-
-
-
-
-	async create(req, res, next) {
+	//发布文章，更新和新增可调用此方法
+	async post_article(req,res,next,type){
 		let article = req.body.article;
+		console.log(article)
 		article.author = req.userInfo._id;
+		let addNewTag = false;
 		try{
 			if (!article.title) {
 				throw new Error('标题不得为空');
@@ -308,16 +332,37 @@ export default class ArticleObj extends UploadComponent{
 			});
 			return;
 		}
-
 		try {
-			let rart = await ArticleModel.findOne({title:article.title});
+			let query;
+			if(type=='update'){
+				let id = req.params['id'];
+				query= {_id:{$ne:id},title:article.title,status:{$ne:1}}; 
+				
+			}else {
+				query= {title:article.title,status:{$ne:1}};
+			}
+			let rart = await ArticleModel.findOne(query);	//查询不是草稿的标题是否存在
 			if(rart){
 				return res.json({
 					code: 0,
 					message: '文章标题已存在'
 				})
 			}
+			//检查category
+			let ncate = await CategoryModel.findOne({name:article.categoryName});
+			if(!ncate){
+				return res.json({
+					code: 0,
+					message: '文章类型不存在'
+				})
+			}else{
+				article.category = ncate._id;
+			}
 			if(article.tagNames&&Array.isArray(article.tagNames)){
+				// let allTags = await TagModel.find({})
+				// let allTagIds = allTags.map(item=>item._id);
+				// let difTag = _.difference(allTagIds, article.tagNames);
+				// console.log(difTag)
 				//检查tag如果已有tag就查询获取tagid否则创建新的tag
 				let Pro = article.tagNames.map((item)=>{
 					return new Promise(function(resolve, reject){
@@ -326,6 +371,7 @@ export default class ArticleObj extends UploadComponent{
 								resolve(d._id)
 							}else{
 								TagModel.create({name:item}).then(function(newTag){
+									addNewTag = true;
 									resolve(newTag._id);
 								})
 							}
@@ -339,14 +385,6 @@ export default class ArticleObj extends UploadComponent{
 			}
 			
 
-			//检查category如果已有category就查询获取categoryid否则创建新的category
-			let ncate = await CategoryModel.findOne({name:article.categoryName});
-			if(!ncate){
-				let dcate = await CategoryModel.create({name:article.categoryName});
-				article.category = dcate._id;
-			}else{
-				article.category = ncate._id;
-			}
 			
 			if(req.file) {
 				let nameArray = req.file.originalname.split('.')
@@ -360,104 +398,45 @@ export default class ArticleObj extends UploadComponent{
 				let imgurl = await this.upload(req.file);
 				article.img = imgurl;
 			}
-	
-			await new ArticleModel(article).save();			
-			res.json({
-				code: 1,
-				message: '发布成功'
-			});
+			
+			if(type=='update'){		//更新
+				let id = req.params['id'];
+				article.status = 2
+				let barticle = await ArticleModel.findById(id);
+				if(barticle.status == 1){		//如果是草稿的话就把create_time 定为当前时间
+					article.create_time = Date.now();
+				}
+				let _article = _.extend(barticle, article);
+				await _article.save();
+				res.json({
+					code: 1,
+					addNewTag,
+					message: '更新成功'
+				});
+			}else{			//新增
+				await new ArticleModel(article).save();			
+				res.json({
+					code: 1,
+					addNewTag,
+					message: '发布成功'
+				});
+			}
 		} catch(err) {
 			console.log('文章发布出错' + err);
 			return next(err);
 		}
 	}
 
-	async update(req,res,next){
-		const id = req.params['id'];
-		let article = req.body.article;
-		try{
-			if (!article.title) {
-				throw new Error('标题不得为空');
-			}else if(!article.categoryName){
-				throw new Error('类型不得为空');
-			}else if(!article.content){
-				throw new Error('文章内容不得为空！');
-			}
-		}catch(err){
-			console.log('参数出错', err.message);
-			res.send({
-				status: -2,
-				type: 'ERROR_PARAMS',
-				message: err.message
-			});
-			return;
-		}
-		try{
-			let rart = await ArticleModel.findOne({title:article.title});
-			if(rart&&String(rart._id)!==id){
-				return res.json({
-					code: 0,
-					message: '文章标题已存在'
-				})
-			}
-			if(article.tagNames&&Array.isArray(article.tagNames)){
-				//检查tag如果已有tag就查询获取tagid否则创建新的tag
-				let Pro = article.tagNames.map((item)=>{
-					return new Promise(function(resolve, reject){
-						TagModel.findOne({name:item}).then(function(d){
-							if(d){
-								resolve(d._id)
-							}else{
-								TagModel.create({name:item}).then(function(newTag){
-									resolve(newTag._id);
-								})
-							}
-						}).catch(function(err){
-							reject(err)
-						})
-					})
-				})
-				
-				article.tags = await Promise.all(Pro);
-			}
-			
-			//检查category如果已有category就查询获取categoryid否则创建新的category
-			let ncate = await CategoryModel.findOne({name:article.categoryName});
-			if(!ncate){
-				let dcate = await CategoryModel.create({name:article.categoryName});
-				article.category = dcate._id;
-			}else{
-				article.category = ncate._id;
-			}
 
-			
-			if(req.file) {
-				let nameArray = req.file.originalname.split('.')
-				let type = nameArray[nameArray.length - 1];
-				if(!tool.checkUploadImg(type)) {
-					return res.json({
-						code: 0,
-						message: '文章封面格式错误'
-					})
-				}
-				let imgurl = await this.upload(req.file);
-				article.img = imgurl;
-			}
-			
-			let barticle = await ArticleModel.findById(id);
-			let _article = _.extend(barticle, article);
-			await _article.save();
-
-			res.json({
-				code: 1,
-				message: '更新成功'
-			});
-
-		}catch(err){
-
-		}
+	//新增
+	create(req, res, next) {
+		this.post_article(req, res, next)
 	}
 
+	//更新
+	update(req,res,next){
+		this.post_article(req, res, next,'update')
+	}
 
 
 	removeOne(item) {

@@ -35,6 +35,9 @@ router.del = router.delete;
 router.get('/graph',graphCtrl.graph);
 
 
+//获取标签和类型统一接口
+router.get('/catetag',ArticleCtrl.getCateTag);
+
 //获取登录用户的文章
 router.get('/articles/me',Auth.checkToken,ArticleCtrl.getMyArticles);
 

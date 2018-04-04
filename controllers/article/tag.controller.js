@@ -174,8 +174,13 @@ export default class TagObj{
 	
 	async remove(req,res,next){
 		let ids = req.params['id'].split(',');
+		console.log(ids)
 		try{
 			await TagModel.remove({_id: { "$in": ids }});
+			let Pro = ids.map((item)=>{			//同时将文章中包含改标签给更新掉
+				return ArticleModel.update({tags:{ "$in": [item] }},{'$pull':{'tags':item}},{multi:true})
+			})
+			await Promise.all(Pro);
 			res.json({
 				code: 1,
 				message: '删除成功'
