@@ -142,7 +142,7 @@ export default class ArticleObj extends UploadComponent{
 				});
 			}
 			await ArticleModel.updatePv(id);
-			article.nums.pv+=1;
+			article.pv_num+=1;
 			article.content = md.render(article.content);
 			res.json({
 				code: 1,
@@ -275,6 +275,12 @@ export default class ArticleObj extends UploadComponent{
 		}
 		try{
 			if(article.id){
+				// let art = await ArticleModel.findOne({title:article.title});	
+				let message = '保存成功';
+				// if(art){
+				// 	article.title = '';
+				// 	message = '保存成功，文章标题已存在'
+				// }
 				await ArticleModel.update({_id: article.id,status:1}, {
 					content:article.content,
 					title:article.title,
@@ -284,7 +290,7 @@ export default class ArticleObj extends UploadComponent{
 					code: 1,
 					id:article.id,
 					time:moment(Date.now()).format('YYYY-MM-DD HH:mm:ss'),
-					message: '保存成功'
+					message
 				});
 			}else{
 				let art = await new ArticleModel({
@@ -519,14 +525,14 @@ export default class ArticleObj extends UploadComponent{
 			let isLikes = user.likeArts.indexOf(aid);
 			if(isLikes !== -1){
 				conditionOne = {'$pull':{'likeArts':aid}};
-			  	conditionTwo = {'$inc':{'nums.likeNum':-1}};
-			  	count = article.nums.likeNum-1;
+			  	conditionTwo = {'$inc':{'like_num':-1}};
+			  	count = article.like_num-1;
 			  	like = false;
 			}else{
 				conditionOne = {'$addToSet':{'likeArts':aid}};
-			  	conditionTwo = {'$inc':{'nums.likeNum':1}};
+			  	conditionTwo = {'$inc':{'like_num':1}};
 			  	like = true;
-			  	count= article.nums.likeNum+1;
+			  	count= article.like_num+1;
 			}
 			await UserModel.update({ _id: userId}, conditionOne);
 			await ArticleModel.update({ _id: aid}, conditionTwo);
@@ -570,13 +576,13 @@ export default class ArticleObj extends UploadComponent{
 			let conditionOne,conditionTwo,collect,count=0;
 			if(isCollect !== -1){
 				conditionOne = {'$pull':{'collectArts':aid}};
-			  	conditionTwo = {'$inc':{'nums.collectNum':-1}};
-			  	count = article.nums.collectNum-1;
+			  	conditionTwo = {'$inc':{'collect_num':-1}};
+			  	count = article.collect_num-1;
 			  	collect = false;
 			}else{
 				conditionOne = {'$addToSet':{'collectArts':aid}};
-			  	conditionTwo = {'$inc':{'nums.collectNum':1}};
-			  	count = article.nums.collectNum+1;
+			  	conditionTwo = {'$inc':{'collect_num':1}};
+			  	count = article.collect_num+1;
 			  	collect = true;
 			}
 			await UserModel.update({ _id: userId}, conditionOne);

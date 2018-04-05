@@ -36,23 +36,21 @@ const ArticleSchema = new Schema({
 	source: { 	  		//文章来源(出处)
 		type: String
 	},
-	nums:{
-		cmtNum:{ 		//评论数
-			type: Number,
-			default: 0
-		},
-		collectNum:{ 		//收藏数
-			type: Number,
-			default: 0
-		},
-		likeNum:{		//点赞数
-			type: Number,
-			default: 0
-		},
-		pv: {			//浏览量
-			type: Number,
-			default: 0
-		}
+	cmt_num:{ 		//评论数	
+		type: Number,
+		default: 0
+	},
+	collect_num:{ 		//收藏数
+		type: Number,
+		default: 0
+	},
+	like_num:{		//点赞数
+		type: Number,
+		default: 0
+	},
+	pv_num: {			//浏览量
+		type: Number,
+		default: 0
 	},
 	is_private: {		 	//是否为私有
 		type: Boolean,
@@ -98,13 +96,13 @@ ArticleSchema.virtual('author_name')
     return this.author.username
   });
 
-ArticleSchema.virtual('categoryName')
+ArticleSchema.virtual('category_name')
   .get(function() {
   	let categoryName = this.category?this.category.name:'';
     return categoryName;
   });
 
-ArticleSchema.virtual('tagNames')
+ArticleSchema.virtual('tag_names')
   .get(function() {
   	let tagNames = this.tags.map(item=>item.name);
     return tagNames;
@@ -130,7 +128,7 @@ ArticleSchema.plugin(autoIncrement.plugin, {
 });
 
 ArticleSchema.pre('save', function(next) {
-	this.nums.likeNum=this.likes?this.likes.length:0;
+	this.like_num=this.likes?this.likes.length:0;
 	if(this.isNew) {
 		this.create_time = this.update_time = Date.now()
 	} else {
@@ -208,7 +206,7 @@ ArticleSchema.statics.getOneById = function(id,is_private=false){
 }
 //更新pv
 ArticleSchema.statics.updatePv = function(id,pv=1){
-	return this.update({_id:id}, {'$inc': {'nums.pv': pv}});
+	return this.update({_id:id}, {'$inc': {'pv_num': pv}});
 }
 
 

@@ -20,10 +20,6 @@ const CommentSchema = new Schema({
 		type: ObjectId,
 		ref: 'User'
 	}],
-	likeNum: {
-		type: Number,
-		default: 0
-	},
 	isM:{				//是否同时发表为主评论(一般作为回复时进行判断)
 		type: Boolean,
 		default: true
@@ -31,16 +27,24 @@ const CommentSchema = new Schema({
 	create_time: {
 		type: Date,
 		default:Date.now()
-	}
+	},
+},{
+	  	toJSON: {virtuals: true},
+	  	toObject: {virtuals: true},
 });
+
+
+CommentSchema.virtual('like_num')
+  .get(function() {
+    return this.likes.length
+  });
 
 //中间件
 CommentSchema.pre('save', function(next) {
-	this.likeNum = this.likes.length;
 	if(this.isNew) {
 		this.create_time = Date.now();
 	} 
-	ArticleModel.update({_id:this.articleId},{'$inc':{'nums.cmtNum':1}}).then(function(){
+	ArticleModel.update({_id:this.articleId},{'$inc':{'cmt_num':1}}).then(function(){
 		next();
 	},function(err){
 		next(err);
@@ -73,7 +77,7 @@ CommentSchema.statics.getListToPage = function(queryobj,page=1,pageSize=10,order
 			let data = await this.find(params,{'__v':0})
 			.populate({
 					path:'from likes reply',
-					select: 'articleId username content avatar likeNum',
+					select: 'articleId username content avatar',
 					populate: {
 				        path: 'from to likes',
 				        select: 'username content avatar',

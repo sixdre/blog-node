@@ -19,7 +19,7 @@ export default class CommentObj{
 			return 
 		}
 		let { order_by, page = 1 ,pageSize = 10} = req.query;
-		let sort = { likeNum: -1 }
+		let sort = { likes: -1 }
 		if(order_by == "timeSeq") {
 			sort = { create_time: 1 }
 		} else if(order_by == "timeRev") {

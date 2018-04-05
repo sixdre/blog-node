@@ -55,11 +55,11 @@ router.get('/articles/:id/front',ArticleCtrl.getFrontArticle);
 //根据id获取文章详情
 router.get('/articles/:id',ArticleCtrl.findOneById);
 //文章发布
-router.post('/articles',Auth.checkToken,Auth.checkAdmin, upload.single('cover'),ArticleCtrl.create);
+router.post('/articles',Auth.checkToken,upload.single('cover'),ArticleCtrl.create);
 //文章更新
-router.put('/articles/:id',Auth.checkToken,Auth.checkAdmin, upload.single('cover'),ArticleCtrl.update);
+router.put('/articles/:id',Auth.checkToken,upload.single('cover'),ArticleCtrl.update);
 //文章删除
-router.del('/articles/:id',Auth.checkToken,Auth.checkAdmin,ArticleCtrl.remove);
+router.del('/articles/:id',Auth.checkToken,ArticleCtrl.remove);
 //文章点赞
 router.put('/articles/:id/likes',Auth.checkToken,ArticleCtrl.toggleLike);
 //文章收藏
