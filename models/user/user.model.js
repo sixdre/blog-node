@@ -1,6 +1,7 @@
 "use strict";
 import mongoose from 'mongoose'
 import bcrypt from 'bcrypt'
+import validator from 'validator'
 import userData from '../../InitData/user'
 const	Schema = mongoose.Schema,
 	ObjectId = Schema.ObjectId;
@@ -34,9 +35,39 @@ const UserSchema = new Schema({
 		type:Schema.Types.ObjectId,
 		ref: 'Article'
 	}], 
+	role:{				//角色
+		type:Schema.Types.ObjectId,
+		ref:'Role'
+	},
 	isAdmin: { type: Boolean, default: false },
 	create_time: { type: Date,default:Date.now()} //注册时间
 })
+
+UserSchema.set('toJSON',{
+	virtuals: true
+})
+/*
+ * 字段验证
+ */
+UserSchema.path('email').validate(function(value){
+	return validator.isEmail(value);
+},'不是正确的邮箱地址')
+
+UserSchema.path('password').validate(function(value){
+	return validator.isLength(value,{min:3})
+},'密码不得小于3位！')
+
+
+UserSchema.virtual('role_id')
+  .get(function() {
+  	let roleId = this.role?this.role.id:'';
+    return roleId;
+});
+UserSchema.virtual('role_name')
+  .get(function() {
+  	let roleName = this.role?this.role.name:'';
+    return roleName;
+});
 
 
 UserSchema.pre('save', function(next) {

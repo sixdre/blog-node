@@ -7,10 +7,8 @@
 import {WordModel} from '../../models/'
 
 export default class WordObj{
-	constructor(){
-		
-	}
-	async get(req,res,next){
+
+	async getList(req,res,next){
 		//read(0)表示为未读
 		//read(1)表示为已读
 		//reply(0)表示为未回复
@@ -43,12 +41,17 @@ export default class WordObj{
 	}
 	
 	async create(req,res,next){
-		let newWord=new WordModel({
-			message:req.body.content,
-			user:req.session["User"]._id
-		});
-		
+		if(!content){
+			return res.json({
+				code:-1,
+				message:'回复内容不得为空'
+			})
+		}
 		try{
+			let newWord=new WordModel({
+				message:req.body.content,
+				user:req.userInfo._id
+			});
 			await newWord.save();
 			res.json({
 				code:1,
@@ -62,13 +65,18 @@ export default class WordObj{
 	
 	async reply(req,res,next){
 		const id = req.params['id'];
-		let	replyContent = req.body;
-		
+		let content = req.body;
+		if(!content){
+			return res.json({
+				code:-1,
+				message:'回复内容不得为空'
+			})
+		}
 		try{
 			await WordModel.update({_id: id},{
 					$set: {
-						"reply.user": req.session['manager']._id,
-						"reply.content": replyContent,
+						"reply.user": req.userInfo._id,
+						"reply.content": content,
 						"reply.replyTime": new Date(),
 						"state.isRead": true,
 						"state.isReply": true

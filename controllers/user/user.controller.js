@@ -7,7 +7,7 @@ import auth from '../../middleware/auth'
 import _ from 'underscore'
 //数据模型
 
-import {UserModel,ArticleModel,CategoryModel,TagModel,WordModel} from '../../models/'
+import {UserModel,ArticleModel,CategoryModel,TagModel,WordModel,RoleModel} from '../../models/'
 
 
 export default class UserObj{
@@ -15,7 +15,7 @@ export default class UserObj{
 		
 	}
 
-	async get(req,res,next){
+	async getList(req,res,next){
 		let {skip=0,limit=0} = req.query;
 		skip = parseInt(skip);
 		limit = parseInt(limit);
@@ -28,7 +28,7 @@ export default class UserObj{
 				});
 				return ;
 			}
-			const users = await UserModel.find({},'-password')	//回传值中不含有password
+			const users = await UserModel.find({},'-password').populate('role')	//回传值中不含有password
 					.skip(skip)
 				     .limit(limit);
 			res.json({
@@ -44,7 +44,7 @@ export default class UserObj{
 		
 	}
 	
-	//更新用户信息
+	//前台更新用户信息
 	async update(req,res,next){
 		let userId = req.userInfo._id;
 		let id = req.params['id'];
@@ -73,7 +73,42 @@ export default class UserObj{
 		}
 	}
 
-
+	//更新用户角色
+	async updateRole(req,res,next){
+		const userId = req.params['id'];
+		const roleId = req.body.roleId;
+		if (!validator.isMongoId(userId)||!validator.isMongoId(roleId)||!roleId) {
+			res.json({
+				code: 0,
+				type: 'ERROR_PARAMS',
+				message: '参数有误'
+			})
+			return 
+		}
+		try{
+			let user = await UserModel.findById(userId);
+			let role = await RoleModel.findById(roleId);
+			if(!user){
+				return res.json({ 	
+					code: 0,
+					message: '用户不存在或已被删除'
+				});
+			}else if(!role){
+				return res.json({ 	
+					code: 0,
+					message: '该角色不存在'
+				});
+			}
+			await UserModel.update({'_id':userId},{'role':roleId});
+			return res.json({ 	
+				code: 1,
+				message: '操作成功'
+			});
+		}catch(err){
+			console.log('更新用户角色失败:' + err);
+			return next(err);
+		}
+	}
 
 	async remove(req,res,next){
 		const ids = req.params['id'].split(',');
@@ -93,7 +128,7 @@ export default class UserObj{
 			await Promise.all(pro);
 			res.json({
 				code: 1,
-				msg: '删除成功'
+				message: '删除成功'
 			});
 			
 		}catch(err){
@@ -102,7 +137,7 @@ export default class UserObj{
 		}
 	}
 
-
+	//前台用户注册
 	async regist(req,res,next){
 		
 		let {username,password,email} = req.body;
@@ -223,81 +258,53 @@ export default class UserObj{
 		});
 	}
 	
+
+	//后台管理用户注册
 	async admin_regist(req,res,next){
-		
-		let {username,email,password} = req.body;
-		
+		let {username,email,password,roleId} = req.body;
 		try{
-			let m1 =await UserModel.findOne({isAdmin:true});
-			let m2 = await UserModel.findOne({username:username});
-			if(m1){
+			if (validator.isEmpty(username)) {
+				throw new Error('用户名不得为空');
+			}else if(validator.isEmpty(password)){
+				throw new Error('密码不得为空');
+			}else if(validator.isEmpty(email)){
+				throw new Error('邮箱不得为空！');
+			}else if(!validator.isEmail(email)){
+				throw new Error('请输入正确的邮箱！');
+			}else if(!validator.isLength(password,{min:3})){
+				throw new Error('密码不得小于3位！');
+			}
+		}catch(err){
+			console.log('用户填写参数出错', err.message);
+			res.send({
+				status: -2,
+				type: 'ERROR_PARAMS',
+				message: err.message
+			});
+			return;
+		}
+		try{
+			let user =await UserModel.findOne({username:username})
+			if(user){
 				res.json({
 					code:-1,
-					message:'已有超级管理员，不可重复创建'
+					message:"用户名已被创建"
 				});
-				return ;
+				return;
 			}
-			if(m2){
-				res.json({
-					code:-2,
-					message:'该用户名已被注册'
-				});
-				return ;
-			}
-			let manager = new UserModel({
-				username: username,
+			let newUser=new UserModel({
+				username:username,
+				password:password,
 				email:email,
-				password:password
+				role:roleId
 			});
-			manager.isAdmin=true;
-			await manager.save();
+			await newUser.save();
 			res.json({
 				code:1,
-				message:'成功创建超级管理员！'
+				message:"成功注册"
 			});
 		}catch(err){
-			console.log('创建超级管理员失败:' + err);
-			return next(err);
-		}
-	}
-	
-	
-	async admin_login(req,res,next){
-		let {username,password} = req.body;
-		try{
-			let manager = await UserModel.findOne({ username: username }, ['username', 'password', 'email','avatar','create_time','isAdmin']);
-			//返回指定字段 或者使用下面
-			//{username:1,password:1,email:1,create_time:1,isAdmin:1}
-			if(!manager|| !manager.isAdmin){
-				return res.json({
-					code:-1,
-					message:'账号不存在'
-			    });
-			}
-			manager.comparePassword(password,function(err, isMatch) {
-	            if (err) throw err;
-	            if(isMatch){
-	            	var token = auth.setToken(JSON.parse(JSON.stringify(manager)));
-					req.session["manager"] = manager;
-					res.json({
-						code : 1,
-						token,
-						userInfo:{
-							role:'测试',
-							username:manager.username,
-							avatar:manager.avatar
-						},
-						message:'登陆成功'	//登陆成功
-					});			
-	            }else{
-	            	res.json({
-						code : -2,
-						message:'密码错误'	//密码错误
-					});			
-	            }
-	        });
-		}catch(err){
-			console.log('管理员登陆出错:' + err);
+			console.log('用户注册失败:' + err);
 			return next(err);
 		}
 	}

@@ -10,45 +10,43 @@ autoIncrement.initialize(mongoose.connection);
 
 //文章
 const ArticleSchema = new Schema({
-	author: { 			//作者
+	author: { 				//作者
 		type: ObjectId,
 		ref: 'User',
 		required: true 
 	},
-	title: {			//标题
+	title: {					//标题
 		// unique: true,
 		// index: true,
 		type: String,
 		// required: true 
 	}, 		
-	category: { 		//类型分类
+	category: { 			//类型分类
 		type: ObjectId,
 		ref: 'Category',
 		// required: true 
 	},
-	tags: [{ 			//标签
+	tags: [{ 				//标签
 		type: ObjectId,
 		ref: 'Tag'
 	}],
-	content: String, 	//内容
-	abstract:String,	//简介
-	img: String, 		//封面
-	source: { 	  		//文章来源(出处)
-		type: String
-	},
-	cmt_num:{ 		//评论数	
+	content: String, 		//内容
+	abstract:String,		//简介
+	img: String, 			//封面
+	source:String,  	  	//文章来源(出处)
+	cmt_num:{ 				//评论数	
 		type: Number,
 		default: 0
 	},
-	collect_num:{ 		//收藏数
+	collect_num:{ 			//收藏数
 		type: Number,
 		default: 0
 	},
-	like_num:{		//点赞数
+	like_num:{				//点赞数
 		type: Number,
 		default: 0
 	},
-	pv_num: {			//浏览量
+	pv_num: {				//浏览量
 		type: Number,
 		default: 0
 	},
@@ -56,39 +54,37 @@ const ArticleSchema = new Schema({
 		type: Boolean,
 		default: false
 	},
-	allow_comment:{			//允许评论
+	allow_comment:{		//允许评论
 		type: Boolean,
 		default: true
 	},
-	top: {		 		// 置顶文章
+	top: {		 			// 置顶文章
 		type: Boolean,
 		default: false
 	},
-	good: {				// 精华文章
+	good: {					// 精华文章
 		type: Boolean,
 		default: false
 	}, 
 	status:{
 		type: Number,
-		default:2      //0 表示删除，1表示草稿，2 表示有效
+		default:2      	//0 表示删除，1表示草稿，2 表示有效
 	},
-	create_time: {		//创建时间
+	create_time: {			//创建时间
 		type: Date,
 		default:Date.now()
 	},
-	update_time: {		//更新时间或修改时间
+	update_time: {			//更新时间或修改时间
 		type: Date,
 		default:Date.now()
 	},
-	draft_time:{		//定为草稿的时间
+	draft_time:{			//定为草稿的时间
 		type: Date,
 		default:Date.now()
 	}
 },{
   	toJSON: {virtuals: true},
-  	toObject: {
-        virtuals: true
-    },
+  	toObject: {virtuals: true}
 })
 
 ArticleSchema.virtual('author_name')
@@ -128,7 +124,6 @@ ArticleSchema.plugin(autoIncrement.plugin, {
 });
 
 ArticleSchema.pre('save', function(next) {
-	this.like_num=this.likes?this.likes.length:0;
 	if(this.isNew) {
 		this.create_time = this.update_time = Date.now()
 	} else {

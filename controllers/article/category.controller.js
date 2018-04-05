@@ -11,7 +11,7 @@ export default class CategoryObj{
 	constructor(){
 		
 	}
-	async get(req,res,next){
+	async getList(req,res,next){
 		let {type='',name} = req.query;
 		try{
 			if(type==='group'){		//根据已有文章进行分组统计		

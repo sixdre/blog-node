@@ -18,7 +18,7 @@ export default class FileObj extends UploadComponent{
 		this.addFile = this.addFile.bind(this)
 	}
 	
-	async get(req,res,next){		
+	async getList(req,res,next){		
 		let { page = 1, limit = 10,filename} = req.query;
 		page = parseInt(page);
 		limit = parseInt(limit);

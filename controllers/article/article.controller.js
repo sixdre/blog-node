@@ -38,7 +38,7 @@ export default class ArticleObj extends UploadComponent{
 	}
 
 	//获取文章
-	async get(req, res, next) {
+	async getList(req, res, next) {
 		let { page = 1, limit = 10, title = "", flag = 2 } = req.query;
 		if(flag===''){
 			flag = 3;
@@ -113,12 +113,6 @@ export default class ArticleObj extends UploadComponent{
 		}
 	}
 
-
-
-
-
-
-
 	//网站前台获取文章详情
 	async getFrontArticle(req, res, next){
 		let id = req.params['id'];
@@ -171,6 +165,7 @@ export default class ArticleObj extends UploadComponent{
 			if(!article||article.status==0){
 				return res.json({
 					code: 0,
+					msg:'The article is not found or is deleted',
 					message: '文章不存在或已被删除'
 				});
 			}
@@ -390,8 +385,6 @@ export default class ArticleObj extends UploadComponent{
 				article.tags = await Promise.all(Pro);
 			}
 			
-
-			
 			if(req.file) {
 				let nameArray = req.file.originalname.split('.')
 				let type = nameArray[nameArray.length - 1];
@@ -448,7 +441,7 @@ export default class ArticleObj extends UploadComponent{
 	removeOne(item) {
 		return new Promise(async function(resolve, reject){
 			try{
-				if(item.status===0) { //彻底删除
+				if(item.status===0||item.status===1) { //彻底删除
 					await ArticleModel.remove({
 						_id: item._id
 					})

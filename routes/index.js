@@ -1,5 +1,6 @@
 "use strict";
 import apiRouter from './api'
+import sysRouter from './sys'
 import adminRouter from './admin'
 import ue from './ue' 
 
@@ -18,5 +19,6 @@ export default app => {
 	app.use("/ueditor/ue",ue)
 	app.use('/admin',adminRouter)
 	app.use('/api',apiRouter);
+	app.use('/sys',sysRouter);
 //	app.all('/api/*',Auth.checkAdmin);
 }

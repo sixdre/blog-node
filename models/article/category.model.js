@@ -41,19 +41,13 @@ CategorySchema.statics.getToGroup = function(){
 	var ctx = this;
 	return new Promise(async function (resolve,reject){
 		try{
-			let group = await ArticleModel.aggregate([{ $match:{"status":2,"is_private":false}},
-							{ $group:{ _id: "$category",count:{ $sum: 1 } }}]);
-			let Pro = group.map(function(item){
+			let all = await ctx.find({}).select('-__v');
+			let Pro = all.map(function(item){
 				return new Promise(function(resolve, reject){
-					ctx.findById(item._id).then(function(rs){
-						if(rs){
-							item.name = rs.name;
-							item.desc = rs.desc;
-						}else{
-							item.name = '未分类';
-							item.desc = '暂无描述';
-						}
-						resolve(item);
+					let t = item.toJSON();
+					ArticleModel.count({'category':t._id,"status":2,"is_private":false}).then(function(count){
+						t.count = count;
+						resolve(t);
 					},function(err){
 						reject(err)
 					})

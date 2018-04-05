@@ -9,7 +9,7 @@ export default class FriendObj{
 	constructor(){
 		
 	}
-	async get(req,res,next){
+	async getList(req,res,next){
 		let {page=1,limit=10} = req.query;
 		try{
 			const total = await FriendModel.count({});

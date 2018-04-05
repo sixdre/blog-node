@@ -12,7 +12,7 @@ export default class TagObj{
 		
 	}
 	
-	async get(req,res,next){
+	async getList(req,res,next){
 		let {type='',name} = req.query;
 		let message;
 		try{
