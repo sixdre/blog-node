@@ -82,7 +82,7 @@ if(app.get('env') === 'development') {
 		// 	error: err
 		// });
 		res.status(err.status || 500).json({
-			code:500,
+			code:err.status || 500,
 			message:err.message
 		});
 	});
@@ -91,7 +91,7 @@ if(app.get('env') === 'development') {
 	// no stacktraces leaked to user
 	app.use(function(err, req, res, next) {
 		res.status(err.status || 500).json({
-			code:500,
+			code:err.status || 500,
 			message:err.message
 		});
 	});

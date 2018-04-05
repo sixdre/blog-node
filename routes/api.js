@@ -16,7 +16,7 @@ router.del = router.delete;
 //获取标签和类型统一接口
 router.get('/catetag',ArticleCtrl.getCateTag);
 
-//获取当前用户的文章
+//获取当前用户的文章(包括收藏，点赞，评论，喜欢)
 router.get('/me/articles',Auth.checkToken,ArticleCtrl.getMyArticles);
 //获取当前用户的草稿文章
 router.get('/me/drafts',Auth.checkToken,ArticleCtrl.getMeDrafts);
@@ -24,8 +24,6 @@ router.get('/me/drafts',Auth.checkToken,ArticleCtrl.getMeDrafts);
 
 //草稿保存
 router.post('/draft',Auth.checkToken,ArticleCtrl.createDraft);
-//获取精华文章
-router.get('/articles/goodArticles',ArticleCtrl.getGoodArticles);
 //获取文章
 router.get('/articles',ArticleCtrl.getList);
 //前台获取文章详情

@@ -64,9 +64,9 @@ CommentSchema.statics.reply = function(id,articleId,reply){
 
 
 //列表分页
-CommentSchema.statics.getListToPage = function(queryobj,page=1,pageSize=10,order_by){
+CommentSchema.statics.getListToPage = function(queryobj,page=1,limit=10,order_by){
 	page = parseInt(page);
-	pageSize = parseInt(pageSize);
+	limit = parseInt(limit);
 	let baseQuery = {
 		'isM':true
 	}
@@ -82,11 +82,12 @@ CommentSchema.statics.getListToPage = function(queryobj,page=1,pageSize=10,order
 				        path: 'from to likes',
 				        select: 'username content avatar',
 				    }
-				}).skip(pageSize * (page-1)).limit(pageSize).sort(order_by);
+				}).skip(limit * (page-1)).limit(limit).sort(order_by);
 			resolve({
 				data,
 				total,
-				pageSize
+				limit,
+				page
 			})
 		}catch(err){
 			reject(err);
@@ -95,27 +96,6 @@ CommentSchema.statics.getListToPage = function(queryobj,page=1,pageSize=10,order
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-// CommentSchema.statics.findAll=function(cb) {
-// 	return this.find({}).sort('create_time').exec(cb)
-// },
-
-// CommentSchema.statics.findBySort=function(aId,orderBy) {
-// 	return this.find({ articleId: aId })
-// 			.populate('from')
-// 			.populate('reply.from reply.to')
-// 			.sort(orderBy).exec();
-// },
 
 
 CommentSchema.index({ articleId: 1});

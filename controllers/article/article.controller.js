@@ -37,80 +37,127 @@ export default class ArticleObj extends UploadComponent{
 		}
 	}
 
-	//获取文章
+	/* 获取文章列表 getList
+		@param type (all 所有的文章，good精华文章)
+		@param flag (0删除，1草稿，2有效，3所有)
+	 */
 	async getList(req, res, next) {
-		let { page = 1, limit = 10, title = "", flag = 2 } = req.query;
-		if(flag===''){
-			flag = 3;
-		}
-		let queryParams={
-			status:parseInt(flag),
-			title: {
-                '$regex': title
-            },
-		}
+		let { page = 1, limit = 20, title = "", flag = 2, type="all",startTime,endTime } = req.query;
+		let queryParams={}
 		try{
+			if(type==="good"){	
+				queryParams ={
+					'good':true,
+					'title': {
+		            '$regex': title
+		         }
+				}
+			}else{
+				queryParams ={
+					status:parseInt(flag),
+					title: {
+		            '$regex': title
+		         },
+				}
+			}
+			if(startTime&&!endTime){
+				startTime = new Date(startTime)
+				queryParams['create_time']={$gte:startTime}
+			}else if (!startTime&&endTime){
+				endTime = new Date(endTime)
+				queryParams['create_time']={$lte:endTime}
+			}else if(startTime&&endTime){
+				startTime=new Date(startTime)
+				endTime=new Date(endTime)
+				queryParams['create_time']={$gte:startTime,$lte:endTime}
+			}
 			let results = await ArticleModel.getListToPage(queryParams,page,limit)
 			res.json({
 				code:1,
 				data:results.data,
 				total:results.total,
-				limit:results.pageSize
-				
+				limit:results.pageSize,
+				page:results.page
 			});
 		}catch(err){
 			console.log('获取文章列表出错:' + err);
 			return next(err);
 		}
 	}
-	//获取登录用户的文章
+	
+	/* 获取登录用户的文章 getMyArticles
+		@param type (all 所有的文章，collect收藏的文章，like喜欢的文章,comment 评论过的文章
+		@param flag (0删除，1草稿，2有效，3所有)
+	 */
 	async getMyArticles(req,res,next){
 		const userId = req.userInfo._id;
-		let { page = 1, limit = 10, title = "", flag = 2 } = req.query;
-		if(flag===''){
-			flag = 3;
-		}
-		let queryParams={
-			'author':userId,
-			status:parseInt(flag),
-			title: {
-                '$regex': title
-            },
-		}
+		let { page = 1, limit = 20, title = "", flag = 2 , type="all",startTime,endTime } = req.query;
+		let queryParams = {};
 		try{
+			if(type==="collect"){	
+				let user = await UserModel.findById(userId);
+				let collectIds = user.collectArts;
+				queryParams ={
+					'status':2,
+					'title': {
+		            '$regex': title
+		         },
+		         '_id': { "$in": collectIds }
+				}
+			}else if(type ==='like' ){
+				let user = await UserModel.findById(userId);
+				let likeIds = user.likeArts;
+				queryParams ={
+					'status':2,
+					'title': {
+		            '$regex': title
+		         },
+		         '_id': { "$in": likeIds }
+				}
+			}else if(type ==='comment' ){
+				let cmts = await CommentModel.find({from:userId}).select('articleId');
+				let artIds = cmts.map(item=>item.articleId);
+				let uniqArtIds = _.uniq(artIds);    //去重
+				queryParams ={
+					'status':2,
+					'title': {
+		            '$regex': title
+		         },
+		         '_id': { "$in": uniqArtIds }
+				}
+			}else{
+				queryParams ={
+					'author':userId,
+					'status':parseInt(flag),
+					'title': {
+		             '$regex': title
+		         },
+				}
+			}
+			if(startTime&&!endTime){
+				startTime = new Date(startTime)
+				queryParams['create_time']={$gte:startTime}
+			}else if (!startTime&&endTime){
+				endTime = new Date(endTime)
+				queryParams['create_time']={$lte:endTime}
+			}else if(startTime&&endTime){
+				startTime=new Date(startTime)
+				endTime=new Date(endTime)
+				queryParams['create_time']={$gte:startTime,$lte:endTime}
+			}
 			let results = await ArticleModel.getListToPage(queryParams,page,limit)
 			res.json({
 				code:1,
 				data:results.data,
 				total:results.total,
-				limit:results.pageSize
-				
+				limit:results.pageSize,
+				page:results.page
 			});
 		}catch(err){
 			console.log('获取文章列表出错:' + err);
 			return next(err);
 		}
 		
-	}
-
-	//获取精华文章
-	async getGoodArticles(req,res,next){
-		let { page = 1, limit = 10} = req.query;
-		let queryParams={
-			good:true
-		}
-		try{
-			let results = await ArticleModel.getListToPage(queryParams,page,limit)
-			res.json({
-				code:1,
-				data:results.data,
-				total:results.total,
-				limit:results.pageSize
-			});
-		}catch(err){
-			console.log('获取文章列表出错:' + err);
-			return next(err);
-		}
 	}
 
 	//网站前台获取文章详情

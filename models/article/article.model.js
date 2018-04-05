@@ -183,7 +183,8 @@ ArticleSchema.statics.getListToPage = function(queryobj,page=1,pageSize=10){
 			resolve({
 				data,
 				total,
-				pageSize
+				pageSize,
+				page
 			})
 		}catch(err){
 			reject(err);

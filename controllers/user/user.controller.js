@@ -2,18 +2,268 @@
  * 用户控制器
  */
 "use strict";
+import _ from 'underscore'
 import validator from 'validator'
 import auth from '../../middleware/auth'
-import _ from 'underscore'
+import transformTozTreeFormat from '../../utility/tree'
 //数据模型
 
-import {UserModel,ArticleModel,CategoryModel,TagModel,WordModel,RoleModel} from '../../models/'
+import {UserModel,ArticleModel,CategoryModel,TagModel,WordModel,RoleModel,MenuModel} from '../../models/'
 
 
 export default class UserObj{
 	constructor(){
 		
 	}
+
+	//获取登录用户信息
+	async getUserInfo(req,res,next){
+		let userInfo = req.userInfo;
+		try {
+			let menus = await MenuModel.find({},{'__v':0,'meta':0}).sort({'sort':'asc'});
+				menus = transformTozTreeFormat(JSON.parse(JSON.stringify(menus)))
+			// let words = await WordModel.find({ "state.isRead": false }).populate('user', 'username');
+			// let articleTotal = await ArticleModel.count({});
+			// let categorys = await CategoryModel.find({});
+			// let tags = await TagModel.find({});
+			res.json({
+				code:1,
+				userInfo:userInfo,
+				menus:menus
+				// articleTotal:articleTotal,			//文章总数
+				// words:words,			//留言
+				// categorys:categorys,	//文章分类
+				// tags:tags				//文章标签
+			});
+		} catch (err) {
+			
+		}
+	}
+
+	//前台用户注册
+	async regist(req,res,next){
+		let {username,password,email} = req.body;
+		try{
+			if (validator.isEmpty(username)) {
+				throw new Error('用户名不得为空');
+			}else if(validator.isEmpty(password)){
+				throw new Error('密码不得为空');
+			}else if(validator.isEmpty(email)){
+				throw new Error('邮箱不得为空！');
+			}else if(!validator.isEmail(email)){
+				throw new Error('请输入正确的邮箱！');
+			}else if(!validator.isLength(password,{min:3})){
+				throw new Error('密码不得小于3位！');
+			}
+		}catch(err){
+			console.log('用户填写参数出错', err.message);
+			res.send({
+				status: -2,
+				type: 'ERROR_PARAMS',
+				message: err.message
+			});
+			return;
+		}
+		
+		try{
+			let user =await UserModel.findOne({username:username})
+			if(user){
+				res.json({
+					code:-1,
+					message:"用户名已被创建"
+				});
+				return;
+			}
+			let newUser=new UserModel({
+				username:username,
+				password:password,
+				email:email
+			});
+			
+			await newUser.save();
+			res.json({
+				code:1,
+				message:"成功注册"
+			});
+
+		}catch(err){
+			console.log('用户注册失败:' + err);
+			return next(err);
+		}
+		
+	}
+	
+	//前台用户登录
+	async login(req,res,next){
+		let {username,password} = req.body;
+		try{
+			if (validator.isEmpty(username)) {
+				throw new Error('请输入用户名');
+			}else if(validator.isEmpty(password)){
+				throw new Error('请输入密码');
+			}
+		}catch(err){
+			console.log('用户填写参数出错', err.message);
+			res.send({
+				status: -2,
+				type: 'ERROR_PARAMS',
+				message: err.message
+			});
+			return;
+		}  
+		  
+		try{
+			let user = await UserModel.findOne({username:username});
+			if(!user){
+				return res.json({
+					code:-1,
+					message:"该用户没有注册！"
+				})
+			}
+
+			user.comparePassword(password,function(err, isMatch) {
+	            if (err) throw err;
+	            if(isMatch){
+	            	var token = auth.setToken(JSON.parse(JSON.stringify(user)));
+	            	req.session["User"] = user;
+						res.json({
+							code:1,
+							token,
+							userInfo:{
+								username:user.username,
+								avatar:user.avatar
+							},
+							message:"登录成功！"
+						});
+	            }else{
+	            	res.json({
+							code:0,
+							message:"密码不正确！"
+						})
+	            }
+	        });
+
+		}catch(err){
+			console.log('登录失败:' + err);
+			return next(err);
+		} 
+	}
+	
+	//后台用户登录
+	async admin_login(req,res,next){
+		let {username,password} = req.body;
+		try{
+			if (validator.isEmpty(username)) {
+				throw new Error('请输入用户名');
+			}else if(validator.isEmpty(password)){
+				throw new Error('请输入密码');
+			}
+		}catch(err){
+			console.log('用户填写参数出错', err.message);
+			res.send({
+				status: -2,
+				type: 'ERROR_PARAMS',
+				message: err.message
+			});
+			return;
+		}  
+		  
+		try{
+			let user = await UserModel.findOne({username:username})
+								.select('email username avatar isAdmin role password');
+			if(!user){
+				return res.json({
+					code:-1,
+					message:"该用户没有注册！"
+				})
+			}else if(user.isAdmin==false){
+				return res.json({
+					code:-1,
+					message:"您还不是管理员，请联系系统管理员"
+				})
+			}
+			user.comparePassword(password,function(err, isMatch) {
+	            if (err) throw err;
+	            if(isMatch){
+	            	var token = auth.setToken(JSON.parse(JSON.stringify(user)));
+	            	req.session["Admin"] = user;
+						res.json({
+							code:1,
+							token,
+							userInfo:{
+								role:'测试',
+								username:user.username,
+								avatar:user.avatar
+							},
+							message:"登录成功！"
+						});
+	            }else{
+	            	res.json({
+							code:0,
+							message:"密码不正确！"
+						})
+	            }
+	        });
+
+		}catch(err){
+			console.log('登录失败:' + err);
+			return next(err);
+		}
+		  
+	}
+
+
+	//后台管理用户注册
+	async admin_regist(req,res,next){
+		let {username,email,password,roleId} = req.body;
+		try{
+			if (validator.isEmpty(username)) {
+				throw new Error('用户名不得为空');
+			}else if(validator.isEmpty(password)){
+				throw new Error('密码不得为空');
+			}else if(validator.isEmpty(email)){
+				throw new Error('邮箱不得为空！');
+			}else if(!validator.isEmail(email)){
+				throw new Error('请输入正确的邮箱！');
+			}else if(!validator.isLength(password,{min:3})){
+				throw new Error('密码不得小于3位！');
+			}
+		}catch(err){
+			console.log('用户填写参数出错', err.message);
+			res.send({
+				status: -2,
+				type: 'ERROR_PARAMS',
+				message: err.message
+			});
+			return;
+		}
+		try{
+			let user =await UserModel.findOne({username:username})
+			if(user){
+				res.json({
+					code:-1,
+					message:"用户名已被创建"
+				});
+				return;
+			}
+			let newUser=new UserModel({
+				username:username,
+				password:password,
+				email:email,
+				role:roleId,
+				isAdmin:true
+			});
+			await newUser.save();
+			res.json({
+				code:1,
+				message:"成功注册"
+			});
+		}catch(err){
+			console.log('用户注册失败:' + err);
+			return next(err);
+		}
+	}
+	
 
 	async getList(req,res,next){
 		let {skip=0,limit=0} = req.query;
@@ -137,221 +387,9 @@ export default class UserObj{
 		}
 	}
 
-	//前台用户注册
-	async regist(req,res,next){
-		
-		let {username,password,email} = req.body;
-		
-		try{
-			if (validator.isEmpty(username)) {
-				throw new Error('用户名不得为空');
-			}else if(validator.isEmpty(password)){
-				throw new Error('密码不得为空');
-			}else if(validator.isEmpty(email)){
-				throw new Error('邮箱不得为空！');
-			}else if(!validator.isEmail(email)){
-				throw new Error('请输入正确的邮箱！');
-			}else if(!validator.isLength(password,{min:3})){
-				throw new Error('密码不得小于3位！');
-			}
-		}catch(err){
-			console.log('用户填写参数出错', err.message);
-			res.send({
-				status: -2,
-				type: 'ERROR_PARAMS',
-				message: err.message
-			});
-			return;
-		}
-		
-		try{
-			let user =await UserModel.findOne({username:username})
-			if(user){
-				res.json({
-					code:-1,
-					message:"用户名已被创建"
-				});
-				return;
-			}
-			let newUser=new UserModel({
-				username:username,
-				password:password,
-				email:email
-			});
-			
-			await newUser.save();
-			res.json({
-				code:1,
-				message:"成功注册"
-			});
 
-		}catch(err){
-			console.log('用户注册失败:' + err);
-			return next(err);
-		}
-		
-	}
-	
-	async login(req,res,next){
-		let {username,password} = req.body;
-		try{
-			if (validator.isEmpty(username)) {
-				throw new Error('请输入用户名');
-			}else if(validator.isEmpty(password)){
-				throw new Error('请输入密码');
-			}
-		}catch(err){
-			console.log('用户填写参数出错', err.message);
-			res.send({
-				status: -2,
-				type: 'ERROR_PARAMS',
-				message: err.message
-			});
-			return;
-		}  
-		  
-		try{
-			let user = await UserModel.findOne({username:username});
-			if(!user){
-				res.json({
-					code:-1,
-					message:"该用户没有注册！"
-				})
-			}
-
-			user.comparePassword(password,function(err, isMatch) {
-	            if (err) throw err;
-	            if(isMatch){
-	            	var token = auth.setToken(JSON.parse(JSON.stringify(user)));
-	            	req.session["User"] = user;
-					res.json({
-						code:1,
-						token,
-						userInfo:{
-							role:'测试',
-							username:user.username,
-							avatar:user.avatar
-						},
-						message:"登录成功！"
-					});
-	            }else{
-	            	res.json({
-						code:0,
-						message:"密码不正确！"
-					})
-	            }
-	        });
-
-		}catch(err){
-			console.log('登录失败:' + err);
-			return next(err);
-		}
-		  
-	}
-	
-	logout(req,res,next){
-		delete req.session['User'];
-		delete app.locals.user;
-		res.json({
-			code:1,
-			message:'退出登陆成功'
-		});
-	}
-	
-
-	//后台管理用户注册
-	async admin_regist(req,res,next){
-		let {username,email,password,roleId} = req.body;
-		try{
-			if (validator.isEmpty(username)) {
-				throw new Error('用户名不得为空');
-			}else if(validator.isEmpty(password)){
-				throw new Error('密码不得为空');
-			}else if(validator.isEmpty(email)){
-				throw new Error('邮箱不得为空！');
-			}else if(!validator.isEmail(email)){
-				throw new Error('请输入正确的邮箱！');
-			}else if(!validator.isLength(password,{min:3})){
-				throw new Error('密码不得小于3位！');
-			}
-		}catch(err){
-			console.log('用户填写参数出错', err.message);
-			res.send({
-				status: -2,
-				type: 'ERROR_PARAMS',
-				message: err.message
-			});
-			return;
-		}
-		try{
-			let user =await UserModel.findOne({username:username})
-			if(user){
-				res.json({
-					code:-1,
-					message:"用户名已被创建"
-				});
-				return;
-			}
-			let newUser=new UserModel({
-				username:username,
-				password:password,
-				email:email,
-				role:roleId
-			});
-			await newUser.save();
-			res.json({
-				code:1,
-				message:"成功注册"
-			});
-		}catch(err){
-			console.log('用户注册失败:' + err);
-			return next(err);
-		}
-	}
-	
-	//获取登录用户信息
-	async getUserInfo(req,res,next){
-		let userInfo = req.userInfo;
-		try {
-			let words = await WordModel.find({ "state.isRead": false }).populate('user', 'username');
-			let articleTotal = await ArticleModel.count({});
-			let categorys = await CategoryModel.find({});
-			let tags = await TagModel.find({});
-			res.json({
-				code:1,
-				userInfo:userInfo,
-				articleTotal:articleTotal,			//文章总数
-				words:words,			//留言
-				categorys:categorys,	//文章分类
-				tags:tags				//文章标签
-			});
-		} catch (err) {
-			
-		}
-	}
 	
 	
-	
-	//管理员退出
-	admin_logout(req,res,next){
-		delete req.session['manager'];
-		res.json({
-			code:1,
-			message:'退出登陆成功'
-		});
-	}
-
-
-
-
-
-
-
-
-
-
-
-
 	
 }
 

@@ -24,7 +24,9 @@ router.delete('/users/:id', Auth.checkToken,Auth.checkAdmin, UserCtrl.remove)
 //更新用户角色
 router.post('/users/:id/role', Auth.checkToken,UserCtrl.updateRole)
 //管理员注册
-router.post('/user/regist',UserCtrl.admin_regist);
+router.post('/login',UserCtrl.admin_login);
+//管理员注册
+router.post('/regist',UserCtrl.admin_regist);
 
 
 //获取所有文件

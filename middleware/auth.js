@@ -47,7 +47,7 @@ class Auth {
 		// //res.setHeader('AUTH', 'admin')
 		// next();
 		if(!req.userInfo.isAdmin) {
-			return res.status(403).json({ message: '您不是管理员，请联系站长' })
+			return res.status(403).json({ message: '您不是管理员，请联系系统管理员' })
 		}
 		next();
 

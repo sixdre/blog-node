@@ -7,7 +7,7 @@ import {ArticleModel,CommentModel} from '../../models/'
 import validator from 'validator'
 
 export default class CommentObj{
-
+	
 	async getCommentsByArticleId(req, res, next) {
 		let articleId = req.params['article_id'];
 		if (!validator.isMongoId(articleId)) {
@@ -18,7 +18,7 @@ export default class CommentObj{
 			})
 			return 
 		}
-		let { order_by, page = 1 ,pageSize = 10} = req.query;
+		let { order_by, page = 1 ,limit = 10} = req.query;
 		let sort = { likes: -1 }
 		if(order_by == "timeSeq") {
 			sort = { create_time: 1 }
@@ -33,13 +33,14 @@ export default class CommentObj{
 					message:'该文章不存在或已被删除'
 				})
 			}
-			const results = await CommentModel.getListToPage({articleId:articleId},page,pageSize,sort)
+			const results = await CommentModel.getListToPage({articleId:articleId},page,limit,sort)
 			res.json({
 				code:1,
-				msg:'评论获取成功',
+				message:'评论获取成功',
 				data: results.data,
 				total:results.total,
-				pageSize
+				limit:results.limit,
+				page:results.page,
 			})
 		} catch(err) {
 			console.log(err);
