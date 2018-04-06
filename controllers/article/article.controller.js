@@ -86,12 +86,12 @@ export default class ArticleObj extends UploadComponent{
 	}
 	
 	/* 获取登录用户的文章 getMyArticles
-		@param type (all 所有的文章，collect收藏的文章，like喜欢的文章,comment 评论过的文章
+		@param type (me 我发表的文章，collect收藏的文章，like喜欢的文章,comment 评论过的文章
 		@param flag (0删除，1草稿，2有效，3所有)
 	 */
 	async getMyArticles(req,res,next){
 		const userId = req.userInfo._id;
-		let { page = 1, limit = 20, title = "", flag = 2 , type="all",startTime,endTime } = req.query;
+		let { page = 1, limit = 20, title = "", flag = 2 , type="me",startTime,endTime } = req.query;
 		let queryParams = {};
 		try{
 			if(type==="collect"){	
@@ -332,6 +332,7 @@ export default class ArticleObj extends UploadComponent{
 					code: 1,
 					id:article.id,
 					time:moment(Date.now()).format('YYYY-MM-DD HH:mm:ss'),
+					has_draft:true,
 					message
 				});
 			}else{
@@ -344,6 +345,7 @@ export default class ArticleObj extends UploadComponent{
 				res.json({
 					code: 1,
 					id:art._id,
+					has_draft:true,
 					time:moment(art.create_time).format('YYYY-MM-DD HH:mm:ss'),
 					message: '保存成功'
 				});
