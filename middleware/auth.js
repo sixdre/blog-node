@@ -20,6 +20,21 @@ class Auth {
 	    return token;
 	}
 	
+	getUserInfoByToken(token){
+		if(!token){
+			return ;
+		}
+		return new Promise(function(resolve,reject){
+			jwt.verify(token, secret , function(err,decoded) {
+				if(err) {
+	          	resolve(null);
+	        }else {
+	            resolve(decoded);
+	        }
+	   	})
+		})
+	}
+
 	checkToken(req,res,next){
 	 	var token = req.body.token || req.query.token || req.headers['x-access-token'];
 	        

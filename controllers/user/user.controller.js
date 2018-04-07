@@ -40,6 +40,142 @@ export default class UserObj{
 		}
 	}
 
+	async getList(req,res,next){
+		let {skip=0,limit=0} = req.query;
+		skip = parseInt(skip);
+		limit = parseInt(limit);
+		try{
+			const total = await	UserModel.count();
+			if(!total){
+				res.json({ 	
+					code: -1,
+					message: 'no more'
+				});
+				return ;
+			}
+			const users = await UserModel.find({},'-password').populate('role')	//回传值中不含有password
+					.skip(skip)
+				     .limit(limit);
+			res.json({
+				code: 1,
+				data:users,
+				total,
+				message: '获取用户列表成功'
+			});	
+		}catch(err){
+			console.log('查询用户列表出错:' + err);
+			return next(err);
+		}
+		
+	}
+
+	//获取我关注的作者（用户）
+	async getMeLikeUsers(req,res,next){
+		let {page=1,limit=20} = req.query;
+		let userId = req.userInfo._id;
+		try{
+			let me = await UserModel.findById(userId);
+			let queryObj = {_id:{'$in':me.like_users}};
+			console.log(queryObj)
+			let results = await UserModel.getListToPage(queryObj,page,limit)
+			res.json({
+				code:1,
+				data:results.data,
+				total:results.total,
+				limit:results.limit,
+				page:results.page,
+				message:'获取关注用户成功'
+			})
+
+		}catch(err){
+			return next(err);
+		}
+
+	}
+
+	//获取关注我的用户
+	async getMeFans(req,res,next){
+		let {page=1,limit=20} = req.query;
+		let userId = req.userInfo._id;
+		try{
+			let queryObj = {'like_users':{'$in':[userId]}}
+			let results = await UserModel.getListToPage(queryObj,page,limit);
+
+			res.json({
+				code:1,
+				data:results.data,
+				total:results.total,
+				limit:results.limit,
+				page:results.page,
+				message:'获取成功'
+			})
+
+		}catch(err){
+			return next(err);
+		}
+	}
+
+
+
+	//关注
+	async toggleLikeUser(req,res,next){
+		let uid = req.params['id'];
+		let userId = req.userInfo._id;
+		if (!validator.isMongoId(uid)) {
+			res.json({
+				code: 0,
+				type: 'ERROR_PARAMS',
+				message: '用户ID参数错误'
+			})
+			return 
+		}else if(String(uid)===String(userId)){
+			res.json({
+				code: 0,
+				type: 'ERROR_PARAMS',
+				message: '您不能关注自己哦'
+			})
+			return 
+		}
+		try{
+			let toUser = await UserModel.findById(uid);
+			if(!toUser){
+				return res.json({
+					code:0,
+					message:'该用户不存在'
+				})
+			}
+			let me = await UserModel.findById(userId);
+			let condition,like,count=0;
+			let isLikes = me.like_users.indexOf(uid);
+			if(isLikes !== -1){
+				condition = {'$pull':{'like_users':uid}};
+			  	count = me.like_users.length-1;
+			  	like = false;
+			}else{
+				condition = {'$addToSet':{'like_users':uid}};
+			  	count= me.like_users.length+1;
+			  	like = true;
+			}
+			await UserModel.update({ _id: userId}, condition);
+			res.json({
+				code: 1,
+				count:count,
+				isLike:like,
+				type: 'SUCCESS_TO_LIKES',
+				message: '操作成功'
+			});
+
+		}catch(err){
+			console.log('点赞失败:'+err);
+			return next(err);
+		}
+	}
+
+
+
+
+
+
 	//前台用户注册
 	async regist(req,res,next){
 		let {username,password,email} = req.body;
@@ -265,34 +401,6 @@ export default class UserObj{
 	}
 	
 
-	async getList(req,res,next){
-		let {skip=0,limit=0} = req.query;
-		skip = parseInt(skip);
-		limit = parseInt(limit);
-		try{
-			const total = await	UserModel.count();
-			if(!total){
-				res.json({ 	
-					code: -1,
-					message: 'no more'
-				});
-				return ;
-			}
-			const users = await UserModel.find({},'-password').populate('role')	//回传值中不含有password
-					.skip(skip)
-				     .limit(limit);
-			res.json({
-				code: 1,
-				data:users,
-				total,
-				message: '获取用户列表成功'
-			});	
-		}catch(err){
-			console.log('查询用户列表出错:' + err);
-			return next(err);
-		}
-		
-	}
 	
 	//前台更新用户信息
 	async update(req,res,next){

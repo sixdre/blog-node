@@ -27,6 +27,10 @@ const UserSchema = new Schema({
 		type: String,
 		default:'https://sfault-avatar.b0.upaiyun.com/161/227/1612276764-55f6bdd353b39_big64'
 	},
+	like_users:[{				//关注的用户
+		type:Schema.Types.ObjectId,
+		ref:'User'
+	}],
 	collectArts:[{		//收藏的文章
 		type:Schema.Types.ObjectId,
 		ref:'Article'
@@ -91,18 +95,32 @@ UserSchema.methods.comparePassword = function(candidatePassword, cb) {
 };
 
 
-//查找所有
-UserSchema.statics.findAll = function() {
-	return this.find({ isAdmin: false })
-		.sort({ 'create_time': -1 })
-		.exec();
+//根据条件获取列表
+UserSchema.statics.getList = function(queryobj){
+	return this.find(queryobj,{__v:0,password:0})
+				
 }
 
-//根据用户名进行查找
-UserSchema.statics.findByName = function(name) {
-	return this.find({username: { $regex: '' + name + '' } })
-		.sort({'create_time': -1 })
-		.exec();
+//列表分页
+UserSchema.statics.getListToPage = function(queryobj={},page=1,limit=20){
+	let params = queryobj;
+	page = parseInt(page);
+	limit = parseInt(limit);
+	return new Promise(async (resolve,reject)=>{
+		try{
+			let total =  await this.count(params);
+			let data = await this.getList(params)
+							.skip(limit * (page-1)).limit(limit);
+			resolve({
+				data,
+				total,
+				limit,
+				page
+			})
+		}catch(err){
+			reject(err);
+		}
+	})
 }
 
 

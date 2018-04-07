@@ -20,6 +20,31 @@ router.get('/catetag',ArticleCtrl.getCateTag);
 router.get('/me/articles',Auth.checkToken,ArticleCtrl.getMyArticles);
 //获取当前用户的草稿文章
 router.get('/me/drafts',Auth.checkToken,ArticleCtrl.getMeDrafts);
+//获取当前用户关注的用户
+router.get('/me/likeusers',Auth.checkToken,UserCtrl.getMeLikeUsers);
+//获取当前用户的粉丝(关注我的用户)
+router.get('/me/fans',Auth.checkToken,UserCtrl.getMeFans);
+
+
+
+//更新用户信息
+router.put('/users/:id', Auth.checkToken,UserCtrl.update)
+//关注用户
+router.put('/users/:id/like', Auth.checkToken,UserCtrl.toggleLikeUser)
+//获取当前登录用户信息
+router.get('/userInfo', Auth.checkToken, UserCtrl.getUserInfo)
+//登陆
+router.post('/login',UserCtrl.login);
+//前台注册
+router.post('/regist',UserCtrl.regist);
+
+
+
+
+
+
+
+
 
 
 //草稿保存
@@ -109,14 +134,8 @@ router.put('/words/:id', Auth.checkToken,Auth.checkAdmin,WordCtrl.reply);
 
 
 
-//更新用户信息
-router.put('/users/:id', Auth.checkToken,UserCtrl.update)
-//获取当前登录用户信息
-router.get('/userInfo', Auth.checkToken, UserCtrl.getUserInfo)
-//登陆
-router.post('/login',UserCtrl.login);
-//前台注册
-router.post('/regist',UserCtrl.regist);
+
+
 
 
 

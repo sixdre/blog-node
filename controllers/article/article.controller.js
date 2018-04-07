@@ -9,6 +9,7 @@ import request from 'request'
 import MarkdownIt from 'markdown-it'
 import {ArticleModel,CategoryModel,CommentModel,TagModel,UserModel} from '../../models/'
 import UploadComponent from '../../prototype/upload'
+import Auth from '../../middleware/auth'
 
 
 const tool = require('../../utility/tool');
@@ -172,6 +173,8 @@ export default class ArticleObj extends UploadComponent{
 			return 
 		}
 		try{
+			var token = req.body.token || req.query.token || req.headers['x-access-token'];
+			var isLikeAuthor = false;
 			var md = new MarkdownIt({
 				html:true //启用html标记转换
 			});
@@ -182,12 +185,24 @@ export default class ArticleObj extends UploadComponent{
 					message: '文章不存在或已被删除'
 				});
 			}
+
+			if(token){
+				let me = await Auth.getUserInfoByToken(token);
+				if(me){
+					me = await UserModel.findById(me._id);
+					if(me.like_users.indexOf(article.author._id)!==-1){
+						isLikeAuthor = true;
+					}
+				}
+			}
+			
 			await ArticleModel.updatePv(id);
 			article.pv_num+=1;
 			article.content = md.render(article.content);
 			res.json({
 				code: 1,
 				data:article,
+				isLikeAuthor,
 				message: 'success'
 			});
 		}catch(err){

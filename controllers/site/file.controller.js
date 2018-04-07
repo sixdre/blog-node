@@ -16,6 +16,7 @@ export default class FileObj extends UploadComponent{
 	constructor(){
 		super()
 		this.addFile = this.addFile.bind(this)
+		this.uploadFile = this.uploadFile.bind(this)
 	}
 	
 	async getList(req,res,next){		
@@ -37,6 +38,43 @@ export default class FileObj extends UploadComponent{
 		})
 	}
 	
+	async uploadFile(req,res,next){
+		if(!req.files||!req.files.length){
+			res.json({
+				code:-2,
+				type:'NOT FILE',
+				message:'请选择文件'
+			});
+			return ;
+		}
+		try{
+			console.log(req.files)
+			let Pro = req.files.map(item=>{
+				return new Promise((resolve, reject) => {
+					this.upload(item).then(function(url){
+						resolve(url)
+					}).catch(err=>{
+						reject(err)
+					})
+				})
+			})
+			let fileurl = await Promise.all(Pro);
+			if(fileurl.length===1&&req.files.length===1){
+				fileurl=fileurl[0]
+			}
+			res.json({
+				code:1,
+				url:fileurl,
+				message:'文件上传成功'
+			});
+		}catch(err){
+			console.log('保存文件出错'+err);
+			return next(err);
+		}
+	}
+
+
+
 	async addFile(req,res,next){
 		if(!req.files||!req.files.length){
 			res.json({

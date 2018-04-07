@@ -29,6 +29,13 @@ router.post('/login',UserCtrl.admin_login);
 router.post('/regist',UserCtrl.admin_regist);
 
 
+
+
+
+
+//上传文件
+router.post('/upload',Auth.checkToken,upload.any(),FileCtrl.uploadFile);
+
 //获取所有文件
 router.get('/allFiles', Auth.checkToken,Auth.checkAdmin, FileCtrl.getList);
 //添加文件

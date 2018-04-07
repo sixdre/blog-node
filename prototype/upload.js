@@ -46,7 +46,7 @@ export default class UploadComponent {
 		     formUploader.putFile(uptoken, key, localFile, putExtra, function(respErr, respBody,respInfo) {
 		     	if (respErr) {
 				    console.log('文件上传至七牛失败', respErr);
-			    	    reject(err)
+			    	    reject(respErr)
 				}
 				if (respInfo.statusCode == 200) {
 				     resolve(origin+respBody.key)
