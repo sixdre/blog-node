@@ -30,7 +30,7 @@ router.get('/me/fans',Auth.checkToken,UserCtrl.getMeFans);
 //更新用户信息
 router.put('/users/:id', Auth.checkToken,UserCtrl.update)
 //关注用户
-router.put('/users/:id/like', Auth.checkToken,UserCtrl.toggleLikeUser)
+router.put('/users/:id/follow', Auth.checkToken,UserCtrl.toggleFollow)
 //获取当前登录用户信息
 router.get('/userInfo', Auth.checkToken, UserCtrl.getUserInfo)
 //登陆

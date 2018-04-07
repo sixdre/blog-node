@@ -117,7 +117,7 @@ export default class UserObj{
 
 
 	//关注
-	async toggleLikeUser(req,res,next){
+	async toggleFollow(req,res,next){
 		let uid = req.params['id'];
 		let userId = req.userInfo._id;
 		if (!validator.isMongoId(uid)) {
@@ -144,22 +144,22 @@ export default class UserObj{
 				})
 			}
 			let me = await UserModel.findById(userId);
-			let condition,like,count=0;
+			let condition,isFollow,count=0;
 			let isLikes = me.follows.indexOf(uid);
 			if(isLikes !== -1){
 				condition = {'$pull':{'follows':uid}};
 			  	count = me.follows.length-1;
-			  	like = false;
+			  	isFollow = false;
 			}else{
 				condition = {'$addToSet':{'follows':uid}};
 			  	count= me.follows.length+1;
-			  	like = true;
+			  	isFollow = true;
 			}
 			await UserModel.update({ _id: userId}, condition);
 			res.json({
 				code: 1,
 				count:count,
-				isLike:like,
+				isFollow:isFollow,
 				type: 'SUCCESS_TO_LIKES',
 				message: '操作成功'
 			});

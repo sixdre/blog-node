@@ -174,7 +174,9 @@ export default class ArticleObj extends UploadComponent{
 		}
 		try{
 			var token = req.body.token || req.query.token || req.headers['x-access-token'];
-			var isLikeAuthor = false;
+			var isFollow = false;
+			var isLike = false;
+			var isCollect = false;
 			var md = new MarkdownIt({
 				html:true //启用html标记转换
 			});
@@ -191,7 +193,13 @@ export default class ArticleObj extends UploadComponent{
 				if(me){
 					me = await UserModel.findById(me._id);
 					if(me.follows.indexOf(article.author._id)!==-1){
-						isLikeAuthor = true;
+						isFollow = true;
+					}
+					if(me.collectArts.indexOf(article._id)!==-1){
+						isCollect = true;
+					}
+					if(me.likeArts.indexOf(article._id)!==-1){
+						isLike = true;
 					}
 				}
 			}
@@ -202,7 +210,9 @@ export default class ArticleObj extends UploadComponent{
 			res.json({
 				code: 1,
 				data:article,
-				isLikeAuthor,
+				isFollow,
+				isCollect,
+				isLike,
 				message: 'success'
 			});
 		}catch(err){
