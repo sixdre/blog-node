@@ -190,7 +190,7 @@ export default class ArticleObj extends UploadComponent{
 				let me = await Auth.getUserInfoByToken(token);
 				if(me){
 					me = await UserModel.findById(me._id);
-					if(me.like_users.indexOf(article.author._id)!==-1){
+					if(me.follows.indexOf(article.author._id)!==-1){
 						isLikeAuthor = true;
 					}
 				}

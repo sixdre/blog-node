@@ -21,7 +21,7 @@ router.get('/me/articles',Auth.checkToken,ArticleCtrl.getMyArticles);
 //获取当前用户的草稿文章
 router.get('/me/drafts',Auth.checkToken,ArticleCtrl.getMeDrafts);
 //获取当前用户关注的用户
-router.get('/me/likeusers',Auth.checkToken,UserCtrl.getMeLikeUsers);
+router.get('/me/follows',Auth.checkToken,UserCtrl.getMeFollows);
 //获取当前用户的粉丝(关注我的用户)
 router.get('/me/fans',Auth.checkToken,UserCtrl.getMeFans);
 

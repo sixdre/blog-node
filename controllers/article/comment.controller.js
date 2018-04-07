@@ -125,44 +125,98 @@ export default class CommentObj{
 	async addCommentLike(req, res, next) {
 		const commentId = req.params['comment_id'],
 			userId = req.userInfo._id;
-			try{
-				if(!validator.isMongoId(commentId)){
-					throw new Error('commentId参数错误')
-				}
-			}catch(err){
-				console.log(err.message);
-				res.json({
-					code: 0,
-					type: 'ERROR_PARAMS',
-					message: err.message,
-				})
-				return
+		try{
+			if(!validator.isMongoId(commentId)){
+				throw new Error('commentId参数错误')
 			}
-		try {
+		}catch(err){
+			console.log(err.message);
+			res.json({
+				code: 0,
+				type: 'ERROR_PARAMS',
+				message: err.message,
+			})
+			return
+		}
+		try{
 			let comment = await CommentModel.findById(commentId);
 			if(!comment) {		//没有在主评论找到的话就去回复中查询
-				res.json({
+				return res.json({
 					code:0,
 					message:'没有找到该评论'
 				})
-			}else{
-				if(comment.likes.indexOf(userId) > -1) {
-					return res.json({
-						code: 0,
-						message: '您已点赞'
-					});
-				}
-				comment.likes.push(userId);
-				await comment.save();
-				res.json({
-					code: 1,
-					message: '点赞成功'
-				});
 			}
-		} catch(err) {
-			console.log('评论点赞出错:' + err);
-			return 	next(err);
+			let condition,isLike,count=0;
+			if(comment.likes.indexOf(userId) !== -1){
+				condition = {'$pull':{'likes':userId}};
+			  	count = comment.likes.length-1;
+			  	isLike = false;
+			}else{
+				condition = {'$addToSet':{'likes':userId}};
+			  	count = comment.likes.length+1;
+			  	isLike = true;
+			}
+			await CommentModel.update({ _id: commentId}, condition);
+			res.json({
+				code: 1,
+				count:count,
+				isLike:isLike,
+				type: 'SUCCESS_TO_COMMENT_LIKE',
+				message: '操作成功'
+			});
+		}catch(err){
+			console.log('操作失败:'+err);
+			return next(err);
 		}
+
+
+
+
+
+
+
+
+
+		// const commentId = req.params['comment_id'],
+		// 	userId = req.userInfo._id;
+		// 	try{
+		// 		if(!validator.isMongoId(commentId)){
+		// 			throw new Error('commentId参数错误')
+		// 		}
+		// 	}catch(err){
+		// 		console.log(err.message);
+		// 		res.json({
+		// 			code: 0,
+		// 			type: 'ERROR_PARAMS',
+		// 			message: err.message,
+		// 		})
+		// 		return
+		// 	}
+		// try {
+		// 	let comment = await CommentModel.findById(commentId);
+		// 	if(!comment) {		//没有在主评论找到的话就去回复中查询
+		// 		res.json({
+		// 			code:0,
+		// 			message:'没有找到该评论'
+		// 		})
+		// 	}else{
+		// 		if(comment.likes.indexOf(userId) > -1) {
+		// 			return res.json({
+		// 				code: 0,
+		// 				message: '您已点赞'
+		// 			});
+		// 		}
+		// 		comment.likes.push(userId);
+		// 		await comment.save();
+		// 		res.json({
+		// 			code: 1,
+		// 			message: '点赞成功'
+		// 		});
+		// 	}
+		// } catch(err) {
+		// 	console.log('评论点赞出错:' + err);
+		// 	return 	next(err);
+		// }
 	}
 
 }

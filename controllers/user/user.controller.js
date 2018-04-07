@@ -70,12 +70,12 @@ export default class UserObj{
 	}
 
 	//获取我关注的作者（用户）
-	async getMeLikeUsers(req,res,next){
+	async getMeFollows(req,res,next){
 		let {page=1,limit=20} = req.query;
 		let userId = req.userInfo._id;
 		try{
 			let me = await UserModel.findById(userId);
-			let query = {_id:{'$in':me.like_users}};
+			let query = {_id:{'$in':me.follows}};
 			let results = await UserModel.getListToPage({query,page,limit})
 			res.json({
 				code:1,
@@ -97,7 +97,7 @@ export default class UserObj{
 		let {page=1,limit=20} = req.query;
 		let userId = req.userInfo._id;
 		try{
-			let query = {'like_users':{'$in':[userId]}}
+			let query = {'follows':{'$in':[userId]}}
 			let results = await UserModel.getListToPage({query,page,limit})
 
 			res.json({
@@ -145,14 +145,14 @@ export default class UserObj{
 			}
 			let me = await UserModel.findById(userId);
 			let condition,like,count=0;
-			let isLikes = me.like_users.indexOf(uid);
+			let isLikes = me.follows.indexOf(uid);
 			if(isLikes !== -1){
-				condition = {'$pull':{'like_users':uid}};
-			  	count = me.like_users.length-1;
+				condition = {'$pull':{'follows':uid}};
+			  	count = me.follows.length-1;
 			  	like = false;
 			}else{
-				condition = {'$addToSet':{'like_users':uid}};
-			  	count= me.like_users.length+1;
+				condition = {'$addToSet':{'follows':uid}};
+			  	count= me.follows.length+1;
 			  	like = true;
 			}
 			await UserModel.update({ _id: userId}, condition);

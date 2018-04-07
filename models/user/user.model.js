@@ -27,7 +27,7 @@ const UserSchema = new Schema({
 		type: String,
 		default:'https://sfault-avatar.b0.upaiyun.com/161/227/1612276764-55f6bdd353b39_big64'
 	},
-	like_users:[{				//关注的用户
+	follows:[{				//关注的用户
 		type:Schema.Types.ObjectId,
 		ref:'User'
 	}],
