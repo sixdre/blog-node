@@ -52,7 +52,7 @@ router.post('/draft',Auth.checkToken,ArticleCtrl.createDraft);
 //获取文章
 router.get('/articles',ArticleCtrl.getList);
 //前台获取文章详情
-router.get('/articles/:id/front',ArticleCtrl.getFrontArticle);
+router.get('/articles/:id/front',Auth.getLoginUserInfo,ArticleCtrl.getFrontArticle);
 //根据id获取文章详情
 router.get('/articles/:id',ArticleCtrl.findOneById);
 //文章发布
@@ -69,7 +69,7 @@ router.put('/articles/:id/collect',Auth.checkToken,ArticleCtrl.toggleCollect);
 
 /*评论*/
 //获取文章评论
-router.get('/articles/:article_id/comments',CommentCtrl.getCommentsByArticleId);
+router.get('/articles/:article_id/comments',Auth.getLoginUserInfo,CommentCtrl.getCommentsByArticleId);
 //文章评论
 router.post('/articles/:article_id/comments',Auth.checkToken,CommentCtrl.addComment);
 //评论点赞

@@ -19,22 +19,25 @@ class Auth {
 	    })
 	    return token;
 	}
-	
-	getUserInfoByToken(token){
-		if(!token){
-			return ;
-		}
-		return new Promise(function(resolve,reject){
-			jwt.verify(token, secret , function(err,decoded) {
-				if(err) {
-	          	resolve(null);
-	        }else {
-	            resolve(decoded);
-	        }
-	   	})
-		})
-	}
 
+	//获取登录用户的信息
+	getLoginUserInfo(req,res,next){
+		var token = req.body.token || req.query.token || req.headers['x-access-token'];
+		if(!token){
+			req.userInfo = null;
+			next()
+		}
+		jwt.verify(token, secret , function(err,decoded) {
+        if(err) {
+          	req.userInfo = null;
+          	next()
+        }else {
+          	req.userInfo = decoded;
+          	next()
+        }
+   	})
+	}
+	
 	checkToken(req,res,next){
 	 	var token = req.body.token || req.query.token || req.headers['x-access-token'];
 	        

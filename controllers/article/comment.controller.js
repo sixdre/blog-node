@@ -34,6 +34,21 @@ export default class CommentObj{
 				})
 			}
 			const results = await CommentModel.getListToPage({articleId:articleId},page,limit,sort)
+
+			//如果用户已登录需要把评论的点赞情况isLike 返回前台
+			if(req.userInfo&&results.data.length>0){
+				results.data= results.data.map(function(item){
+					item = item.toJSON();
+					item.likes = item.likes.map(item=>String(item));
+					if(item.likes.indexOf(req.userInfo._id)!=-1){
+						item.isLike = true;
+					}else{
+						item.isLike = false;
+					}
+					return item;
+				})
+			}
+
 			res.json({
 				code:1,
 				message:'评论获取成功',

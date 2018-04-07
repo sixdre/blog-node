@@ -39,6 +39,7 @@ CommentSchema.virtual('like_num')
     return this.likes.length
   });
 
+
 //中间件
 CommentSchema.pre('save', function(next) {
 	if(this.isNew) {
@@ -76,11 +77,11 @@ CommentSchema.statics.getListToPage = function(queryobj,page=1,limit=10,order_by
 			let total =  await this.count(params);
 			let data = await this.find(params,{'__v':0})
 			.populate({
-					path:'from likes reply',
-					select: 'articleId username content avatar',
+					path:'from reply',
+					select: 'articleId username likes content avatar',
 					populate: {
-				        path: 'from to likes',
-				        select: 'username content avatar',
+				        path: 'from to',
+				        select: 'username content likes avatar',
 				    }
 				}).skip(limit * (page-1)).limit(limit).sort(order_by);
 			resolve({

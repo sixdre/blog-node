@@ -9,7 +9,7 @@ import request from 'request'
 import MarkdownIt from 'markdown-it'
 import {ArticleModel,CategoryModel,CommentModel,TagModel,UserModel} from '../../models/'
 import UploadComponent from '../../prototype/upload'
-import Auth from '../../middleware/auth'
+
 
 
 const tool = require('../../utility/tool');
@@ -173,7 +173,6 @@ export default class ArticleObj extends UploadComponent{
 			return 
 		}
 		try{
-			var token = req.body.token || req.query.token || req.headers['x-access-token'];
 			var isFollow = false;
 			var isLike = false;
 			var isCollect = false;
@@ -188,19 +187,17 @@ export default class ArticleObj extends UploadComponent{
 				});
 			}
 
-			if(token){
-				let me = await Auth.getUserInfoByToken(token);
-				if(me){
-					me = await UserModel.findById(me._id);
-					if(me.follows.indexOf(article.author._id)!==-1){
-						isFollow = true;
-					}
-					if(me.collectArts.indexOf(article._id)!==-1){
-						isCollect = true;
-					}
-					if(me.likeArts.indexOf(article._id)!==-1){
-						isLike = true;
-					}
+			let me = req.userInfo;
+			if(me){
+				me = await UserModel.findById(me._id);
+				if(me.follows.indexOf(article.author._id)!==-1){
+					isFollow = true;
+				}
+				if(me.collectArts.indexOf(article._id)!==-1){
+					isCollect = true;
+				}
+				if(me.likeArts.indexOf(article._id)!==-1){
+					isLike = true;
 				}
 			}
 			
