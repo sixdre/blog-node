@@ -95,21 +95,18 @@ UserSchema.methods.comparePassword = function(candidatePassword, cb) {
 };
 
 
-//根据条件获取列表
-UserSchema.statics.getList = function(queryobj){
-	return this.find(queryobj,{__v:0,password:0})
-				
-}
-
 //列表分页
-UserSchema.statics.getListToPage = function(queryobj={},page=1,limit=20){
-	let params = queryobj;
+UserSchema.statics.getListToPage = function({query={},page=1,limit=20,select}){
+	// queryobj={},page=1,limit=20){
 	page = parseInt(page);
 	limit = parseInt(limit);
+	if(!select){
+		select = 'username email avatar create_time'
+	}
 	return new Promise(async (resolve,reject)=>{
 		try{
-			let total =  await this.count(params);
-			let data = await this.getList(params)
+			let total =  await this.count(query);
+			let data = await this.find(query).select(select)
 							.skip(limit * (page-1)).limit(limit);
 			resolve({
 				data,

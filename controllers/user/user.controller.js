@@ -75,9 +75,8 @@ export default class UserObj{
 		let userId = req.userInfo._id;
 		try{
 			let me = await UserModel.findById(userId);
-			let queryObj = {_id:{'$in':me.like_users}};
-			console.log(queryObj)
-			let results = await UserModel.getListToPage(queryObj,page,limit)
+			let query = {_id:{'$in':me.like_users}};
+			let results = await UserModel.getListToPage({query,page,limit})
 			res.json({
 				code:1,
 				data:results.data,
@@ -98,8 +97,8 @@ export default class UserObj{
 		let {page=1,limit=20} = req.query;
 		let userId = req.userInfo._id;
 		try{
-			let queryObj = {'like_users':{'$in':[userId]}}
-			let results = await UserModel.getListToPage(queryObj,page,limit);
+			let query = {'like_users':{'$in':[userId]}}
+			let results = await UserModel.getListToPage({query,page,limit})
 
 			res.json({
 				code:1,
