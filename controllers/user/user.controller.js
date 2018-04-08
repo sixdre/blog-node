@@ -16,6 +16,46 @@ export default class UserObj{
 		
 	}
 
+	async getMeInfo(req,res,next){
+		const userInfo = req.userInfo;
+		const userId = req.userInfo._id;
+		try {
+			let me = await UserModel.findById(userId).select('-isAdmin -role -password -__v');
+			let meArticle = await ArticleModel.find({author:userId,status:2});
+			let meAid = meArticle.map(item=>item._id);
+			let like_num = await UserModel.count({'likeArts':{'$in':meAid}}); 
+			let fans_num = await UserModel.count({'follows':{'$in':[userId]}}); 
+
+
+			let following_num = me.follows.length
+			let collect_art_num = me.collectArts.length
+			let like_art_num = me.likeArts.length
+			let article_num = meArticle.length
+
+			res.json({
+				code:1,
+				data:{
+					userInfo:me,
+					fans_num,			//粉丝数量
+					following_num,		//关注数量
+					collect_art_num,	//收藏文章数量
+					like_art_num, 		//喜欢文章数量
+					like_num, 			//收获喜欢
+					article_num			//发布文章数量
+				},
+			});
+		} catch (err) {
+			return next(err)
+		}
+	}
+
+
+
+
+
+
+
+
 	//获取登录用户信息
 	async getUserInfo(req,res,next){
 		let userInfo = req.userInfo;

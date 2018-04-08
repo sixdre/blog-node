@@ -25,17 +25,17 @@ class Auth {
 		var token = req.body.token || req.query.token || req.headers['x-access-token'];
 		if(!token){
 			req.userInfo = null;
-			next()
+			return next()
 		}
-		jwt.verify(token, secret , function(err,decoded) {
-        if(err) {
-          	req.userInfo = null;
-          	next()
-        }else {
-          	req.userInfo = decoded;
-          	next()
-        }
-   	})
+		try{
+			var decoded = jwt.decode(token, secret);
+			req.userInfo = decoded;
+			return next()
+		}catch(err){
+			console.log('token 解析失败,可能是token过期')
+			return next()
+		}
+		
 	}
 	
 	checkToken(req,res,next){

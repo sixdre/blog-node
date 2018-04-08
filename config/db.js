@@ -5,7 +5,11 @@ import path from 'path'
 import config from './config.js'
 
 
-mongoose.connect(config.mongodb);
+mongoose.connect(config.mongodb,{  
+    server: {
+	    auto_reconnect: true	//自动重新连接
+	}
+});
 mongoose.Promise = global.Promise;
 
 const db = mongoose.connection;

@@ -25,6 +25,10 @@ router.get('/me/follows',Auth.checkToken,UserCtrl.getMeFollows);
 //获取当前用户的粉丝(关注我的用户)
 router.get('/me/fans',Auth.checkToken,UserCtrl.getMeFans);
 
+//获取当前用户的个人信息,粉丝数量，关注数量，文章数量
+router.get('/me/info',Auth.checkToken,UserCtrl.getMeInfo);
+
+
 
 
 //更新用户信息
