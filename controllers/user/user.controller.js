@@ -16,26 +16,38 @@ export default class UserObj{
 		
 	}
 
-	async getMeInfo(req,res,next){
+	//获取用户信息
+	async getInfoById(req,res,next){
+		const userId = req.params['id'];
 		const userInfo = req.userInfo;
-		const userId = req.userInfo._id;
+		const meId = req.userInfo?req.userInfo._id:null;
+		const isMe = String(meId) === String(userId);
+		if (!validator.isMongoId(userId)) {
+			res.json({
+				code: 0,
+				type: 'ERROR_PARAMS',
+				message: '用户ID参数错误'
+			})
+			return 
+		}
 		try {
-			let me = await UserModel.findById(userId).select('-isAdmin -role -password -__v');
-			let meArticle = await ArticleModel.find({author:userId,status:2});
-			let meAid = meArticle.map(item=>item._id);
-			let like_num = await UserModel.count({'likeArts':{'$in':meAid}}); 
+			let user = await UserModel.findById(userId).select('-isAdmin -role -password -__v');
+			let userArticle = await ArticleModel.find({author:userId,status:2});
+			let userAid = userArticle.map(item=>item._id);
+			let like_num = await UserModel.count({'likeArts':{'$in':userAid}}); 
 			let fans_num = await UserModel.count({'follows':{'$in':[userId]}}); 
 
 
-			let following_num = me.follows.length
-			let collect_art_num = me.collectArts.length
-			let like_art_num = me.likeArts.length
-			let article_num = meArticle.length
+			let following_num = user.follows.length
+			let collect_art_num = user.collectArts.length
+			let like_art_num = user.likeArts.length
+			let article_num = userArticle.length
 
 			res.json({
 				code:1,
 				data:{
-					userInfo:me,
+					isMe,
+					userInfo:user,
 					fans_num,			//粉丝数量
 					following_num,		//关注数量
 					collect_art_num,	//收藏文章数量
@@ -109,16 +121,27 @@ export default class UserObj{
 		
 	}
 
-	//获取我关注的作者（用户）
-	async getMeFollows(req,res,next){
+	//获取用户关注的作者（用户）
+	async getFollowsById(req,res,next){
 		let {page=1,limit=20} = req.query;
-		let userId = req.userInfo._id;
+		const userId = req.params['id'];
+		const meId = req.userInfo?req.userInfo._id:null;
+		const isMe = String(meId) === String(userId);
+		if (!validator.isMongoId(userId)) {
+			res.json({
+				code: 0,
+				type: 'ERROR_PARAMS',
+				message: '用户ID参数错误'
+			})
+			return 
+		}
 		try{
-			let me = await UserModel.findById(userId);
-			let query = {_id:{'$in':me.follows}};
+			let user = await UserModel.findById(userId);
+			let query = {_id:{'$in':user.follows}};
 			let results = await UserModel.getListToPage({query,page,limit})
 			res.json({
 				code:1,
+				isMe,
 				data:results.data,
 				total:results.total,
 				limit:results.limit,
@@ -132,16 +155,27 @@ export default class UserObj{
 
 	}
 
-	//获取关注我的用户
-	async getMeFans(req,res,next){
+	//获取用户的关注
+	async getFansById(req,res,next){
 		let {page=1,limit=20} = req.query;
-		let userId = req.userInfo._id;
+		const userId = req.params['id'];
+		const meId = req.userInfo?req.userInfo._id:null;
+		const isMe = String(meId) === String(userId);
+		if (!validator.isMongoId(userId)) {
+			res.json({
+				code: 0,
+				type: 'ERROR_PARAMS',
+				message: '用户ID参数错误'
+			})
+			return 
+		}
 		try{
 			let query = {'follows':{'$in':[userId]}}
 			let results = await UserModel.getListToPage({query,page,limit})
 
 			res.json({
 				code:1,
+				isMe,
 				data:results.data,
 				total:results.total,
 				limit:results.limit,
@@ -305,6 +339,7 @@ export default class UserObj{
 							code:1,
 							token,
 							userInfo:{
+								_id:user._id,
 								username:user.username,
 								avatar:user.avatar
 							},

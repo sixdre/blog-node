@@ -90,10 +90,20 @@ export default class ArticleObj extends UploadComponent{
 		@param type (me 我发表的文章，collect收藏的文章，like喜欢的文章,comment 评论过的文章
 		@param flag (0删除，1草稿，2有效，3所有)
 	 */
-	async getMyArticles(req,res,next){
-		const userId = req.userInfo._id;
+	async getArticlesByUserId(req,res,next){
 		let { page = 1, limit = 20, title = "", flag = 2 , type="me",startTime,endTime } = req.query;
 		let queryParams = {};
+		const userId = req.params['id'];
+		const meId = req.userInfo?req.userInfo._id:null;
+		const isMe = String(meId) === String(userId);
+		if (!validator.isMongoId(userId)) {
+			res.json({
+				code: 0,
+				type: 'ERROR_PARAMS',
+				message: '用户ID参数错误'
+			})
+			return 
+		}
 		try{
 			if(type==="collect"){	
 				let user = await UserModel.findById(userId);
@@ -149,6 +159,7 @@ export default class ArticleObj extends UploadComponent{
 			let results = await ArticleModel.getListToPage(queryParams,page,limit)
 			res.json({
 				code:1,
+				isMe,
 				data:results.data,
 				total:results.total,
 				limit:results.pageSize,

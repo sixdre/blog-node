@@ -16,17 +16,17 @@ router.del = router.delete;
 //获取标签和类型统一接口
 router.get('/catetag',ArticleCtrl.getCateTag);
 
-//获取当前用户的文章(包括收藏，点赞，评论，喜欢)
-router.get('/me/articles',Auth.checkToken,ArticleCtrl.getMyArticles);
-//获取当前用户的草稿文章
+//获取用户的草稿文章
 router.get('/me/drafts',Auth.checkToken,ArticleCtrl.getMeDrafts);
-//获取当前用户关注的用户
-router.get('/me/follows',Auth.checkToken,UserCtrl.getMeFollows);
-//获取当前用户的粉丝(关注我的用户)
-router.get('/me/fans',Auth.checkToken,UserCtrl.getMeFans);
 
-//获取当前用户的个人信息,粉丝数量，关注数量，文章数量
-router.get('/me/info',Auth.checkToken,UserCtrl.getMeInfo);
+//获取当前用户的文章(包括收藏，点赞，评论，喜欢)
+router.get('/users/:id/articles',Auth.getLoginUserInfo,ArticleCtrl.getArticlesByUserId);
+//获取用户关注的用户
+router.get('/users/:id/follows',Auth.getLoginUserInfo,UserCtrl.getFollowsById);
+//获取用户的粉丝(关注我的用户)
+router.get('/users/:id/fans',Auth.getLoginUserInfo,UserCtrl.getFansById);
+//获取用户的个人信息,粉丝数量，关注数量，文章数量
+router.get('/users/:id/info',Auth.getLoginUserInfo,UserCtrl.getInfoById);
 
 
 
