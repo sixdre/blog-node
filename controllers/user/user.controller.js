@@ -23,7 +23,7 @@ export default class UserObj{
 		const meId = req.userInfo?req.userInfo._id:null;
 		const isMe = String(meId) === String(userId);
 		if (!validator.isMongoId(userId)) {
-			res.json({
+			res.status(404).json({
 				code: 0,
 				type: 'ERROR_PARAMS',
 				message: '用户ID参数错误'
@@ -128,7 +128,7 @@ export default class UserObj{
 		const meId = req.userInfo?req.userInfo._id:null;
 		const isMe = String(meId) === String(userId);
 		if (!validator.isMongoId(userId)) {
-			res.json({
+			res.status(404).json({
 				code: 0,
 				type: 'ERROR_PARAMS',
 				message: '用户ID参数错误'
@@ -162,7 +162,7 @@ export default class UserObj{
 		const meId = req.userInfo?req.userInfo._id:null;
 		const isMe = String(meId) === String(userId);
 		if (!validator.isMongoId(userId)) {
-			res.json({
+			res.status(404).json({
 				code: 0,
 				type: 'ERROR_PARAMS',
 				message: '用户ID参数错误'

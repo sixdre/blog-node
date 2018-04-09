@@ -97,7 +97,7 @@ export default class ArticleObj extends UploadComponent{
 		const meId = req.userInfo?req.userInfo._id:null;
 		const isMe = String(meId) === String(userId);
 		if (!validator.isMongoId(userId)) {
-			res.json({
+			res.status(404).json({
 				code: 0,
 				type: 'ERROR_PARAMS',
 				message: '用户ID参数错误'
@@ -176,7 +176,7 @@ export default class ArticleObj extends UploadComponent{
 	async getFrontArticle(req, res, next){
 		let id = req.params['id'];
 		if (!validator.isMongoId(id)) {
-			res.json({
+			res.status(404).json({
 				code: 0,
 				type: 'ERROR_PARAMS',
 				message: '文章ID参数错误'
