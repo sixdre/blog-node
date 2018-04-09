@@ -6,6 +6,9 @@ import _ from 'underscore'
 import validator from 'validator'
 import auth from '../../middleware/auth'
 import transformTozTreeFormat from '../../utility/tree'
+import jwt  from  "jsonwebtoken"
+import config from '../../config/config'
+const secret = config.secret;
 //数据模型
 
 import {UserModel,ArticleModel,CategoryModel,TagModel,WordModel,RoleModel,MenuModel} from '../../models/'
@@ -334,10 +337,13 @@ export default class UserObj{
 	            if (err) throw err;
 	            if(isMatch){
 	            	var token = auth.setToken(JSON.parse(JSON.stringify(user)));
+	            	var {exp,iat} = jwt.decode(token, secret);
 	            	req.session["User"] = user;
 						res.json({
 							code:1,
 							token,
+							exp,
+							iat,
 							userInfo:{
 								_id:user._id,
 								username:user.username,
