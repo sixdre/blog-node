@@ -18,6 +18,8 @@ router.get('/catetag',ArticleCtrl.getCateTag);
 
 //获取用户的草稿文章
 router.get('/me/drafts',Auth.checkToken,ArticleCtrl.getMeDrafts);
+//评论删除
+router.del('/me/comments/:id',Auth.checkToken,CommentCtrl.removeMe);
 
 //获取当前用户的文章(包括收藏，点赞，评论，喜欢)
 router.get('/users/:id/articles',Auth.getLoginUserInfo,ArticleCtrl.getArticlesByUserId);

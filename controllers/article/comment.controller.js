@@ -33,7 +33,12 @@ export default class CommentObj{
 					message:'该文章不存在或已被删除'
 				})
 			}
-			const results = await CommentModel.getListToPage({articleId:articleId},page,limit,sort)
+			const results = await CommentModel.getListToPage({articleId:articleId},page,limit,sort);
+
+			const comment_users = await CommentModel.aggregate([	//统计对改文章下评论的用户数量
+							{ $match:{'articleId':article._id}},
+							{ $group:{ _id: "$from",count:{ $sum: 1 } }}]);
+
 
 			//如果用户已登录需要把评论的点赞情况isLike 返回前台
 			if(req.userInfo&&results.data.length>0){
@@ -52,10 +57,12 @@ export default class CommentObj{
 			res.json({
 				code:1,
 				message:'评论获取成功',
+				user_num:comment_users.length,			//评论该文章的用户数量
 				data: results.data,
 				total:results.total,
 				limit:results.limit,
 				page:results.page,
+				current_userId:req.userInfo?req.userInfo._id:null
 			})
 		} catch(err) {
 			console.log(err);
@@ -136,6 +143,30 @@ export default class CommentObj{
 			return 	next(err);
 		}
 	}
+
+	async removeMe(req,res,next){
+		const cid = req.params['id'];
+		const userId = req.userInfo._id;
+		if(!validator.isMongoId(cid)){
+			return res.json({
+				code: 0,
+				type: 'ERROR_PARAMS',
+				message: 'commentId参数错误',
+			})
+		}
+		try{
+			await CommentModel.remove({_id: cid,from:userId});
+			res.json({
+				code: 1,
+				message: '删除成功',
+			})
+		}catch(err){
+			console.log('操作失败:'+err);
+			return next(err);
+		}
+	}
+
+
 
 	async addCommentLike(req, res, next) {
 		const commentId = req.params['comment_id'],
