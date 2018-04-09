@@ -34,7 +34,7 @@ export default class CommentObj{
 				})
 			}
 			const results = await CommentModel.getListToPage({articleId:articleId},page,limit,sort);
-
+			const cmt_all_num = await CommentModel.count({articleId:articleId});
 			const comment_users = await CommentModel.aggregate([	//统计对改文章下评论的用户数量
 							{ $match:{'articleId':article._id}},
 							{ $group:{ _id: "$from",count:{ $sum: 1 } }}]);
@@ -58,6 +58,7 @@ export default class CommentObj{
 				code:1,
 				message:'评论获取成功',
 				user_num:comment_users.length,			//评论该文章的用户数量
+				cmt_all_num,			//评论该文章的总回复包括回复的回复
 				data: results.data,
 				total:results.total,
 				limit:results.limit,
