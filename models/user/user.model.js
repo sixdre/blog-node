@@ -2,11 +2,15 @@
 import mongoose from 'mongoose'
 import bcrypt from 'bcrypt'
 import validator from 'validator'
+import Identicon from 'identicon.js'
 import userData from '../../InitData/user'
+
 const	Schema = mongoose.Schema,
 	ObjectId = Schema.ObjectId;
 
 const SALT_WORK_FACTOR = 5;
+
+
 
 //用户
 const UserSchema = new Schema({
@@ -23,10 +27,7 @@ const UserSchema = new Schema({
 		type: String,
 		required: true
 	},
-	avatar:{
-		type: String,
-		default:'https://sfault-avatar.b0.upaiyun.com/161/227/1612276764-55f6bdd353b39_big64'
-	},
+	avatar:String,			
 	follows:[{				//关注的用户
 		type:Schema.Types.ObjectId,
 		ref:'User'
@@ -81,8 +82,13 @@ UserSchema.pre('save', function(next) {
         if (err) return next(err);
         bcrypt.hash(user.password, salt, function(err, hash) {
             if (err) return next(err);
-            user.password = hash;
-            next();
+            bcrypt.hash(user.username, salt,function(err,uh){
+            	let imgData = new Identicon(uh,100).toString()
+            	let avatar = 'data:image/png;base64,'+imgData // 生成hash头像
+            	user.avatar = avatar;
+            	user.password = hash;
+            	next();
+            })
         });
     });
 });
