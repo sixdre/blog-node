@@ -152,11 +152,19 @@ export default class CommentObj{
 			return res.json({
 				code: 0,
 				type: 'ERROR_PARAMS',
-				message: 'commentId参数错误',
+				message: '参数错误',
 			})
 		}
 		try{
+			let comment = await CommentModel.findById(cid);
+			if(!comment){
+				return res.json({
+					code: 0,
+					message: '该评论不存在',
+				})
+			}
 			await CommentModel.remove({_id: cid,from:userId});
+			await ArticleModel.update({_id:comment.articleId},{'$inc':{'cmt_num':-1}})
 			res.json({
 				code: 1,
 				message: '删除成功',
