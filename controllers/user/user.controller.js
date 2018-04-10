@@ -8,16 +8,51 @@ import auth from '../../middleware/auth'
 import transformTozTreeFormat from '../../utility/tree'
 import jwt  from  "jsonwebtoken"
 import config from '../../config/config'
+import UploadComponent from '../../prototype/upload'
+import {UserModel,ArticleModel,CategoryModel,TagModel,WordModel,RoleModel,MenuModel} from '../../models/'
+const tool = require('../../utility/tool');
+
 const secret = config.secret;
 //数据模型
 
-import {UserModel,ArticleModel,CategoryModel,TagModel,WordModel,RoleModel,MenuModel} from '../../models/'
-
-
-export default class UserObj{
+export default class UserObj extends UploadComponent{
 	constructor(){
+		super()
+		this.updateAvatar = this.updateAvatar.bind(this)
+	}
+
+	//更新用户头像
+	async updateAvatar(req,res,next){
+		const userId = req.userInfo._id;
+		try{
+			if(!req.file){
+				return res.json({
+					code: 0,
+					message: '请选择头像'
+				})
+			}
+			let nameArray = req.file.originalname.split('.')
+			let type = nameArray[nameArray.length - 1];
+			if(!tool.checkUploadImg(type)) {
+				return res.json({
+					code: 0,
+					message: '请上传图片格式的文件'
+				})
+			}
+			let url = await this.upload(req.file);
+			await UserModel.update({ _id: userId}, {avatar:url});
+			res.json({
+				code:1,
+				url,
+				message:'头像更新成功'
+			})
+		}catch(err){
+			return next(err)
+		}
 		
 	}
+
+
 
 	//获取用户信息
 	async getInfoById(req,res,next){
@@ -73,17 +108,18 @@ export default class UserObj{
 
 	//获取登录用户信息
 	async getUserInfo(req,res,next){
-		let userInfo = req.userInfo;
+		const userId = req.userInfo._id;
 		try {
 			let menus = await MenuModel.find({},{'__v':0,'meta':0}).sort({'sort':'asc'});
 				menus = transformTozTreeFormat(JSON.parse(JSON.stringify(menus)))
+			let userInfo = await UserModel.findById(userId);
 			// let words = await WordModel.find({ "state.isRead": false }).populate('user', 'username');
 			// let articleTotal = await ArticleModel.count({});
 			// let categorys = await CategoryModel.find({});
 			// let tags = await TagModel.find({});
 			res.json({
 				code:1,
-				userInfo:userInfo,
+				userInfo,
 				menus:menus
 				// articleTotal:articleTotal,			//文章总数
 				// words:words,			//留言

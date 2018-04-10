@@ -1,12 +1,10 @@
 'use strict';
 import mongoose from 'mongoose'
-import autoIncrement from 'mongoose-auto-increment' //自增ID 模块	
 import validator from 'validator'
 
 const Schema = mongoose.Schema,
 	ObjectId = Schema.ObjectId;
 
-autoIncrement.initialize(mongoose.connection);
 
 //文章
 const ArticleSchema = new Schema({
@@ -115,13 +113,6 @@ ArticleSchema.path('source').validate(function(value){
 	return false;
 },'文章来源字段不合法')
 
-
-ArticleSchema.plugin(autoIncrement.plugin, {
-	model: 'Article', //数据模块
-	field: 'bId', 	  //字段名
-	startAt: 1,       //开始位置，自定义
-	incrementBy: 1    //每次自增数量
-});
 
 ArticleSchema.pre('save', function(next) {
 	if(this.isNew) {

@@ -21,6 +21,12 @@ router.get('/me/drafts',Auth.checkToken,ArticleCtrl.getMeDrafts);
 //评论删除
 router.del('/me/comments/:id',Auth.checkToken,CommentCtrl.removeMe);
 
+
+//更新用户头像
+router.put('/me/avatar',Auth.checkToken,upload.single('avatar'),UserCtrl.updateAvatar);
+
+
+
 //获取当前用户的文章(包括收藏，点赞，评论，喜欢)
 router.get('/users/:id/articles',Auth.getLoginUserInfo,ArticleCtrl.getArticlesByUserId);
 //获取用户关注的用户
