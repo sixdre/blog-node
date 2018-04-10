@@ -4,10 +4,10 @@
 let mongodb = 'mongodb://127.0.0.1/blog';
 //let allowOrigin = 'http://localhost:8099';
 let allowOrigin = '*';
-/*if(process.env.NODE_ENV === 'production'){
-	mongodb = 'mongodb://root:123456@47.94.206.86:27017/blog?authSource=admin'
-	// allowOrigin = 'http://localhost:8099';
-}*/
+if(process.env.NODE_ENV === 'production'){
+	// mongodb = 'mongodb://root:123456@47.94.206.86:27017/blog?authSource=admin'
+	allowOrigin = 'http://47.94.206.86:3000';
+}
 
 const config={
     mongodb:mongodb,
