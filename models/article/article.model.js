@@ -185,8 +185,15 @@ ArticleSchema.statics.getListToPage = function(queryobj,page=1,pageSize=10){
 
 
 //根据id查询
-ArticleSchema.statics.getOneById = function(id,is_private=false){
-	return this.findOne({'_id':id,is_private:is_private},{__v:0})
+ArticleSchema.statics.getOneById = function(id,queryobj){
+	let query = {
+		'_id':id
+	}
+	if(queryobj&&typeof queryobj==='object'){
+		query = Object.assign(query, queryobj);
+	}
+	console.log(query)
+	return this.findOne(query,{__v:0})
                 .populate('author','username avatar')
                 .populate('category','name')
                 .populate('tags','name')

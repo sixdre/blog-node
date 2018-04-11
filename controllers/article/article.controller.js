@@ -86,6 +86,38 @@ export default class ArticleObj extends UploadComponent{
 		}
 	}
 	
+	async getMeArticleById(req,res,next){
+		const userId = req.userInfo._id;
+		const id = req.params['id'];
+		console.log(id)
+		if (!validator.isMongoId(id)) {
+			res.status(404).json({
+				code: 0,
+				type: 'ERROR_PARAMS',
+				message: '参数错误'
+			})
+			return 
+		}
+		try{
+			let article = await ArticleModel.getOneById(id,{author:userId});
+			if(!article){
+				return res.status(404).json({
+					code: 0,
+					message: '文章不存在'
+				})
+			}
+			res.json({
+				code:1,
+				data:article,
+				message:'成功'
+			})
+		}catch(err){
+			return next(err);
+		}
+	}
+
+
+
 	/* 获取登录用户的文章 getMyArticles
 		@param type (me 我发表的文章，collect收藏的文章，like喜欢的文章,comment 评论过的文章
 		@param flag (0删除，1草稿，2有效，3所有)
@@ -190,12 +222,12 @@ export default class ArticleObj extends UploadComponent{
 			var md = new MarkdownIt({
 				html:true //启用html标记转换
 			});
-			let article = await ArticleModel.getOneById(id);
-			if(!article||article.status==0){
-				return res.json({
+			let article = await ArticleModel.getOneById(id,{'is_private':false,status:2});
+			if(!article){
+				return res.status(404).json({
 					code: 0,
 					message: '文章不存在或已被删除'
-				});
+				})
 			}
 
 			let me = req.userInfo;
@@ -241,7 +273,7 @@ export default class ArticleObj extends UploadComponent{
 			return 
 		}
 		try{
-			let article = await ArticleModel.getOneById(id);
+			let article = await ArticleModel.getOneById(id,{'is_private':false});
 			if(!article||article.status==0){
 				return res.json({
 					code: 0,
