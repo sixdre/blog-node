@@ -377,7 +377,7 @@ export default class ArticleObj extends UploadComponent{
 	async createDraft(req,res,next){
 		let article = req.body.article;
 		article.author = req.userInfo._id;
-		if(!article.title&&!article.content){
+		if(!article.content){
 			return res.send('ok')
 		}
 		try{
@@ -390,7 +390,6 @@ export default class ArticleObj extends UploadComponent{
 				// }
 				await ArticleModel.update({_id: article.id,status:1}, {
 					content:article.content,
-					title:article.title,
 					draft_time:Date.now(),
 				})
 				res.json({
@@ -404,7 +403,6 @@ export default class ArticleObj extends UploadComponent{
 				let art = await new ArticleModel({
 					author:article.author,
 					content:article.content,
-					title:article.title,
 					status:1
 				}).save();			
 				res.json({
