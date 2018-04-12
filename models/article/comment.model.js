@@ -45,7 +45,7 @@ CommentSchema.pre('save', function(next) {
 	if(this.isNew) {
 		this.create_time = Date.now();
 	} 
-	ArticleModel.update({_id:this.articleId},{'$inc':{'cmt_num':1}}).then(function(){
+	ArticleModel.update({_id:this.articleId},{'$inc':{'cmt_num':1},'last_cmt_time':Date.now()}).then(function(){
 		next();
 	},function(err){
 		next(err);

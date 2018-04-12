@@ -6,6 +6,26 @@ import _ from 'underscore'
 import {ArticleModel,CommentModel} from '../../models/'
 import validator from 'validator'
 
+
+function checkIsLike(data,userId){
+	var result = [];
+	for(var i=0;i<data.length;i++){
+		var item = JSON.parse(JSON.stringify(data[i])) 
+		item.likes = item.likes.map(i=>String(i));
+		if(item.likes.indexOf(userId)!=-1){
+			item.isLike = true;
+		}else{
+			item.isLike = false;
+		}
+		if(item.reply&&item.reply.length){
+			item.reply = checkIsLike(item.reply,userId);
+		}
+		result.push(item)
+	}
+	return result;
+}
+
+
 export default class CommentObj{
 	
 	async getCommentsByArticleId(req, res, next) {
@@ -42,16 +62,7 @@ export default class CommentObj{
 
 			//如果用户已登录需要把评论的点赞情况isLike 返回前台
 			if(req.userInfo&&results.data.length>0){
-				results.data= results.data.map(function(item){
-					item = item.toJSON();
-					item.likes = item.likes.map(item=>String(item));
-					if(item.likes.indexOf(req.userInfo._id)!=-1){
-						item.isLike = true;
-					}else{
-						item.isLike = false;
-					}
-					return item;
-				})
+				results.data = checkIsLike(results.data,req.userInfo._id)
 			}
 
 			res.json({
@@ -101,7 +112,7 @@ export default class CommentObj{
 				})
 			}
 
-			if(validator.isEmpty(_comment.cId)){
+			if(validator.isEmpty(_comment.cId)||!_comment.cId){
 				let newcomment = new CommentModel({
 					articleId:articleId,
 					from:fromId,
@@ -224,54 +235,6 @@ export default class CommentObj{
 			return next(err);
 		}
 
-
-
-
-
-
-
-
-
-		// const commentId = req.params['comment_id'],
-		// 	userId = req.userInfo._id;
-		// 	try{
-		// 		if(!validator.isMongoId(commentId)){
-		// 			throw new Error('commentId参数错误')
-		// 		}
-		// 	}catch(err){
-		// 		console.log(err.message);
-		// 		res.json({
-		// 			code: 0,
-		// 			type: 'ERROR_PARAMS',
-		// 			message: err.message,
-		// 		})
-		// 		return
-		// 	}
-		// try {
-		// 	let comment = await CommentModel.findById(commentId);
-		// 	if(!comment) {		//没有在主评论找到的话就去回复中查询
-		// 		res.json({
-		// 			code:0,
-		// 			message:'没有找到该评论'
-		// 		})
-		// 	}else{
-		// 		if(comment.likes.indexOf(userId) > -1) {
-		// 			return res.json({
-		// 				code: 0,
-		// 				message: '您已点赞'
-		// 			});
-		// 		}
-		// 		comment.likes.push(userId);
-		// 		await comment.save();
-		// 		res.json({
-		// 			code: 1,
-		// 			message: '点赞成功'
-		// 		});
-		// 	}
-		// } catch(err) {
-		// 	console.log('评论点赞出错:' + err);
-		// 	return 	next(err);
-		// }
 	}
 
 }
