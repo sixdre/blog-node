@@ -20,6 +20,10 @@ class Auth {
 	    return token;
 	}
 
+	checkUserPrivacy(req,res,next){
+		const userId = req.params['id'];
+	}
+
 	//获取登录用户的信息
 	getLoginUserInfo(req,res,next){
 		var token = req.body.token || req.query.token || req.headers['x-access-token'];

@@ -23,13 +23,19 @@ router.get('/me/articles/:id',Auth.checkToken,ArticleCtrl.getMeArticleById);
 //评论删除
 router.del('/me/comments/:id',Auth.checkToken,CommentCtrl.removeMe);
 
-
 //更新用户头像
 router.put('/me/avatar',Auth.checkToken,upload.single('avatar'),UserCtrl.updateAvatar);
+//更新用户设置
+router.put('/me/settings',Auth.checkToken,UserCtrl.updateSetting);
+
+//获取当前用户的基本信息
+router.get('/userInfo', Auth.checkToken, UserCtrl.getUserInfo)
 
 
 
-//获取当前用户的文章(包括收藏，点赞，评论，喜欢)
+
+
+//获取用户的文章(包括收藏，点赞，评论，喜欢)
 router.get('/users/:id/articles',Auth.getLoginUserInfo,ArticleCtrl.getArticlesByUserId);
 //获取用户关注的用户
 router.get('/users/:id/follows',Auth.getLoginUserInfo,UserCtrl.getFollowsById);
@@ -45,8 +51,6 @@ router.get('/users/:id/info',Auth.getLoginUserInfo,UserCtrl.getInfoById);
 router.put('/users/:id', Auth.checkToken,UserCtrl.update)
 //关注用户
 router.put('/users/:id/follow', Auth.checkToken,UserCtrl.toggleFollow)
-//获取当前登录用户信息
-router.get('/userInfo', Auth.checkToken, UserCtrl.getUserInfo)
 //登陆
 router.post('/login',UserCtrl.login);
 //前台注册

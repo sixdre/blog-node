@@ -10,6 +10,7 @@ import jwt  from  "jsonwebtoken"
 import config from '../../config/config'
 import UploadComponent from '../../prototype/upload'
 import {UserModel,ArticleModel,CategoryModel,TagModel,WordModel,RoleModel,MenuModel} from '../../models/'
+import {validateUserName} from '../../services/user.service'
 const tool = require('../../utility/tool');
 
 const secret = config.secret;
@@ -53,6 +54,40 @@ export default class UserObj extends UploadComponent{
 	}
 
 
+	//更新用户设置
+	async updateSetting(req,res,next){
+		const userId = req.userInfo._id;
+		let {setting,username} = req.body;
+		let errMsg;
+		if(username){
+			if(!validateUserName(username)){
+				errMsg = '用户名不合法'
+			}
+		}
+		if(errMsg){
+			return res.json({
+				code:0,
+				messageerrMsg
+			})
+		}
+		try{
+			let user = await UserModel.findOne({'_id':{$ne:userId},'username':username});
+			if(user){
+				return res.json({
+					code:0,
+					message:'用户名已存在'
+				})
+			}
+			await UserModel.update({ _id: userId}, {username,setting});
+			res.json({
+				code:1,
+				message:'更新成功'
+			})
+		}catch(err){
+			return next(err)
+		}
+	}
+
 
 	//获取用户信息
 	async getInfoById(req,res,next){
@@ -70,6 +105,15 @@ export default class UserObj extends UploadComponent{
 		}
 		try {
 			let user = await UserModel.findById(userId).select('-isAdmin -role -password -__v');
+			if(!isMe){
+				if(!user||user.setting.show_main===2){
+					res.status(404).json({
+						code: 0,
+						message: '您要查找的用户不存在，或者该用户开启了私密设置'
+					})
+					return 
+				}
+			}
 			let userArticle = await ArticleModel.find({author:userId,status:2});
 			let userAid = userArticle.map(item=>item._id);
 			let like_num = await UserModel.count({'likeArts':{'$in':userAid}}); 
@@ -109,10 +153,20 @@ export default class UserObj extends UploadComponent{
 	//获取登录用户信息
 	async getUserInfo(req,res,next){
 		const userId = req.userInfo._id;
+		let {type = ''} = req.query;
 		try {
 			let menus = await MenuModel.find({},{'__v':0,'meta':0}).sort({'sort':'asc'});
 				menus = transformTozTreeFormat(JSON.parse(JSON.stringify(menus)))
-			let userInfo = await UserModel.findById(userId);
+			let userInfo = null;
+			if(type==='basic'){			//获取基本信息
+				userInfo = await UserModel.findById(userId).select('username avatar email create_time');
+			}else if(type==='setting'){
+				userInfo = await UserModel.findById(userId).select('username avatar email setting create_time');
+			}else{
+				userInfo = await UserModel.findById(userId);
+			}
+
+
 			// let words = await WordModel.find({ "state.isRead": false }).populate('user', 'username');
 			// let articleTotal = await ArticleModel.count({});
 			// let categorys = await CategoryModel.find({});
@@ -120,6 +174,7 @@ export default class UserObj extends UploadComponent{
 			res.json({
 				code:1,
 				userInfo,
+				data:userInfo,
 				menus:menus
 				// articleTotal:articleTotal,			//文章总数
 				// words:words,			//留言
@@ -176,6 +231,15 @@ export default class UserObj extends UploadComponent{
 		}
 		try{
 			let user = await UserModel.findById(userId);
+			if(!isMe){
+				if(!user||user.setting.show_main===2){
+					res.status(404).json({
+						code: 0,
+						message: '您要查找的用户不存在，或者该用户开启了私密设置'
+					})
+					return 
+				}
+			}
 			let query = {_id:{'$in':user.follows}};
 			let results = await UserModel.getListToPage({query,page,limit})
 			res.json({
@@ -209,6 +273,16 @@ export default class UserObj extends UploadComponent{
 			return 
 		}
 		try{
+			let user = await UserModel.findById(userId).select('-isAdmin -role -password -__v');
+			if(!isMe){
+				if(!user||user.setting.show_main===2){
+					res.status(404).json({
+						code: 0,
+						message: '您要查找的用户不存在，或者该用户开启了私密设置'
+					})
+					return 
+				}
+			}
 			let query = {'follows':{'$in':[userId]}}
 			let results = await UserModel.getListToPage({query,page,limit})
 
@@ -294,6 +368,8 @@ export default class UserObj extends UploadComponent{
 		try{
 			if (validator.isEmpty(username)) {
 				throw new Error('用户名不得为空');
+			}else if(!validateUserName(username)){
+				throw new Error('用户名不合法');
 			}else if(validator.isEmpty(password)){
 				throw new Error('密码不得为空');
 			}else if(validator.isEmpty(email)){
@@ -471,6 +547,8 @@ export default class UserObj extends UploadComponent{
 		try{
 			if (validator.isEmpty(username)) {
 				throw new Error('用户名不得为空');
+			}else if(!validateUserName(username)){
+				throw new Error('用户名不合法');
 			}else if(validator.isEmpty(password)){
 				throw new Error('密码不得为空');
 			}else if(validator.isEmpty(email)){
@@ -522,11 +600,27 @@ export default class UserObj extends UploadComponent{
 	async update(req,res,next){
 		let userId = req.userInfo._id;
 		let id = req.params['id'];
+		let {username} = req.body;
 		if(userId!==id){
 			return res.json({ 	
 				code: 0,
 				message: '操作失败'
 			});
+		}
+		try{
+			if (username) {
+				if(!validateUserName(username)){
+					throw new Error('用户名不合法');
+				}
+			}
+		}catch(err){
+			console.log('用户填写参数出错', err.message);
+			res.send({
+				status: -2,
+				type: 'ERROR_PARAMS',
+				message: err.message
+			});
+			return;
 		}
 		try{
 			let user = await UserModel.findOne({"_id":id});

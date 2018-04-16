@@ -137,8 +137,17 @@ export default class ArticleObj extends UploadComponent{
 			return 
 		}
 		try{
+			let user = await UserModel.findById(userId).select('-isAdmin -role -password -__v');
+			if(!isMe){
+				if(!user||user.setting.show_main===2){
+					res.status(404).json({
+						code: 0,
+						message: '您要查找的用户不存在，或者该用户开启了私密设置'
+					})
+					return 
+				}
+			}
 			if(type==="collect"){	
-				let user = await UserModel.findById(userId);
 				let collectIds = user.collectArts;
 				queryParams ={
 					'status':2,
@@ -148,7 +157,6 @@ export default class ArticleObj extends UploadComponent{
 		         '_id': { "$in": collectIds }
 				}
 			}else if(type ==='like' ){
-				let user = await UserModel.findById(userId);
 				let likeIds = user.likeArts;
 				queryParams ={
 					'status':2,

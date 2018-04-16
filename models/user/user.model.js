@@ -44,6 +44,12 @@ const UserSchema = new Schema({
 		type:Schema.Types.ObjectId,
 		ref:'Role'
 	},
+	setting:{			//用户个人设置
+		show_main:{			//是否所有人都可查看我的主页 1是，2只本人可见
+			type:Number,
+			default:1
+		}
+	},
 	isAdmin: { type: Boolean, default: false },
 	create_time: { type: Date,default:Date.now()} //注册时间
 })
