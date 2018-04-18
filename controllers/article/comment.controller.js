@@ -136,7 +136,7 @@ export default class CommentObj{
 							from: fromId,
 							to: _comment.toId,
 							content: _comment.content,
-							isM:false
+							isM:_comment.isM
 						}).save();
 				await CommentModel.reply(_comment.cId,articleId,reply._id);
 				res.json({

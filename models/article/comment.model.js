@@ -77,7 +77,7 @@ CommentSchema.statics.getListToPage = function(queryobj,page=1,limit=10,order_by
 			let total =  await this.count(params);
 			let data = await this.find(params,{'__v':0})
 			.populate({
-					path:'from reply',
+					path:'from reply to',
 					select: 'articleId username likes content avatar create_time',
 					populate: {
 				        path: 'from to',
