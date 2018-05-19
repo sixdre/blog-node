@@ -165,6 +165,11 @@ ArticleSchema.statics.getListToPage = function(queryobj,page=1,pageSize=10){
         delete queryobj.status;
         delete baseQuery.status;
     }
+    if(queryobj.is_private===null){		//查询全部
+        delete queryobj.is_private;
+        delete baseQuery.is_private;
+    }
+    
 	let params = Object.assign(baseQuery, queryobj);
 	page = parseInt(page);
 	pageSize = parseInt(pageSize);

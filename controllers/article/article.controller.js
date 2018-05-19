@@ -21,6 +21,44 @@ export default class ArticleObj extends UploadComponent{
 		this.remove = this.remove.bind(this);
 		this.update = this.update.bind(this)
 	}
+
+	//返回查询条件
+	repQuery({title='',type,authorId,categoryId,startTime,endTime,status}){
+		let queryParams={
+			title: {
+            	'$regex': title
+         	},
+		};
+		if(type==="good"){				
+			queryParams.good = true;
+		}
+		if(authorId){
+			queryParams.author = authorId;
+		}
+		if(categoryId&&validator.isMongoId(categoryId)){
+			queryParams.category = categoryId;
+		}
+		if(status==0||status==1||status==2){
+			queryParams.status = parseInt(status)
+		}
+		if(startTime&&!endTime){
+			startTime = new Date(startTime)
+			queryParams['create_time']={$gte:startTime}
+		}else if (!startTime&&endTime){
+			endTime = new Date(endTime)
+			queryParams['create_time']={$lte:endTime}
+		}else if(startTime&&endTime){
+			startTime=new Date(startTime)
+			endTime=new Date(endTime)
+			queryParams['create_time']={$gte:startTime,$lte:endTime}
+		}
+
+		return queryParams;
+	}
+
+
+
+
 	//获取类型和标签
 	async getCateTag(req,res,next){
 		try{
@@ -40,26 +78,29 @@ export default class ArticleObj extends UploadComponent{
 
 	/* 获取文章列表 getList
 		@param type (all 所有的文章，good精华文章)
-		@param flag (0删除，1草稿，2有效，3所有)
+		@param flag (0删除，1草稿，2有效，''所有)
 	 */
 	async getList(req, res, next) {
-		let { page = 1, limit = 20, title = "", flag = 2, type="all",startTime,endTime } = req.query;
+		let { page = 1, limit = 20, title = "",categoryId,author, flag=2, type="all",startTime,endTime } = req.query;
 		let queryParams={}
 		try{
-			if(type==="good"){	
-				queryParams ={
-					'good':true,
-					'title': {
-		            '$regex': title
-		         }
+			queryParams ={
+				status:flag?parseInt(flag):3,
+				title: {
+	            	'$regex': title
+	         	},
+			}
+			if(type==="good"){				
+				queryParams.good = true;
+			}
+			if(author){
+				let user = await UserModel.findOne({username:author});
+				if(user){
+					queryParams.author = user._id;
 				}
-			}else{
-				queryParams ={
-					status:parseInt(flag),
-					title: {
-		            '$regex': title
-		         },
-				}
+			}
+			if(categoryId&&validator.isMongoId(categoryId)){
+				queryParams.category = categoryId;
 			}
 			if(startTime&&!endTime){
 				startTime = new Date(startTime)
@@ -89,7 +130,6 @@ export default class ArticleObj extends UploadComponent{
 	async getMeArticleById(req,res,next){
 		const userId = req.userInfo._id;
 		const id = req.params['id'];
-		console.log(id)
 		if (!validator.isMongoId(id)) {
 			res.status(404).json({
 				code: 0,
@@ -118,7 +158,7 @@ export default class ArticleObj extends UploadComponent{
 
 
 
-	/* 获取登录用户的文章 getMyArticles
+	/* 获取用户的文章 getArticlesByUserId
 		@param type (me 我发表的文章，collect收藏的文章，like喜欢的文章,comment 评论过的文章
 		@param flag (0删除，1草稿，2有效，3所有)
 	 */
@@ -176,13 +216,14 @@ export default class ArticleObj extends UploadComponent{
 		         },
 		         '_id': { "$in": uniqArtIds }
 				}
-			}else{
+			}else{			//我自己的文章
 				queryParams ={
 					'author':userId,
 					'status':parseInt(flag),
 					'title': {
-		             '$regex': title
-		         },
+			             '$regex': title
+			         },
+			         'is_private':null
 				}
 			}
 			if(startTime&&!endTime){
