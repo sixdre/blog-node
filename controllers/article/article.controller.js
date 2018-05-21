@@ -22,42 +22,6 @@ export default class ArticleObj extends UploadComponent{
 		this.update = this.update.bind(this)
 	}
 
-	//返回查询条件
-	repQuery({title='',type,authorId,categoryId,startTime,endTime,status}){
-		let queryParams={
-			title: {
-            	'$regex': title
-         	},
-		};
-		if(type==="good"){				
-			queryParams.good = true;
-		}
-		if(authorId){
-			queryParams.author = authorId;
-		}
-		if(categoryId&&validator.isMongoId(categoryId)){
-			queryParams.category = categoryId;
-		}
-		if(status==0||status==1||status==2){
-			queryParams.status = parseInt(status)
-		}
-		if(startTime&&!endTime){
-			startTime = new Date(startTime)
-			queryParams['create_time']={$gte:startTime}
-		}else if (!startTime&&endTime){
-			endTime = new Date(endTime)
-			queryParams['create_time']={$lte:endTime}
-		}else if(startTime&&endTime){
-			startTime=new Date(startTime)
-			endTime=new Date(endTime)
-			queryParams['create_time']={$gte:startTime,$lte:endTime}
-		}
-
-		return queryParams;
-	}
-
-
-
 
 	//获取类型和标签
 	async getCateTag(req,res,next){
