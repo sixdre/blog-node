@@ -718,6 +718,27 @@ export default class ArticleObj extends UploadComponent{
 		}
 	}
 
-	
+	//恢复已删除文章
+	async recovery(req,res,next){
+		const ids = req.params['id'].split(',');
+		try{
+			await ArticleModel.update({ _id: { "$in": ids } },{status:2});
+			res.json({
+				code: 1,
+				message: '操作成功'
+			});
+
+		}catch(err){
+			return next(err);
+		}
+	}
+
+
+
+
+
+
+
+
 }
 

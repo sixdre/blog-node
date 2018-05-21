@@ -83,6 +83,12 @@ router.del('/articles/:id',Auth.checkToken,ArticleCtrl.remove);
 router.put('/articles/:id/likes',Auth.checkToken,ArticleCtrl.toggleLike);
 //文章收藏
 router.put('/articles/:id/collect',Auth.checkToken,ArticleCtrl.toggleCollect);
+//文章恢复
+router.put('/articles/recover/:id',Auth.checkToken,ArticleCtrl.recovery);
+
+
+
+
 
 
 /*评论*/
