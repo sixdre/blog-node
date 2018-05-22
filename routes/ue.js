@@ -2,7 +2,7 @@
 
 import path from 'path'
 import ueditor from "ueditor"
-var json = require('../public/ueditor/nodejs/config.json');
+// var json = require('../public/ueditor/nodejs/config.json');
 export default ueditor(path.join(__dirname, '../') + 'public', (req, res, next) => {
     let ActionType = req.query.action;
     let _callback = req.query.callback;
@@ -27,7 +27,7 @@ export default ueditor(path.join(__dirname, '../') + 'public', (req, res, next) 
     else {
         res.setHeader('Content-Type', 'application/json');
         // res.send(_callback + '(' + JSON.stringify(json) + ')');
-        res.jsonp(require('../public/ueditor/nodejs/config.json'))
+        // res.jsonp(require('../public/ueditor/nodejs/config.json'))
             // res.send(json);
             // res.redirect('/ueditor/nodejs/config.json');
     }
