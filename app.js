@@ -13,7 +13,7 @@ import config from './config/config'
 import db from './config/db.js';
 import router from './routes'
 import ueditor from "ueditor"
-
+import catchError from './middleware/catchError'
 
 global.CONFIG = JSON.parse(fs.readFileSync('./config/settings.json').toString());
 
@@ -61,11 +61,13 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, 'views')));
+
+
+
 //routes 
 router(app);
 
-
-
+// app.use(catchError());
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
