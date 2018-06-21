@@ -4,11 +4,19 @@ const  Schema = mongoose.Schema
     , ObjectId = Schema.ObjectId;
     
 const permissionSchema=new Schema({
-	name:{
+	pid:{					//所属父级
+		type:String,
+		default:'0' 
+	},
+	name:{					//权限名称
 		type:String,
 		required:true 
 	},
-	resource:{
+	code:{					//权限代码
+		type:String,
+		required:true 
+	},
+	resource:{				//请求路径
 		type:String
 	},
 	type:{
@@ -17,6 +25,13 @@ const permissionSchema=new Schema({
 	},
 	tag:{
 		type:String,
+	},
+	isPage:{		 	//是否为页面
+		type: Boolean,
+		default: false
+	},
+	menuUrl:{		//如果是页面的话需要这个
+		type:String
 	},
 	meta:{
 		create_time:{

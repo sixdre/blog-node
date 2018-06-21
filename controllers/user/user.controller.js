@@ -27,25 +27,17 @@ export default class UserObj extends UploadComponent{
 		const userId = req.userInfo._id;
 		try{
 			if(!req.file){
-				return res.json({
-					code: 0,
-					message: '请选择头像'
-				})
+				return res.retErrorParams('请选择头像')
 			}
 			let nameArray = req.file.originalname.split('.')
 			let type = nameArray[nameArray.length - 1];
 			if(!tool.checkUploadImg(type)) {
-				return res.json({
-					code: 0,
-					message: '请上传图片格式的文件'
-				})
+				return res.retErrorParams('请上传图片格式的文件')
 			}
 			let url = await this.upload(req.file);
 			await UserModel.update({ _id: userId}, {avatar:url});
-			res.json({
-				code:1,
-				url,
-				message:'头像更新成功'
+			res.retSuccess({
+				url
 			})
 		}catch(err){
 			return next(err)
@@ -58,31 +50,16 @@ export default class UserObj extends UploadComponent{
 	async updateSetting(req,res,next){
 		const userId = req.userInfo._id;
 		let {setting,username} = req.body;
-		let errMsg;
-		if(username){
-			if(!validateUserName(username)){
-				errMsg = '用户名不合法'
-			}
-		}
-		if(errMsg){
-			return res.json({
-				code:0,
-				messageerrMsg
-			})
+		if(!validateUserName(username)||!username){
+			return res.retErrorParams('用户名不合法')
 		}
 		try{
 			let user = await UserModel.findOne({'_id':{$ne:userId},'username':username});
 			if(user){
-				return res.json({
-					code:0,
-					message:'用户名已存在'
-				})
+				return res.retError('用户名已存在')
 			}
 			await UserModel.update({ _id: userId}, {username,setting});
-			res.json({
-				code:1,
-				message:'更新成功'
-			})
+			res.retSuccess()
 		}catch(err){
 			return next(err)
 		}
@@ -96,22 +73,13 @@ export default class UserObj extends UploadComponent{
 		const meId = req.userInfo?req.userInfo._id:null;
 		const isMe = String(meId) === String(userId);
 		if (!validator.isMongoId(userId)) {
-			res.status(404).json({
-				code: 0,
-				type: 'ERROR_PARAMS',
-				message: '用户ID参数错误'
-			})
-			return 
+			return res.retNotFund('用户ID参数错误');
 		}
 		try {
 			let user = await UserModel.findById(userId).select('-isAdmin -role -password -__v');
 			if(!isMe){
 				if(!user||user.setting.show_main===2){
-					res.status(404).json({
-						code: 0,
-						message: '您要查找的用户不存在，或者该用户开启了私密设置'
-					})
-					return 
+					return res.retNotFund('您要查找的用户不存在，或者该用户开启了私密设置');
 				}
 			}
 			let userArticle = await ArticleModel.find({author:userId,status:2});
@@ -125,8 +93,9 @@ export default class UserObj extends UploadComponent{
 			let like_art_num = user.likeArts.length
 			let article_num = userArticle.length
 
-			res.json({
-				code:1,
+
+
+			res.retSuccess({
 				data:{
 					isMe,
 					userInfo:user,
@@ -142,11 +111,6 @@ export default class UserObj extends UploadComponent{
 			return next(err)
 		}
 	}
-
-
-
-
-
 
 
 
@@ -166,16 +130,18 @@ export default class UserObj extends UploadComponent{
 				userInfo = await UserModel.findById(userId);
 			}
 
+			userInfo = JSON.parse(JSON.stringify(userInfo))
+
+			userInfo.loginIp = tool.getClientIP(req);
 
 			// let words = await WordModel.find({ "state.isRead": false }).populate('user', 'username');
 			// let articleTotal = await ArticleModel.count({});
 			// let categorys = await CategoryModel.find({});
 			// let tags = await TagModel.find({});
-			res.json({
-				code:1,
+			res.retSuccess({
 				userInfo,
 				data:userInfo,
-				menus:menus
+				menus:menus,
 				// articleTotal:articleTotal,			//文章总数
 				// words:words,			//留言
 				// categorys:categorys,	//文章分类
@@ -192,21 +158,12 @@ export default class UserObj extends UploadComponent{
 		limit = parseInt(limit);
 		try{
 			const total = await	UserModel.count();
-			if(!total){
-				res.json({ 	
-					code: -1,
-					message: 'no more'
-				});
-				return ;
-			}
 			const users = await UserModel.find({},'-password').populate('role')	//回传值中不含有password
 					.skip(skip)
 				     .limit(limit);
-			res.json({
-				code: 1,
+			res.retSuccess({
 				data:users,
-				total,
-				message: '获取用户列表成功'
+				total
 			});	
 		}catch(err){
 			console.log('查询用户列表出错:' + err);
@@ -222,34 +179,25 @@ export default class UserObj extends UploadComponent{
 		const meId = req.userInfo?req.userInfo._id:null;
 		const isMe = String(meId) === String(userId);
 		if (!validator.isMongoId(userId)) {
-			res.status(404).json({
-				code: 0,
-				type: 'ERROR_PARAMS',
-				message: '用户ID参数错误'
-			})
+			res.retErrorParams('用户ID参数错误')
 			return 
 		}
 		try{
 			let user = await UserModel.findById(userId);
 			if(!isMe){
 				if(!user||user.setting.show_main===2){
-					res.status(404).json({
-						code: 0,
-						message: '您要查找的用户不存在，或者该用户开启了私密设置'
-					})
-					return 
+					res.retNotFund('您要查找的用户不存在，或者该用户开启了私密设置')
+					return ;
 				}
 			}
 			let query = {_id:{'$in':user.follows}};
 			let results = await UserModel.getListToPage({query,page,limit})
-			res.json({
-				code:1,
+			res.retSuccess({
 				isMe,
 				data:results.data,
 				total:results.total,
 				limit:results.limit,
-				page:results.page,
-				message:'获取关注用户成功'
+				page:results.page
 			})
 
 		}catch(err){
@@ -265,35 +213,26 @@ export default class UserObj extends UploadComponent{
 		const meId = req.userInfo?req.userInfo._id:null;
 		const isMe = String(meId) === String(userId);
 		if (!validator.isMongoId(userId)) {
-			res.status(404).json({
-				code: 0,
-				type: 'ERROR_PARAMS',
-				message: '用户ID参数错误'
-			})
+			res.retErrorParams('用户ID参数错误')
 			return 
 		}
 		try{
 			let user = await UserModel.findById(userId).select('-isAdmin -role -password -__v');
 			if(!isMe){
 				if(!user||user.setting.show_main===2){
-					res.status(404).json({
-						code: 0,
-						message: '您要查找的用户不存在，或者该用户开启了私密设置'
-					})
+					res.retNotFund('您要查找的用户不存在，或者该用户开启了私密设置')
 					return 
 				}
 			}
 			let query = {'follows':{'$in':[userId]}}
 			let results = await UserModel.getListToPage({query,page,limit})
 
-			res.json({
-				code:1,
+			res.retSuccess({
 				isMe,
 				data:results.data,
 				total:results.total,
 				limit:results.limit,
-				page:results.page,
-				message:'获取成功'
+				page:results.page
 			})
 
 		}catch(err){
@@ -308,27 +247,16 @@ export default class UserObj extends UploadComponent{
 		let uid = req.params['id'];
 		let userId = req.userInfo._id;
 		if (!validator.isMongoId(uid)) {
-			res.json({
-				code: 0,
-				type: 'ERROR_PARAMS',
-				message: '用户ID参数错误'
-			})
+			res.retErrorParams('用户ID参数错误')
 			return 
 		}else if(String(uid)===String(userId)){
-			res.json({
-				code: 0,
-				type: 'ERROR_PARAMS',
-				message: '您不能关注自己哦'
-			})
+			res.retError('您不能关注自己哦')
 			return 
 		}
 		try{
 			let toUser = await UserModel.findById(uid);
 			if(!toUser){
-				return res.json({
-					code:0,
-					message:'该用户不存在'
-				})
+				return res.retError('该用户不存在')
 			}
 			let me = await UserModel.findById(userId);
 			let condition,isFollow,count=0;
@@ -343,12 +271,9 @@ export default class UserObj extends UploadComponent{
 			  	isFollow = true;
 			}
 			await UserModel.update({ _id: userId}, condition);
-			res.json({
-				code: 1,
+			res.retSuccess({
 				count:count,
-				isFollow:isFollow,
-				type: 'SUCCESS_TO_LIKES',
-				message: '操作成功'
+				isFollow:isFollow
 			});
 
 		}catch(err){
@@ -381,21 +306,14 @@ export default class UserObj extends UploadComponent{
 			}
 		}catch(err){
 			console.log('用户填写参数出错', err.message);
-			res.send({
-				status: -2,
-				type: 'ERROR_PARAMS',
-				message: err.message
-			});
+			res.retErrorParams(err.message);
 			return;
 		}
 		
 		try{
 			let user =await UserModel.findOne({username:username})
 			if(user){
-				res.json({
-					code:-1,
-					message:"用户名已被创建"
-				});
+				res.retError('用户名已被创建');
 				return;
 			}
 			let newUser=new UserModel({
@@ -405,10 +323,7 @@ export default class UserObj extends UploadComponent{
 			});
 			
 			await newUser.save();
-			res.json({
-				code:1,
-				message:"成功注册"
-			});
+			res.retSuccess();
 
 		}catch(err){
 			console.log('用户注册失败:' + err);
@@ -428,46 +343,39 @@ export default class UserObj extends UploadComponent{
 			}
 		}catch(err){
 			console.log('用户填写参数出错', err.message);
-			res.send({
-				status: -2,
-				type: 'ERROR_PARAMS',
-				message: err.message
-			});
+			res.retErrorParams(err.message);
 			return;
 		}  
 		  
 		try{
 			let user = await UserModel.findOne({username:username});
 			if(!user){
-				return res.json({
-					code:-1,
-					message:"该用户没有注册！"
-				})
+				return res.retError('该用户没有注册！');
 			}
 
 			user.comparePassword(password,function(err, isMatch) {
 	            if (err) throw err;
 	            if(isMatch){
-	            	var token = auth.setToken(JSON.parse(JSON.stringify(user)));
+	            	var token = auth.setToken(JSON.parse(JSON.stringify({
+	            		_id:user._id,
+	            		username:user.username,
+	            		email:user.email,
+	            		isAdmin:user.isAdmin
+	            	})));
 	            	var {exp,iat} = jwt.decode(token, secret);
 	            	req.session["User"] = user;
-						res.json({
-							code:1,
-							token,
-							exp,
-							iat,
-							userInfo:{
-								_id:user._id,
-								username:user.username,
-								avatar:user.avatar
-							},
-							message:"登录成功！"
-						});
+					res.retSuccess({
+						token,
+						exp,
+						iat,
+						userInfo:{
+							_id:user._id,
+							username:user.username,
+							avatar:user.avatar
+						},
+					});
 	            }else{
-	            	res.json({
-							code:0,
-							message:"密码不正确！"
-						})
+	            	res.retError('密码不正确！')
 	            }
 	        });
 
@@ -488,11 +396,7 @@ export default class UserObj extends UploadComponent{
 			}
 		}catch(err){
 			console.log('用户填写参数出错', err.message);
-			res.send({
-				status: -2,
-				type: 'ERROR_PARAMS',
-				message: err.message
-			});
+			res.retErrorParams(err.message);
 			return;
 		}  
 		  
@@ -500,36 +404,30 @@ export default class UserObj extends UploadComponent{
 			let user = await UserModel.findOne({username:username})
 								.select('email username avatar isAdmin role password');
 			if(!user){
-				return res.json({
-					code:-1,
-					message:"该用户没有注册！"
-				})
+				return res.retError('该用户没有注册！'); 
 			}else if(user.isAdmin==false){
-				return res.json({
-					code:-1,
-					message:"您还不是管理员，请联系系统管理员"
-				})
+				return res.retError('您还不是管理员，请联系系统管理员'); 
 			}
 			user.comparePassword(password,function(err, isMatch) {
 	            if (err) throw err;
 	            if(isMatch){
-	            	var token = auth.setToken(JSON.parse(JSON.stringify(user)));
+	            	var token = auth.setToken(JSON.parse(JSON.stringify({
+	            		_id:user._id,
+	            		username:user.username,
+	            		email:user.email,
+	            		isAdmin:user.isAdmin
+	            	})));
 	            	req.session["Admin"] = user;
-						res.json({
-							code:1,
-							token,
-							userInfo:{
-								role:'测试',
-								username:user.username,
-								avatar:user.avatar
-							},
-							message:"登录成功！"
-						});
+					res.retSuccess({
+						token,
+						userInfo:{
+							role:'测试',
+							username:user.username,
+							avatar:user.avatar
+						}
+					});
 	            }else{
-	            	res.json({
-							code:0,
-							message:"密码不正确！"
-						})
+	            	res.retError('密码不正确！')
 	            }
 	        });
 
@@ -560,20 +458,13 @@ export default class UserObj extends UploadComponent{
 			}
 		}catch(err){
 			console.log('用户填写参数出错', err.message);
-			res.send({
-				status: -2,
-				type: 'ERROR_PARAMS',
-				message: err.message
-			});
+			res.retErrorParams(err.message);
 			return;
 		}
 		try{
 			let user =await UserModel.findOne({username:username})
 			if(user){
-				res.json({
-					code:-1,
-					message:"用户名已被创建"
-				});
+				res.retError('用户名已被创建');
 				return;
 			}
 			let newUser=new UserModel({
@@ -584,10 +475,7 @@ export default class UserObj extends UploadComponent{
 				isAdmin:true
 			});
 			await newUser.save();
-			res.json({
-				code:1,
-				message:"成功注册"
-			});
+			res.retSuccess();
 		}catch(err){
 			console.log('用户注册失败:' + err);
 			return next(err);
@@ -602,39 +490,20 @@ export default class UserObj extends UploadComponent{
 		let id = req.params['id'];
 		let {username} = req.body;
 		if(userId!==id){
-			return res.json({ 	
-				code: 0,
-				message: '操作失败'
-			});
+			return res.retError('不允许修改他人信息');
 		}
-		try{
-			if (username) {
-				if(!validateUserName(username)){
-					throw new Error('用户名不合法');
-				}
-			}
-		}catch(err){
-			console.log('用户填写参数出错', err.message);
-			res.send({
-				status: -2,
-				type: 'ERROR_PARAMS',
-				message: err.message
-			});
-			return;
+
+		if(!validateUserName(username)||!username){
+			throw new Error('用户名不合法');
+			return res.retErrorParams('用户名不合法')
 		}
 		try{
 			let user = await UserModel.findOne({"_id":id});
 			if(!user){
-				return res.json({ 	
-					code: 0,
-					message: '用户不存在或已被删除'
-				});
+				return res.retError('用户不存在或已被删除');
 			}
 			await _.extend(user,req.body).save();
-			return res.json({ 	
-				code: 1,
-				message: '操作成功'
-			});
+			res.retSuccess();
 		}catch(err){
 			console.log('更新用户信息失败:' + err);
 			return next(err);
@@ -646,32 +515,18 @@ export default class UserObj extends UploadComponent{
 		const userId = req.params['id'];
 		const roleId = req.body.roleId;
 		if (!validator.isMongoId(userId)||!validator.isMongoId(roleId)||!roleId) {
-			res.json({
-				code: 0,
-				type: 'ERROR_PARAMS',
-				message: '参数有误'
-			})
-			return 
+			return res.retErrorParams('参数有误')
 		}
 		try{
 			let user = await UserModel.findById(userId);
 			let role = await RoleModel.findById(roleId);
 			if(!user){
-				return res.json({ 	
-					code: 0,
-					message: '用户不存在或已被删除'
-				});
+				return res.retError('用户不存在或已被删除');
 			}else if(!role){
-				return res.json({ 	
-					code: 0,
-					message: '该角色不存在'
-				});
+				return res.retError('该角色不存在');
 			}
 			await UserModel.update({'_id':userId},{'role':roleId});
-			return res.json({ 	
-				code: 1,
-				message: '操作成功'
-			});
+			res.retSuccess();
 		}catch(err){
 			console.log('更新用户角色失败:' + err);
 			return next(err);
@@ -694,11 +549,7 @@ export default class UserObj extends UploadComponent{
 				})
 			})
 			await Promise.all(pro);
-			res.json({
-				code: 1,
-				message: '删除成功'
-			});
-			
+			res.retSuccess();
 		}catch(err){
 			console.log('删除失败:' + err);
 			return next(err);

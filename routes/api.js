@@ -69,22 +69,23 @@ router.post('/regist',UserCtrl.regist);
 router.post('/draft',Auth.checkToken,ArticleCtrl.createDraft);
 //获取文章
 router.get('/articles',ArticleCtrl.getList);
-//前台获取文章详情
-router.get('/articles/:id/front',Auth.getLoginUserInfo,ArticleCtrl.getFrontArticle);
-//根据id获取文章详情
-router.get('/articles/:id',ArticleCtrl.findOneById);
 //文章发布
 router.post('/articles',Auth.checkToken,upload.single('cover'),ArticleCtrl.create);
+
+//根据id获取文章详情
+router.get('/articles/:id',ArticleCtrl.findOneById);
 //文章更新
 router.put('/articles/:id',Auth.checkToken,upload.single('cover'),ArticleCtrl.update);
 //文章删除
 router.del('/articles/:id',Auth.checkToken,ArticleCtrl.remove);
+//前台获取文章详情
+router.get('/articles/:id/front',Auth.getLoginUserInfo,ArticleCtrl.getFrontArticle);
 //文章点赞
 router.put('/articles/:id/likes',Auth.checkToken,ArticleCtrl.toggleLike);
 //文章收藏
 router.put('/articles/:id/collect',Auth.checkToken,ArticleCtrl.toggleCollect);
 //文章恢复
-router.put('/articles/recover/:id',Auth.checkToken,ArticleCtrl.recovery);
+router.put('/articles/:id/recover',Auth.checkToken,ArticleCtrl.recovery);
 
 
 

@@ -13,30 +13,18 @@ export default class CategoryObj{
 	}
 	async getList(req,res,next){
 		let {type='',name} = req.query;
+		let data;
 		try{
 			if(type==='group'){		//根据已有文章进行分组统计		
-				let data = await CategoryModel.getToGroup();
-				res.json({
-					code: 1,
-					data
-				});	
+				data = await CategoryModel.getToGroup();
 			}else if(name&&name.length){	//根据名称搜索
-				let data = await CategoryModel.findOne({name:name}).select('-__v -articles');
-				if(!data){
-					message = '该标签不存在'
-				}
-				res.json({
-					code:1,
-					data,
-					message
-				})
+				data = await CategoryModel.findOne({name:name}).select('-__v -articles');
 			}else{
-				let data = await CategoryModel.find().select('-__v -articles');
-				res.json({
-					code: 1,
-					data
-				});	
+				data = await CategoryModel.find().select('-__v -articles');
 			}
+			res.retSuccess({
+				data
+			});	
 		}catch(err){
 			console.log('获取分类列表出错:' + err);
 			return 	next(err);
@@ -46,19 +34,12 @@ export default class CategoryObj{
 	async findOneById(req,res,next){
 		const id = req.params['id'];
 		if (!validator.isMongoId(id)) {
-			res.json({
-				code: 0,
-				type: 'ERROR_PARAMS',
-				message: '分类ID参数错误'
-			})
-			return 
+			return res.retErrorParams('分类ID参数错误')
 		}
 		try{
 			let category = await CategoryModel.findById(id,{'__v':0});
-			res.json({
-				code:1,
-				data:category,
-				message:'获取分类成功'
+			res.retSuccess({
+				data:category
 			})
 		}catch(err){
 			console.log('获取分类出错:' + err);
@@ -82,11 +63,7 @@ export default class CategoryObj{
     	});
     	
     	if(errorMsg.length){
-    		return res.json({
-	    		code:0,
-	    		type:"ERROR_PARAMS",
-	    		message:errorMsg
-	    	});
+    		return res.retErrorParams(errorMsg)
     	}
 
 	   	try{
@@ -95,12 +72,7 @@ export default class CategoryObj{
 				return item.name;
 			});
 			if(tool.hasSameValue(allNames,nameArr)){
-				res.json({
-					code: -1,
-					type: 'ERROR_TO_ADD_CATEGORY',
-					message: '请不要输入重复的分类'
-				});
-				return ;
+				return res.retErrorParams('请不要输入重复的分类')
 			}
 
 			let Pro = nameArr.map((name)=>{
@@ -120,11 +92,7 @@ export default class CategoryObj{
 			// 		name:name
 			// 	});
 			// });
-			res.json({
-				code: 1,
-				type: 'SUCCESS_TO_ADD_CATEGORY',
-				message: '添加成功'
-			});
+			res.retSuccess();
 	   	}catch(err){
 	   		console.log('分类添加失败',+err);
 	   		return 	next(err);
@@ -144,28 +112,15 @@ export default class CategoryObj{
 			}
 		}catch(err){
 			console.log(err.message);
-			res.json({
-				code: 0,
-				type: 'ERROR_PARAMS',
-				message: err.message,
-			})
-			return
+			return res.retErrorParams(err.message)
 		}
 		try{
 			let cate = await CategoryModel.findOne({name: name})
 			if(cate){
-				return res.json({
-					code: 0,
-					type: 'ERROR_TO_ADD_TAG',
-					message:'已有此名字的分类'
-				})
+				return res.retError('已有此名字的分类')
 			}
 			await CategoryModel.update({_id: id}, {name: name})
-			res.json({
-				code: 1,
-				message: '更新成功'
-			});
-			
+			res.retSuccess();
 		}catch(err){
 			return next(err);
 		}
@@ -175,11 +130,7 @@ export default class CategoryObj{
 		let ids = req.params['id'].split(',');
 		try{
 			await CategoryModel.remove({_id: { "$in": ids }});
-			res.json({
-				code: 1,
-				message: '删除成功'
-			});
-			
+			res.retSuccess();
 		}catch(err){
 			console.log('分类删除失败'+err);
 			return 	next(err);

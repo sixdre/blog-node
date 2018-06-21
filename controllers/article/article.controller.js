@@ -10,9 +10,6 @@ import request from 'request'
 import MarkdownIt from 'markdown-it'
 import { ArticleModel, CategoryModel, CommentModel, TagModel, UserModel } from '../../models/'
 import UploadComponent from '../../prototype/upload'
-
-
-
 const tool = require('../../utility/tool');
 
 export default class ArticleObj extends UploadComponent {
@@ -29,13 +26,12 @@ export default class ArticleObj extends UploadComponent {
         try {
             let categories = await CategoryModel.find({}).select('name desc');
             let tags = await TagModel.find({}).select('name');
-            res.json({
-                code: 1,
+            res.retSuccess({
                 data: {
                     categories,
                     tags
                 },
-            });
+            })
         } catch (err) {
             return next(err);
         }
@@ -79,13 +75,12 @@ export default class ArticleObj extends UploadComponent {
                 queryParams['create_time'] = { $gte: startTime, $lte: endTime }
             }
             let results = await ArticleModel.getListToPage(queryParams, page, limit)
-            res.json({
-                code: 1,
+            res.retSuccess({
                 data: results.data,
                 total: results.total,
                 limit: results.pageSize,
                 page: results.page
-            });
+            })
         } catch (err) {
             console.log('获取文章列表出错:' + err);
             return next(err);
@@ -96,25 +91,21 @@ export default class ArticleObj extends UploadComponent {
         const userId = req.userInfo._id;
         const id = req.params['id'];
         if (!validator.isMongoId(id)) {
-            res.status(404).json({
-                code: 0,
+            res.retError({
                 type: 'ERROR_PARAMS',
-                message: '参数错误'
-            })
+                message: '文章ID参数错误'
+            },404)
             return
         }
         try {
             let article = await ArticleModel.getOneById(id, { author: userId });
             if (!article) {
-                return res.status(404).json({
-                    code: 0,
+                return res.retError({
                     message: '文章不存在'
-                })
+                },404)
             }
-            res.json({
-                code: 1,
-                data: article,
-                message: '成功'
+            res.retSuccess({
+                data: article
             })
         } catch (err) {
             return next(err);
@@ -134,21 +125,19 @@ export default class ArticleObj extends UploadComponent {
         const meId = req.userInfo ? req.userInfo._id : null;
         const isMe = String(meId) === String(userId);
         if (!validator.isMongoId(userId)) {
-            res.status(404).json({
-                code: 0,
+            res.retError({
                 type: 'ERROR_PARAMS',
                 message: '用户ID参数错误'
-            })
+            },404)
             return
         }
         try {
             let user = await UserModel.findById(userId).select('-isAdmin -role -password -__v');
             if (!isMe) {
                 if (!user || user.setting.show_main === 2) {
-                    res.status(404).json({
-                        code: 0,
+                    res.retError({
                         message: '您要查找的用户不存在，或者该用户开启了私密设置'
-                    })
+                    },404)
                     return
                 }
             }
@@ -203,8 +192,7 @@ export default class ArticleObj extends UploadComponent {
                 queryParams['create_time'] = { $gte: startTime, $lte: endTime }
             }
             let results = await ArticleModel.getListToPage(queryParams, page, limit)
-            res.json({
-                code: 1,
+            res.retSuccess({
                 isMe,
                 data: results.data,
                 total: results.total,
@@ -222,11 +210,10 @@ export default class ArticleObj extends UploadComponent {
     async getFrontArticle(req, res, next) {
         let id = req.params['id'];
         if (!validator.isMongoId(id)) {
-            res.status(404).json({
-                code: 0,
+            res.retError({
                 type: 'ERROR_PARAMS',
                 message: '文章ID参数错误'
-            })
+            },404)
             return
         }
         try {
@@ -238,10 +225,9 @@ export default class ArticleObj extends UploadComponent {
             });
             let article = await ArticleModel.getOneById(id, { 'is_private': false, status: 2 });
             if (!article) {
-                return res.status(404).json({
-                    code: 0,
+                return res.retError({
                     message: '文章不存在或已被删除'
-                })
+                },404)
             }
 
             let me = req.userInfo;
@@ -261,13 +247,11 @@ export default class ArticleObj extends UploadComponent {
             await ArticleModel.updatePv(id);
             article.pv_num += 1;
             article.content = md.render(article.content);
-            res.json({
-                code: 1,
+            res.retSuccess({
                 data: article,
                 isFollow,
                 isCollect,
-                isLike,
-                message: 'success'
+                isLike
             });
         } catch (err) {
             console.log('获取文章出错', +err);
@@ -279,26 +263,22 @@ export default class ArticleObj extends UploadComponent {
     async findOneById(req, res, next) {
         let id = req.params['id'];
         if (!validator.isMongoId(id)) {
-            res.json({
-                code: 0,
+            res.retError({
                 type: 'ERROR_PARAMS',
                 message: '文章ID参数错误'
-            })
+            },404)
             return
         }
         try {
             let article = await ArticleModel.getOneById(id, { 'is_private': false });
             if (!article || article.status == 0) {
-                return res.json({
-                    code: 0,
+                return res.retError({
                     msg: 'The article is not found or is deleted',
                     message: '文章不存在或已被删除'
-                });
+                },404)
             }
-            res.json({
-                code: 1,
+            res.retSuccess({
                 data: article,
-                message: 'success'
             });
         } catch (err) {
             console.log('获取文章出错', +err);
@@ -310,21 +290,17 @@ export default class ArticleObj extends UploadComponent {
         let tagId = req.params['tag_id'];
         let { page = 1, pageSize = 100 } = req.query;
         if (!validator.isMongoId(tagId)) {
-            res.json({
-                code: 0,
+            return res.retError({
                 type: 'ERROR_PARAMS',
                 message: '标签ID参数错误'
-            })
-            return
+            },404)
         }
         try {
             let queryParams = {
                 'tags': { '$in': [tagId] }
             }
             let results = await ArticleModel.getListToPage(queryParams, page, pageSize);
-            res.json({
-                code: 1,
-                msg: 'success',
+            res.retSuccess({
                 data: results.data,
                 total: results.total,
                 pageSize: results.pageSize
@@ -339,11 +315,10 @@ export default class ArticleObj extends UploadComponent {
         const cId = req.params['category_id'];
         let { page = 1, pageSize = 100 } = req.query;
         if (!validator.isMongoId(cId)) {
-            res.json({
-                code: 0,
+            res.retError({
                 type: 'ERROR_PARAMS',
                 message: '类型ID参数错误'
-            })
+            },404);
             return
         }
         try {
@@ -351,9 +326,7 @@ export default class ArticleObj extends UploadComponent {
                 'category': { '$in': [cId] }
             }
             let results = await ArticleModel.getListToPage(queryParams, page, pageSize);
-            res.json({
-                code: 1,
-                msg: 'success',
+            res.retSuccess({
                 data: results.data,
                 total: results.total,
                 pageSize: results.pageSize
@@ -373,11 +346,9 @@ export default class ArticleObj extends UploadComponent {
                 .populate('category', 'name')
                 .populate('tags', 'name');
             let has_draft = drafts.length > 0 ? true : false;
-            res.json({
-                code: 1,
+            res.retSuccess({
                 data: drafts,
-                has_draft,
-                message: '获取草稿成功'
+                has_draft
             });
         } catch (err) {
             console.log('获取草稿出错' + err);
@@ -396,22 +367,15 @@ export default class ArticleObj extends UploadComponent {
         }
         try {
             if (article.id) {
-                // let art = await ArticleModel.findOne({title:article.title});	
-                let message = '保存成功';
-                // if(art){
-                // 	article.title = '';
-                // 	message = '保存成功，文章标题已存在'
-                // }
                 await ArticleModel.update({ _id: article.id, status: 1 }, {
                     content: article.content,
                     draft_time: Date.now(),
                 })
-                res.json({
-                    code: 1,
+                res.retSuccess({
                     id: article.id,
                     time: moment(Date.now()).format('YYYY-MM-DD HH:mm:ss'),
                     has_draft: true,
-                    message
+                    message:'保存成功'
                 });
             } else {
                 let art = await new ArticleModel({
@@ -419,8 +383,7 @@ export default class ArticleObj extends UploadComponent {
                     content: article.content,
                     status: 1
                 }).save();
-                res.json({
-                    code: 1,
+                res.retSuccess({
                     id: art._id,
                     has_draft: true,
                     time: moment(art.create_time).format('YYYY-MM-DD HH:mm:ss'),
@@ -439,7 +402,6 @@ export default class ArticleObj extends UploadComponent {
     //发布文章，更新和新增可调用此方法
     async post_article(req, res, next, type) {
         let article = req.body.article;
-        console.log(article)
         article.author = req.userInfo._id;
         let addNewTag = false;
         try {
@@ -452,12 +414,11 @@ export default class ArticleObj extends UploadComponent {
             }
         } catch (err) {
             console.log('参数出错', err.message);
-            res.send({
-                status: -2,
+            res.retError({
                 type: 'ERROR_PARAMS',
-                message: err.message
+                message:err.message
             });
-            return;
+            return
         }
         try {
             let query;
@@ -470,18 +431,13 @@ export default class ArticleObj extends UploadComponent {
             }
             let rart = await ArticleModel.findOne(query); //查询不是草稿的标题是否存在
             if (rart) {
-                return res.json({
-                    code: 0,
-                    message: '文章标题已存在'
-                })
+                res.retError('文章标题已存在');
+                return;
             }
             //检查category
             let ncate = await CategoryModel.findOne({ name: article.categoryName });
             if (!ncate) {
-                return res.json({
-                    code: 0,
-                    message: '文章类型不存在'
-                })
+                return  res.retError('文章类型不存在');  
             } else {
                 article.category = ncate._id;
             }
@@ -515,10 +471,7 @@ export default class ArticleObj extends UploadComponent {
                 let nameArray = req.file.originalname.split('.')
                 let type = nameArray[nameArray.length - 1];
                 if (!tool.checkUploadImg(type)) {
-                    return res.json({
-                        code: 0,
-                        message: '文章封面格式错误'
-                    })
+                    return  res.retError('文章封面格式错误');  
                 }
                 let imgurl = await this.upload(req.file);
                 article.img = imgurl;
@@ -533,15 +486,13 @@ export default class ArticleObj extends UploadComponent {
                 }
                 let _article = _.extend(barticle, article);
                 await _article.save();
-                res.json({
-                    code: 1,
+                res.retSuccess({
                     addNewTag,
                     message: '更新成功'
                 });
             } else { //新增
                 await new ArticleModel(article).save();
-                res.json({
-                    code: 1,
+                res.retSuccess({
                     addNewTag,
                     message: '发布成功'
                 });
@@ -607,10 +558,7 @@ export default class ArticleObj extends UploadComponent {
             })
 
             await Promise.all(pro);
-            res.json({
-                code: 1,
-                message: '删除成功'
-            });
+            res.retSuccess('删除成功');
 
         } catch (err) {
             console.log('文章批量删除失败:' + err);
@@ -624,20 +572,16 @@ export default class ArticleObj extends UploadComponent {
         let aid = req.params['id'];
         let userId = req.userInfo._id;
         if (!validator.isMongoId(aid)) {
-            res.json({
-                code: 0,
+            res.retError({
                 type: 'ERROR_PARAMS',
                 message: '文章ID参数错误'
-            })
+            });
             return
         }
         try {
             let article = await ArticleModel.findOne({ _id: aid, is_private: false });
             if (!article) {
-                return res.json({
-                    code: 0,
-                    message: '该文章不存在或已被删除'
-                })
+                return res.retError('该文章不存在或已被删除');
             }
             let user = await UserModel.findOne({ _id: userId });
             let conditionOne, conditionTwo, like, count = 0;
@@ -655,12 +599,10 @@ export default class ArticleObj extends UploadComponent {
             }
             await UserModel.update({ _id: userId }, conditionOne);
             await ArticleModel.update({ _id: aid }, conditionTwo);
-            res.json({
-                code: 1,
+
+            res.retSuccess({
                 count: count,
-                isLike: like,
-                type: 'SUCCESS_TO_LIKES',
-                message: '操作成功'
+                isLike: like
             });
 
         } catch (err) {
@@ -674,20 +616,16 @@ export default class ArticleObj extends UploadComponent {
         let aid = req.params['id'];
         let userId = req.userInfo._id;
         if (!validator.isMongoId(aid)) {
-            res.json({
-                code: 0,
+            res.retError({
                 type: 'ERROR_PARAMS',
                 message: '文章ID参数错误'
-            })
+            });
             return
         }
         try {
             let article = await ArticleModel.findOne({ _id: aid, is_private: false });
             if (!article) {
-                return res.json({
-                    code: 0,
-                    message: '该文章不存在或已被删除'
-                })
+                return res.retError('该文章不存在或已被删除');
             }
             let user = await UserModel.findOne({ _id: userId });
             let isCollect = user.collectArts.indexOf(aid);
@@ -706,12 +644,10 @@ export default class ArticleObj extends UploadComponent {
             }
             await UserModel.update({ _id: userId }, conditionOne);
             await ArticleModel.update({ _id: aid }, conditionTwo);
-            res.json({
-                code: 1,
+            res.retSuccess({
                 count: count,
                 isCollect: collect,
                 type: 'SUCCESS_TO_COLLECTION',
-                message: '操作成功'
             });
         } catch (err) {
             console.log('操作失败:' + err);
@@ -724,11 +660,7 @@ export default class ArticleObj extends UploadComponent {
         const ids = req.params['id'].split(',');
         try {
             await ArticleModel.update({ _id: { "$in": ids } }, { status: 2 });
-            res.json({
-                code: 1,
-                message: '操作成功'
-            });
-
+            res.retSuccess('操作成功');
         } catch (err) {
             return next(err);
         }

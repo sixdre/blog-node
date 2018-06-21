@@ -31,11 +31,7 @@ export default class CommentObj{
 	async getCommentsByArticleId(req, res, next) {
 		let articleId = req.params['article_id'];
 		if (!validator.isMongoId(articleId)) {
-			res.send({
-				code: 0,
-				type: 'ERROR_PARAMS',
-				message: '文章ID参数错误'
-			})
+			res.retErrorParams('文章ID参数错误')
 			return 
 		}
 		let { order_by, page = 1 ,limit = 10} = req.query;
@@ -48,10 +44,7 @@ export default class CommentObj{
 		try {
 			let article = await ArticleModel.findById(articleId);
 			if(!article){
-				return res.json({
-					code:0,
-					message:'该文章不存在或已被删除'
-				})
+				return res.retError('该文章不存在或已被删除');
 			}
 			const results = await CommentModel.getListToPage({articleId:articleId},page,limit,sort);
 			const cmt_all_num = await CommentModel.count({articleId:articleId});
@@ -65,9 +58,7 @@ export default class CommentObj{
 				results.data = checkIsLike(results.data,req.userInfo._id)
 			}
 
-			res.json({
-				code:1,
-				message:'评论获取成功',
+			res.retSuccess({
 				user_num:comment_users.length,			//评论该文章的用户数量
 				cmt_all_num,			//评论该文章的总回复包括回复的回复
 				data: results.data,
@@ -96,20 +87,13 @@ export default class CommentObj{
 			}
 		}catch(err){
 			console.log(err.message);
-			res.json({
-				code: 0,
-				type: 'ERROR_PARAMS',
-				message: err.message,
-			})
+			res.retErrorParams(err.message)
 			return
 		}
 		try{
 			let article = await ArticleModel.findOne({_id:articleId,is_private:false});
 			if(!article){
-				return res.json({
-					code:0,
-					message:'该文章不存在或已被删除'
-				})
+				return res.retError('该文章不存在或已被删除')
 			}
 
 			if(validator.isEmpty(_comment.cId)||!_comment.cId){
@@ -119,17 +103,11 @@ export default class CommentObj{
 					content:_comment.content
 				})
 				await newcomment.save();
-				res.json({
-					code: 1,
-					message:'评论成功'
-				});
+				res.retSuccess();
 			}else if(validator.isMongoId(_comment.cId)&&validator.isMongoId(_comment.toId)){	//说明是回复评论
 				let cmt = await CommentModel.findById(_comment.cId);
 				if(!cmt){
-					return res.json({
-						code:0,
-						message:'此条评论不存在'
-					})
+					return res.retError('此条评论不存在');
 				}
 				let reply = await new CommentModel({
 							articleId:articleId,
@@ -139,16 +117,9 @@ export default class CommentObj{
 							isM:_comment.isM
 						}).save();
 				await CommentModel.reply(_comment.cId,articleId,reply._id);
-				res.json({
-					code: 1,
-					message:'评论成功'
-				});
+				res.retSuccess();
 			}else{
-				res.json({
-					code: 0,
-					type: 'ERROR_PARAMS',
-					message: '参数错误',
-				})
+				res.retErrorParams('参数错误')
 			}
 		}catch(err){
 			console.log('评论出错:' + err);
@@ -160,26 +131,16 @@ export default class CommentObj{
 		const cid = req.params['id'];
 		const userId = req.userInfo._id;
 		if(!validator.isMongoId(cid)){
-			return res.json({
-				code: 0,
-				type: 'ERROR_PARAMS',
-				message: '参数错误',
-			})
+			return res.retErrorParams('参数错误')
 		}
 		try{
 			let comment = await CommentModel.findById(cid);
 			if(!comment){
-				return res.json({
-					code: 0,
-					message: '该评论不存在',
-				})
+				return res.retError('该评论不存在')
 			}
 			await CommentModel.remove({_id: cid,from:userId});
 			await ArticleModel.update({_id:comment.articleId},{'$inc':{'cmt_num':-1}})
-			res.json({
-				code: 1,
-				message: '删除成功',
-			})
+			res.retSuccess()
 		}catch(err){
 			console.log('操作失败:'+err);
 			return next(err);
@@ -197,20 +158,12 @@ export default class CommentObj{
 			}
 		}catch(err){
 			console.log(err.message);
-			res.json({
-				code: 0,
-				type: 'ERROR_PARAMS',
-				message: err.message,
-			})
-			return
+			return res.retErrorParams(err.message)
 		}
 		try{
 			let comment = await CommentModel.findById(commentId);
 			if(!comment) {		//没有在主评论找到的话就去回复中查询
-				return res.json({
-					code:0,
-					message:'没有找到该评论'
-				})
+				return res.retError('没有找到该评论')
 			}
 			let condition,isLike,count=0;
 			if(comment.likes.indexOf(userId) !== -1){
@@ -223,12 +176,9 @@ export default class CommentObj{
 			  	isLike = true;
 			}
 			await CommentModel.update({ _id: commentId}, condition);
-			res.json({
-				code: 1,
+			res.retSuccess({
 				count:count,
 				isLike:isLike,
-				type: 'SUCCESS_TO_COMMENT_LIKE',
-				message: '操作成功'
 			});
 		}catch(err){
 			console.log('操作失败:'+err);

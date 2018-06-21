@@ -14,6 +14,8 @@ import db from './config/db.js';
 import router from './routes'
 import ueditor from "ueditor"
 import catchError from './middleware/catchError'
+import retMiddleWare from './middleware/ret'
+
 
 global.CONFIG = JSON.parse(fs.readFileSync('./config/settings.json').toString());
 
@@ -63,11 +65,16 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, 'views')));
 
 
+app.use(retMiddleWare());
+
+
 
 //routes 
 router(app);
 
 // app.use(catchError());
+
+
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

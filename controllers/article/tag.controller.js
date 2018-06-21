@@ -14,27 +14,20 @@ export default class TagObj{
 	
 	async getList(req,res,next){
 		let {type='',name} = req.query;
-		let message;
+		let data;
 		try{
 			if(type==='group'){		//根据已有文章进行分组统计
-				let data = await TagModel.getToGroup();
-				res.json({
-					code: 1,
-					data
-				});	
+				data = await TagModel.getToGroup();
+			
 			}else if(name&&name.length){	//根据名称搜索
-				let data = await TagModel.findOne({name:name},{'__v':0});
-				res.json({
-					code:1,
-					data
-				})
+				data = await TagModel.findOne({name:name},{'__v':0});
+				
 			}else{
-				let data = await TagModel.find({},{'__v':0});
-				res.json({
-					code: 1,
-					data
-				});	
+				data = await TagModel.find({},{'__v':0});
 			}
+			res.retSuccess({
+				data
+			});	
 		}catch(err){
 			console.log('获取标签列表出错:' + err);
 			return next(err);
@@ -45,19 +38,12 @@ export default class TagObj{
 	async findOneById(req,res,next){
 		const id = req.params['id'];
 		if (!validator.isMongoId(id)) {
-			res.json({
-				code: 0,
-				type: 'ERROR_PARAMS',
-				message: '标签ID参数错误'
-			})
-			return 
+			return res.retErrorParams('标签ID参数错误')
 		}
 		try{
 			let tag = await TagModel.findById(id,{'__v':0});
-			res.json({
-				code:1,
+			res.retSuccess({
 				data:tag,
-				message:'获取标签成功'
 			})
 		}catch(err){
 			console.log('获取标签出错:' + err);
@@ -83,11 +69,7 @@ export default class TagObj{
     	});
     	
     	if(errorMsg.length){
-    		return res.json({
-	    		code:0,
-	    		type:"ERROR_PARAMS",
-	    		message:errorMsg
-	    	});
+    		return res.retErrorParams(errorMsg)
     	}
 	   	try{
 	   		let tags = await TagModel.find({});
@@ -95,12 +77,7 @@ export default class TagObj{
 				return item.name;
 			});
 			if(tool.hasSameValue(allNames,nameArr)){
-				res.json({
-					code: -1,
-					type: 'ERROR_TO_ADD_TAG',
-					message: '请不要输入重复的标签'
-				});
-				return ;
+				return res.retErrorParams('请不要输入重复的标签')
 			}
 
 			let Pro = nameArr.map((name)=>{
@@ -122,11 +99,7 @@ export default class TagObj{
 			// 		name:name
 			// 	});
 			// })
-			res.json({
-				code: 1,
-				type: 'SUCCESS_TO_ADD_TAG',
-				message: '添加成功'
-			});
+			res.retSuccess();
 	   	}catch(err){
 	   		console.log('添加标签出错:' + err);
 			return next(err);
@@ -145,28 +118,16 @@ export default class TagObj{
 			}
 		}catch(err){
 			console.log(err.message);
-			res.json({
-				code: 0,
-				type: 'ERROR_PARAMS',
-				message: err.message,
-			})
+			res.retErrorParams(err.message)
 			return
 		}
 		try{
 			let tag=await TagModel.findOne({name: name})
 			if(tag){
-				return res.json({
-					code: 0,
-					type: 'ERROR_TO_ADD_TAG',
-					message:'已有此名字的标签'
-				})
+				return res.retError('已有此名字的标签'); 
 			}
 			await TagModel.update({_id: id}, {name: name})
-			res.json({
-				code: 1,
-				message: '更新成功'
-			});
-			
+			res.retSuccess();
 		}catch(err){
 			return next(err);
 		}
@@ -181,10 +142,7 @@ export default class TagObj{
 				return ArticleModel.update({tags:{ "$in": [item] }},{'$pull':{'tags':item}},{multi:true})
 			})
 			await Promise.all(Pro);
-			res.json({
-				code: 1,
-				message: '删除成功'
-			});
+			res.retSuccess();
 		}catch(err){
 			console.log('删除标签出错:' + err);
 			return next(err);

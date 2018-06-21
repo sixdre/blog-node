@@ -1,6 +1,7 @@
 'use strict';
 import mongoose from 'mongoose'
 import validator from 'validator'
+import moment from 'moment'
 
 const Schema = mongoose.Schema,
 	ObjectId = Schema.ObjectId;
@@ -70,23 +71,32 @@ const ArticleSchema = new Schema({
 	},
 	create_time: {			//创建时间
 		type: Date,
-		default:Date.now()
+		default:Date.now(),
+		get: v => moment(v).format('YYYY-MM-DD HH:mm:ss')
 	},
 	update_time: {			//更新时间或修改时间
 		type: Date,
-		default:Date.now()
+		default:Date.now(),
+		get: v => moment(v).format('YYYY-MM-DD HH:mm:ss')
 	},
 	draft_time:{			//定为草稿的时间
 		type: Date,
-		default:Date.now()
+		default:Date.now(),
+		get: v => moment(v).format('YYYY-MM-DD HH:mm:ss')
 	},
 	last_cmt_time:{			//最后一次评论时间
-		type: Date
+		type: Date,
+		get: v => moment(v).format('YYYY-MM-DD HH:mm:ss')
 	}
 },{
-  	toJSON: {virtuals: true},
-  	toObject: {virtuals: true}
+  	toJSON: {virtuals: true,getters: true},
+  	toObject: {virtuals: true,getters: true}
 })
+
+// schema.path('date').get(function (date) {
+//   return date.toEast8();
+// });
+
 
 ArticleSchema.virtual('author_name')
   .get(function() {
