@@ -35,11 +35,11 @@ export default () => {
 	        },404);
 	    }
 	    //success
-	    res.retSuccess = function (data){
+	    res.retSuccess = function (data="操作成功"){
 	        if(typeof data ==='string'){
 	            return res.json({
 	                code:1,
-	                message:data||'操作成功'
+	                message:data
 	            })
 	        }else if(typeof data ==='object'){
 	            return res.json({

@@ -38,11 +38,11 @@ export default class ArticleObj extends UploadComponent {
     }
 
     /* 获取文章列表 getList
-    	@param type (all 所有的文章，good精华文章)
+    	@param type ( 所有的文章，good精华文章)
     	@param flag (0删除，1草稿，2有效，''所有)
      */
     async getList(req, res, next) {
-        let { page = 1, limit = 20, title = "", categoryId, author, flag = 2, type = "all", startTime, endTime } = req.query;
+        let { page = 1, limit = 20, title = "", categoryId, author, flag = 2, type, startTime, endTime } = req.query;
         let queryParams = {}
         try {
             queryParams = {
@@ -58,6 +58,8 @@ export default class ArticleObj extends UploadComponent {
                 let user = await UserModel.findOne({ username: author });
                 if (user) {
                     queryParams.author = user._id;
+                }else{
+                    queryParams.author = null;
                 }
             }
             if (categoryId && validator.isMongoId(categoryId)) {
