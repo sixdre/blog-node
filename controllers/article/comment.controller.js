@@ -27,7 +27,9 @@ function checkIsLike(data,userId){
 
 
 export default class CommentObj{
-	
+	/*
+	 *	获取文章评论
+	*/
 	async getCommentsByArticleId(req, res, next) {
 		let articleId = req.params['article_id'];
 		if (!validator.isMongoId(articleId)) {
@@ -149,7 +151,7 @@ export default class CommentObj{
 
 
 
-	async addCommentLike(req, res, next) {
+	async toggleCommentLike(req, res, next) {
 		const commentId = req.params['comment_id'],
 			userId = req.userInfo._id;
 		try{

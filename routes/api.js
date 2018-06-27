@@ -98,7 +98,7 @@ router.get('/articles/:article_id/comments',Auth.getLoginUserInfo,CommentCtrl.ge
 //文章评论
 router.post('/articles/:article_id/comments',Auth.checkToken,CommentCtrl.addComment);
 //评论点赞
-router.put('/comments/:comment_id/like',Auth.checkToken,CommentCtrl.addCommentLike);
+router.put('/comments/:comment_id/like',Auth.checkToken,CommentCtrl.toggleCommentLike);
 
 
 

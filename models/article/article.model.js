@@ -188,7 +188,7 @@ ArticleSchema.statics.getListToPage = function(queryobj,page=1,pageSize=10){
 			let total =  await this.count(params);
 			let data = await this.getList(params)
 							.skip(pageSize * (page-1)).limit(pageSize)
-							.sort({ 'last_cmt_time':-1,'pv_num':-1,"create_time": -1 });
+							.sort({ "create_time": -1});
 			resolve({
 				data,
 				total,
