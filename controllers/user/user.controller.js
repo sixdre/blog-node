@@ -2,7 +2,9 @@
  * 用户控制器
  */
 "use strict";
+import request from 'request';
 import _ from 'underscore'
+import crypto from 'crypto'
 import validator from 'validator'
 import auth from '../../middleware/auth'
 import transformTozTreeFormat from '../../utility/tree'
@@ -14,6 +16,9 @@ import {validateUserName} from '../../services/user.service'
 const tool = require('../../utility/tool');
 
 const secret = config.secret;
+const APPKEY = config.ryAppKey;
+const AppSecret = config.ryAppSecret
+
 //数据模型
 
 export default class UserObj extends UploadComponent{
@@ -418,14 +423,44 @@ export default class UserObj extends UploadComponent{
 	            		isAdmin:user.isAdmin
 	            	})));
 	            	req.session["Admin"] = user;
-					res.retSuccess({
-						token,
-						userInfo:{
-							role:'测试',
-							username:user.username,
-							avatar:user.avatar
-						}
-					});
+
+
+	            	let Nonce = 1021283474;
+	            	let Timestamp = Math.round(new Date().getTime()/1000);
+
+	            	let sha1 = crypto.createHash('sha1');
+	            	let t = sha1.update(AppSecret+Nonce+Timestamp)
+	            	let Signature = t.digest('hex');
+	       
+	            	request({
+				        url: 'http://api.cn.ronghub.com/user/getToken.json',
+				        method: "POST",
+				        headers: {
+				            "content-type": "application/x-www-form-urlencoded",
+				            'App-Key':APPKEY,
+				            'Nonce':Nonce,
+				            'Timestamp':Timestamp,
+				            'Signature':Signature
+				        },
+				        body: `userId=${user._id}&name=${user.username}&portraitUri=${user.avatar}`
+
+				    }, function(error, response, body) {
+				    	
+				        if (!error && response.statusCode == 200) {
+				        	res.retSuccess({
+								token,
+								userInfo:{
+									role:'测试',
+									username:user.username,
+									avatar:user.avatar,
+									_id:user._id
+								},
+								ryToken:JSON.parse(body).token
+							});
+				            // console.log(body) // 请求成功的处理逻辑
+				        }
+				    });
+					
 	            }else{
 	            	res.retError('密码不正确！')
 	            }

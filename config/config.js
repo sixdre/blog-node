@@ -28,7 +28,9 @@ const config = {
         secretKey: 'bNVNnsynNTyY9wbVS5KIybQrCSnNvs5g1WeZybaa',
         bucket: 'myblog',
         origin: 'http://osf6cl53d.bkt.clouddn.com/'
-    }
-}
+    },
+    ryAppSecret:'ea155oOKnvvC2v',    //融云即时通讯appSecret,
+    ryAppKey:'qd46yzrfqibvf'    //融云即时通讯appKey,
+} 
 
 export default config;
