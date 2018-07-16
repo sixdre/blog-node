@@ -46,7 +46,6 @@ router.get('/users/:id/info',Auth.getLoginUserInfo,UserCtrl.getInfoById);
 
 
 
-
 //更新用户信息
 router.put('/users/:id', Auth.checkToken,UserCtrl.update)
 //关注用户
