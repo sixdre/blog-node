@@ -13,11 +13,10 @@ import config from '../../config/config'
 import UploadComponent from '../../prototype/upload'
 import {UserModel,ArticleModel,CategoryModel,TagModel,WordModel,RoleModel,MenuModel} from '../../models/'
 import {validateUserName} from '../../services/user.service'
+import * as RongIMLib from '../../services/RongIMLib.service'
 const tool = require('../../utility/tool');
 
 const secret = config.secret;
-const APPKEY = config.ryAppKey;
-const AppSecret = config.ryAppSecret
 
 //数据模型
 
@@ -26,6 +25,55 @@ export default class UserObj extends UploadComponent{
 		super()
 		this.updateAvatar = this.updateAvatar.bind(this)
 	}
+
+	//获取当前聊天室用户信息
+	async getChatUserInfo(req,res,next){
+		const userIds = req.params['userId'];
+		try{
+			let uids = userIds.split(',')
+			let users = await UserModel.find({'_id':{'$in':uids}}).select('username avatar'); 
+			let pro = users.map(function(item){
+				return new Promise(function(resolve,reject){
+					RongIMLib.checkOnline(item._id).then(function(body){
+						let su = {
+							username:item.username,
+							userId:item._id,
+			    			avatar:item.avatar,
+							online:body.status
+						}
+						resolve(su)
+			    	},function(){
+			    		reject()
+			    	})
+				})
+			})
+			let d = await Promise.all(pro);
+			res.retSuccess({
+    			data:d
+			});
+
+
+			// let userId = uids[0];
+			// let user = await UserModel.findById(userId).select('username avatar');
+			// RongIMLib.checkOnline(userId).then(function(body){
+			// 	console.log(body)
+	  //   		res.retSuccess({
+	  //   			username:user.username,
+	  //   			userId:user._id,
+	  //   			avatar:user.avatar,
+			// 		online:body.status
+			// 	});
+	  //   	},function(){
+
+	  //   	})
+		}catch(err){
+			return next(err)
+		}
+	}
+
+
+
+
 
 	//更新用户头像
 	async updateAvatar(req,res,next){
@@ -424,43 +472,20 @@ export default class UserObj extends UploadComponent{
 	            	})));
 	            	req.session["Admin"] = user;
 
+	            	RongIMLib.getToken(user._id,user.username,user.avatar).then(function(body){
+	            		res.retSuccess({
+							token,
+							userInfo:{
+								role:'测试',
+								username:user.username,
+								avatar:user.avatar,
+								_id:user._id
+							},
+							ryToken:body.token
+						});
+	            	},function(){
 
-	            	let Nonce = 1021283474;
-	            	let Timestamp = Math.round(new Date().getTime()/1000);
-
-	            	let sha1 = crypto.createHash('sha1');
-	            	let t = sha1.update(AppSecret+Nonce+Timestamp)
-	            	let Signature = t.digest('hex');
-	       
-	            	request({
-				        url: 'http://api.cn.ronghub.com/user/getToken.json',
-				        method: "POST",
-				        headers: {
-				            "content-type": "application/x-www-form-urlencoded",
-				            'App-Key':APPKEY,
-				            'Nonce':Nonce,
-				            'Timestamp':Timestamp,
-				            'Signature':Signature
-				        },
-				        body: `userId=${user._id}&name=${user.username}&portraitUri=${user.avatar}`
-
-				    }, function(error, response, body) {
-				    	
-				        if (!error && response.statusCode == 200) {
-				        	res.retSuccess({
-								token,
-								userInfo:{
-									role:'测试',
-									username:user.username,
-									avatar:user.avatar,
-									_id:user._id
-								},
-								ryToken:JSON.parse(body).token
-							});
-				            // console.log(body) // 请求成功的处理逻辑
-				        }
-				    });
-					
+	            	})
 	            }else{
 	            	res.retError('密码不正确！')
 	            }

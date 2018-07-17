@@ -56,6 +56,8 @@ router.post('/login',UserCtrl.login);
 router.post('/regist',UserCtrl.regist);
 
 
+//获取聊天室用户融云信息
+router.get('/chat/:userId/info', UserCtrl.getChatUserInfo)
 
 
 

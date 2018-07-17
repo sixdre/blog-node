@@ -3,6 +3,7 @@ import mongoose from 'mongoose'
 import bcrypt from 'bcrypt'
 import validator from 'validator'
 import Identicon from 'identicon.js'
+import gravatar from 'gravatar'
 import userData from '../../InitData/user'
 
 const Schema = mongoose.Schema,
@@ -90,8 +91,10 @@ UserSchema.pre('save', function(next) {
         bcrypt.hash(user.password, salt, function(err, hash) {
             if (err) return next(err);
             bcrypt.hash(user.username, salt, function(err, uh) {
-                let imgData = new Identicon(uh, 100).toString()
-                let avatar = 'data:image/png;base64,' + imgData // 生成hash头像
+                // let imgData = new Identicon(uh, 100).toString()
+                // let avatar = 'data:image/png;base64,' + imgData // 生成hash头像
+                // user.avatar = avatar;
+                var avatar = gravatar.url(user.email, {s: '100', r: 'x', d: 'retro'}, true);
                 user.avatar = avatar;
                 user.password = hash;
                 next();
