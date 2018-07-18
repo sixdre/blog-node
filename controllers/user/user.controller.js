@@ -2,9 +2,7 @@
  * 用户控制器
  */
 "use strict";
-import request from 'request';
 import _ from 'underscore'
-import crypto from 'crypto'
 import validator from 'validator'
 import auth from '../../middleware/auth'
 import transformTozTreeFormat from '../../utility/tree'
@@ -13,7 +11,6 @@ import config from '../../config/config'
 import UploadComponent from '../../prototype/upload'
 import {UserModel,ArticleModel,CategoryModel,TagModel,WordModel,RoleModel,MenuModel} from '../../models/'
 import {validateUserName} from '../../services/user.service'
-import * as RongIMLib from '../../services/RongIMLib.service'
 const tool = require('../../utility/tool');
 
 const secret = config.secret;
@@ -25,56 +22,6 @@ export default class UserObj extends UploadComponent{
 		super()
 		this.updateAvatar = this.updateAvatar.bind(this)
 	}
-
-	//获取当前聊天室用户信息
-	async getChatUserInfo(req,res,next){
-		const userIds = req.params['userId'];
-		try{
-			let uids = userIds.split(',')
-			let users = await UserModel.find({'_id':{'$in':uids}}).select('username avatar'); 
-			let pro = users.map(function(item){
-				return new Promise(function(resolve,reject){
-					RongIMLib.checkOnline(item._id).then(function(body){
-						let su = {
-							username:item.username,
-							userId:item._id,
-			    			avatar:item.avatar,
-							online:body.status
-						}
-						resolve(su)
-			    	},function(){
-			    		reject()
-			    	})
-				})
-			})
-			let d = await Promise.all(pro);
-			res.retSuccess({
-    			data:d
-			});
-
-
-			// let userId = uids[0];
-			// let user = await UserModel.findById(userId).select('username avatar');
-			// RongIMLib.checkOnline(userId).then(function(body){
-			// 	console.log(body)
-	  //   		res.retSuccess({
-	  //   			username:user.username,
-	  //   			userId:user._id,
-	  //   			avatar:user.avatar,
-			// 		online:body.status
-			// 	});
-	  //   	},function(){
-
-	  //   	})
-		}catch(err){
-			return next(err)
-		}
-	}
-
-
-
-
-
 	//更新用户头像
 	async updateAvatar(req,res,next){
 		const userId = req.userInfo._id;
@@ -471,21 +418,15 @@ export default class UserObj extends UploadComponent{
 	            		isAdmin:user.isAdmin
 	            	})));
 	            	req.session["Admin"] = user;
-
-	            	RongIMLib.getToken(user._id,user.username,user.avatar).then(function(body){
-	            		res.retSuccess({
-							token,
-							userInfo:{
-								role:'测试',
-								username:user.username,
-								avatar:user.avatar,
-								_id:user._id
-							},
-							ryToken:body.token
-						});
-	            	},function(){
-
-	            	})
+	            	res.retSuccess({
+						token,
+						userInfo:{
+							role:'测试',
+							username:user.username,
+							avatar:user.avatar,
+							_id:user._id
+						},
+					});
 	            }else{
 	            	res.retError('密码不正确！')
 	            }

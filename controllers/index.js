@@ -8,6 +8,10 @@ import FileController from './site/file.controller'
 import UserController from './user/user.controller'
 import permissionController from './permission/permission.controller'
 import graphController from './graph/graph.controller'
+import ChatController from './chat/chat.controller'
+
+
+
 
 export const ArticleCtrl = new ArticleController();
 export const CategoryCtrl = new CategoryController();
@@ -19,4 +23,6 @@ export const UserCtrl = new UserController();
 export const FileCtrl = new FileController();
 export const permissionCtrl = new permissionController();
 export const graphCtrl = new graphController();
+export const ChatCtrl = new ChatController();
+
 
