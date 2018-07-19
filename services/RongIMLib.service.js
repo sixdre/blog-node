@@ -36,10 +36,14 @@ function sendRequest(url,body){
 	        headers: greateHeader(),
 	        body: body
 	    }, function(error, response, body) {
-	        if (!error && response.statusCode == 200) {
+	    	console.log(body)
+	        if (!error && response.statusCode == 200&&JSON.parse(body).code=='200') {
 	        	resolve(JSON.parse(body))
 	        }else{
-	        	reject(error)
+	        	reject({
+	        		code:JSON.parse(body).code,
+	        		errorMessage:JSON.parse(body).errorMessage
+	        	})
 	        }
 	    });
 	})

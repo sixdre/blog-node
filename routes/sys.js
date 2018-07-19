@@ -29,7 +29,8 @@ router.post('/login',UserCtrl.admin_login);
 router.post('/regist',UserCtrl.admin_regist);
 
 
-
+//搜索用户
+router.get('/users/search',UserCtrl.serachUser);
 
 
 

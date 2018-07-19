@@ -21,8 +21,11 @@ export default class Chat {
 	    			avatar:user.avatar,
 	    			email:user.email
 				});
-	    	},function(){
-
+	    	},function(err){
+	    		res.retError({
+	    			code:err.code,
+	    			message:err.errorMessage
+				});
 	    	})
 		}catch(err){
 			return next(err)

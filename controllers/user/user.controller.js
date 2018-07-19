@@ -558,9 +558,29 @@ export default class UserObj extends UploadComponent{
 	}
 
 
-	
-	
-	
+	async serachUser(req,res,next){
+		let {username} = req.query;
+		try{
+			if(!username.length){
+				res.retSuccess({
+					data:[]
+				});
+				return;
+			}
+			let query = {
+				username:{
+					'$regex': username
+				}
+			}
+			let users = await UserModel.find(query);
+			res.retSuccess({
+				data:users
+			});
+
+		}catch(err){
+			return next(err);
+		}
+	}
 }
 
 
