@@ -12,6 +12,13 @@ import Role from './permission/role.model'
 import File from './file.model'
 import Banner from './banner.model'
 
+import Message from './message/message.model'
+import Socket from './socket/socket.model'
+
+
+export const MessageModel = Message;
+export const SocketModel = Socket;
+
 
 export const ArticleModel = Article;
 export const BannerModel = Banner;

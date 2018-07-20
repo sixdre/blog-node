@@ -3,7 +3,7 @@
 import express  from 'express' 
 import {ArticleCtrl,CategoryCtrl,CommentCtrl,
 	TagCtrl,WordCtrl,FriendCtrl,
-	UserCtrl,FileCtrl,permissionCtrl,graphCtrl,ChatCtrl} from '../controllers'
+	UserCtrl,FileCtrl,permissionCtrl,graphCtrl} from '../controllers'
 import Auth from '../middleware/auth'
 import upload from '../middleware/upload'
 const router = express.Router();
@@ -54,14 +54,6 @@ router.put('/users/:id/follow', Auth.checkToken,UserCtrl.toggleFollow)
 router.post('/login',UserCtrl.login);
 //前台注册
 router.post('/regist',UserCtrl.regist);
-
-
-//获取聊天室用户融云信息
-router.get('/chat/:userId/info', ChatCtrl.getChatUserInfo)
-//获取当前聊天室用户融云token
-router.get('/chat/userToken',Auth.checkToken, ChatCtrl.getRongToken)
-
-
 
 
 

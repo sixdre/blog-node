@@ -1,6 +1,10 @@
 "use strict";
 import socketIo from 'socket.io'
 import _  from 'underscore'
+import ChatController  from './controllers/chat/chat.controller'
+
+const Chat = new ChatController()
+
 module.exports =  function(app){
 	global.io = socketIo(app);
 	var hashName = {};
@@ -26,6 +30,27 @@ module.exports =  function(app){
 	io.on('connection', function (socket) {
 	    console.log('connection succed!');
 	    broadcast();
+	    socket.user = '5ae449a30b382d220c3042ee'
+	    
+	    socket.on('sendMessage',async function(data,fn){
+	    	try{
+	    		let body = await Chat.sendMessage(data,socket);
+	    		fn(null,body)
+	    	}catch(err){
+	    		console.log(err)
+	    		fn({
+	    			code:0,
+	    			message:'错误'
+	    		})
+	    	}
+	    })
+
+
+
+
+
+
+
 
 	    socket.on('setName', function (data) {
 	    	console.log(data)

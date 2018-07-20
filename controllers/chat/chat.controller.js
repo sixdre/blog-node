@@ -2,11 +2,83 @@
  * 用户控制器
  */
 "use strict";
-import {UserModel} from '../../models/'
+import assert from 'assert'
+import validator from 'validator'
+import {UserModel,MessageModel,SocketModel} from '../../models/'
 import * as RongIMLib from '../../services/RongIMLib.service'
 
 
 export default class Chat {
+
+	//发送消息
+	async sendMessage(data,socket){
+		const { to, type, content } = data;
+		let messageContent = content;
+		assert(to,'to参数不得为空')
+		
+        if (type === 'Text') {
+        	assert(messageContent.length <= 2048,'消息长度过长')
+        }
+        let newMessage;
+        let user;
+        try{
+        	user = await UserModel.findById(to).select('username avatar');
+        	newMessage = await MessageModel.create({
+        		from: socket.user,
+                to,
+                type,
+                content: messageContent,
+        	})
+        }catch(err){
+        	throw err;
+        }
+
+        const messageData = {
+            _id: newMessage._id,
+            createTime: newMessage.createTime,
+            from: user.toObject(),
+            to,
+            type,
+            content: messageContent,
+            user:socket.user
+        };
+
+        return messageData;
+
+	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	//获取融云token
 	async getRongToken(req,res,next){

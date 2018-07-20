@@ -2,6 +2,7 @@
 import apiRouter from './api'
 import sysRouter from './sys'
 import adminRouter from './admin'
+import chatRouter from './chat'
 import ue from './ue' 
 
 export default app => {
@@ -20,5 +21,6 @@ export default app => {
 	app.use('/admin',adminRouter)
 	app.use('/api',apiRouter);
 	app.use('/sys',sysRouter);
+	app.use('/chat',chatRouter);
 //	app.all('/api/*',Auth.checkAdmin);
 }
