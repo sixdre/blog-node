@@ -2,6 +2,8 @@
  * 用户控制器
  */
 "use strict";
+import moment from 'moment'
+import _ from 'underscore'
 import assert from 'assert'
 import jwt  from  "jsonwebtoken"
 import validator from 'validator'
@@ -17,8 +19,10 @@ function formatMessages(messages,from){
 	let list = messages.map(function(message){
 		return {
 			_id:message.id,
-			sendTime:message.createTime,
+            createTime:message.createTime,
+			sendTime:moment(message.createTime).format('YYYY-MM-DD HH:mm:ss'),
 			senderUserId:message.from._id,
+            type:message.type,
 			sender:{
             	username:message.from.username,
             	avatar:message.from.avatar
@@ -36,9 +40,31 @@ function formatMessages(messages,from){
 
 
 export default class Chat {
+    constructor(socket) {
+        this.socket = socket
+    }
 
 
-	async loginByToken(data,socket){
+    async createSocket(data){
+        var socket = this.socket;
+        await SocketModel.create({
+            id: socket.id
+        });
+    }
+
+    async removeSocket(data){
+        var socket = this.socket;
+        await SocketModel.remove({
+            id: socket.id,
+        });
+    }
+   
+
+
+
+
+
+	async loginByToken(data){
 		const {
             token, os, browser, environment,
         } = data;
@@ -53,8 +79,14 @@ export default class Chat {
         assert(Date.now()/1000 < payload.exp, 'token已过期');
         const user = await UserModel.findOne({ _id: payload._id }, { _id: 1, avatar: 1, username: 1 });
         assert(user, '用户不存在');
-        socket.user = user._id;
+        this.socket.user = user._id;
 
+        await SocketModel.update({ id: this.socket.id }, {
+            user: user._id,
+            os,
+            browser,
+            environment,
+        });
         return {
             _id: user._id,
             avatar: user.avatar,
@@ -66,8 +98,9 @@ export default class Chat {
 
 
 	//发送消息
-	async sendMessage(data,socket){
+	async sendMessage(data){
 		const { to, type, content } = data;
+        const socket = this.socket;
 		let messageContent = content;
 		assert(to,'to参数不得为空')
 		
@@ -77,6 +110,7 @@ export default class Chat {
         let newMessage;
         let user;
         let socketUser;
+        let messageData;
         try{
         	socketUser = await UserModel.findById(socket.user).select('username avatar');
         	user = await UserModel.findById(to).select('username avatar');
@@ -86,51 +120,69 @@ export default class Chat {
                 type,
                 content: messageContent,
         	})
+            messageData = {
+                _id: newMessage._id,
+                type,
+                sendTime:moment(newMessage.createTime).format('YYYY-MM-DD HH:mm:ss'),
+                senderUserId:socket.user,
+                sender:{
+                    username:socketUser.username,
+                    avatar:socketUser.avatar
+                },
+                target:{
+                    username:user.username,
+                    avatar:user.avatar
+                },
+                messageDirection:1,
+                content:messageContent
+            };
+            const sockets = await SocketModel.find({ user: user._id });
+            sockets.forEach((item) => {
+                global.io.to(item.id).emit('receiveMessage',{
+                    ...messageData,
+                    messageDirection:2
+                });
+            });
         }catch(err){
         	throw err;
         }
 
-        const messageData = {
-            _id: newMessage._id,
-            type,
-            sendTime: newMessage.createTime,
-            senderUserId:socket.user,
-            sender:{
-            	username:socketUser.username,
-            	avatar:socketUser.avatar
-            },
-            target:{
-            	username:user.username,
-            	avatar:user.avatar
-            },
-            messageDirection:1,
-            content:messageContent
-        };
-
         return messageData;
-
 	}
 
 	//获取与某一用户的历史消息记录
-	async getHistoryMessagesByTarget(data,socket) {
+	async getHistoryMessagesByTarget(data) {
         const {type, targetId, limit=20,timestrap } = data;
+        const socket = this.socket;
         const from = socket.user;
 
         let messages;
+        let messages1;
+        let messages2;
         try{
-        	messages = await MessageModel
+        	messages1 = await MessageModel
             .find(
                 { to: targetId,from:from },
                 { type: 1, content: 1, from: 1, createTime: 1 },
-                { sort: { createTime: -1 }, limit: EachFetchMessagesCount + limit },
+                { sort: { createTime: 1 }},
             )
             .populate('from', { username: 1, avatar: 1 });
+
+            messages2 = await MessageModel
+            .find(
+                { to: from,from:targetId },
+                { type: 1, content: 1, from: 1, createTime: 1 },
+                { sort: { createTime: 1 }},
+            )
+            .populate('from', { username: 1, avatar: 1 });
+            messages = [...messages1,...messages2]
         }catch(err){
         	throw err;
         }
-        const result = formatMessages(messages,from);
-        // const result = messages.slice(limit).reverse();
-        // console.log(result)
+        const result = _.sortBy(formatMessages(messages,from), function(item) {
+          return item.createTime;
+        });
+       
         return result;
     }
 

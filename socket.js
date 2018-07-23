@@ -3,7 +3,7 @@ import socketIo from 'socket.io'
 import _  from 'underscore'
 import ChatController  from './controllers/chat/chat.controller'
 
-const Chat = new ChatController()
+
 
 module.exports =  function(app){
 	global.io = socketIo(app);
@@ -32,10 +32,13 @@ module.exports =  function(app){
 	    broadcast();
 
 
+	    const Chat = new ChatController(socket)
+
+	 	Chat.createSocket({})
 
 	    socket.on('login',async function(data,fn){
 	    	try{
-	    		let body = await Chat.loginByToken(data,socket);
+	    		let body = await Chat.loginByToken(data);
 	    		fn(null,body)
 	    	}catch(err){
 	    		console.log(err)
@@ -49,7 +52,7 @@ module.exports =  function(app){
 
 	    socket.on('sendMessage',async function(data,fn){
 	    	try{
-	    		let body = await Chat.sendMessage(data,socket);
+	    		let body = await Chat.sendMessage(data);
 	    		fn(null,body)
 	    	}catch(err){
 	    		console.log(err)
@@ -62,7 +65,7 @@ module.exports =  function(app){
 
 	    socket.on('getHistoryMessages',async function(data,fn){
 	    	try{
-	    		let body = await Chat.getHistoryMessagesByTarget(data,socket);
+	    		let body = await Chat.getHistoryMessagesByTarget(data);
 	    		fn(null,body)
 	    	}catch(err){
 	    		console.log(err)
@@ -109,6 +112,8 @@ module.exports =  function(app){
 	    
 	    socket.on('disconnect', function () {
 	        console.log('connection is disconnect!');
+
+	        Chat.removeSocket({})
 	    });
 	});
 }
