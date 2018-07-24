@@ -7,6 +7,9 @@ import ChatController  from './controllers/chat/chat.controller'
 
 module.exports =  function(app){
 	global.io = socketIo(app);
+
+	var onlineUsers = [];
+
 	var hashName = {};
 	
 

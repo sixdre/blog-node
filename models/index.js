@@ -12,9 +12,9 @@ import Role from './permission/role.model'
 import File from './file.model'
 import Banner from './banner.model'
 
-import Message from './message/message.model'
-import Socket from './socket/socket.model'
-import Conversation from './conversation/conversation.model'
+import Message from './chat/message.model'
+import Socket from './chat/socket.model'
+import Conversation from './chat/conversation.model'
 
 export const MessageModel = Message;
 export const SocketModel = Socket;

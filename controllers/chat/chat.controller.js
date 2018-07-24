@@ -12,7 +12,6 @@ import * as RongIMLib from '../../services/RongIMLib.service'
 import config from '../../config/config'
 
 const secret = config.secret;
-const EachFetchMessagesCount = 30;
 var fetchPage = 0;
 
 function formatMessages(messages,from){
@@ -72,7 +71,6 @@ export default class Chat {
         let payload = null;
         try {
             payload = jwt.decode(token, secret);
-            console.log(payload.exp)
         } catch (err) {
             return '非法token';
         }
@@ -178,13 +176,18 @@ export default class Chat {
         let conversationList = []
         try{
             let conversation = await ConversationModel.findOne({from:socket.user}).populate('links','username avatar')
-            // let lastMessage = await MessageModel.find()
+            let sockets = global.io.sockets.sockets;
+
             let pro = conversation.links.map(function(item){
                 return new Promise(async function(resolve,reject){
+                    let online = Object.values(sockets).find(function(soc){
+                        return String(soc.user) == String(item._id);
+                    })
                     let unreadMessageCount = await MessageModel.find({from:item._id,to:socket.user,readStatus:0}).count();
                     let latestMessages = await MessageModel.find({from:item._id,to:socket.user}).sort({'createTime':-1})
                                             .limit(1).populate('from', { username: 1, avatar: 1 });
                     resolve({
+                        online:online?1:0,
                         userId:item._id,
                         username:item.username,
                         avatar:item.avatar,
@@ -195,14 +198,14 @@ export default class Chat {
                 })
             });
             conversationList = await Promise.all(pro)
+            conversationList = _.sortBy(conversationList,function(con){
+                return -con.online; 
+            });
         }catch(err){
             throw err;
         }
         return conversationList;
     }
-
-
-
 
     //清除消息会话未读数
     async clearUnreadCount(data){
@@ -215,13 +218,6 @@ export default class Chat {
         }
         return true;
     }
-
-
-
-
-
-
-
 
 	//获取与某一用户的历史消息记录
 	async getPrivateHistoryMessages(data) {
@@ -249,8 +245,6 @@ export default class Chat {
         const result = _.sortBy(formatMessages(messages,from), function(item) {
           return item.createTime;
         });
-        
-        console.log(result,hasMore)
         return {
             hasMore,
             list:result
