@@ -16,6 +16,10 @@ const MessageSchema = new Schema({
         enum: ['Text', 'Image', 'Code','File'],
         default: 'Text',
     },
+    readStatus:{
+        type:Number,
+        default:0    //0 未读 1 已读
+    },
     content: {
         type: String,
         default: '',

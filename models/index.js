@@ -14,11 +14,11 @@ import Banner from './banner.model'
 
 import Message from './message/message.model'
 import Socket from './socket/socket.model'
-
+import Conversation from './conversation/conversation.model'
 
 export const MessageModel = Message;
 export const SocketModel = Socket;
-
+export const ConversationModel = Conversation;
 
 export const ArticleModel = Article;
 export const BannerModel = Banner;

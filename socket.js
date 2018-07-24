@@ -65,7 +65,20 @@ module.exports =  function(app){
 
 	    socket.on('getHistoryMessages',async function(data,fn){
 	    	try{
-	    		let body = await Chat.getHistoryMessagesByTarget(data);
+	    		let body = await Chat.getPrivateHistoryMessages(data);
+	    		fn(null,body)
+	    	}catch(err){
+	    		console.log(err)
+	    		fn({
+	    			code:0,
+	    			message:'错误'
+	    		})
+	    	}
+	    })
+
+	    socket.on('getConversationList',async function(fn){
+	    	try{
+	    		let body = await Chat.getConversationList();
 	    		fn(null,body)
 	    	}catch(err){
 	    		console.log(err)
@@ -77,9 +90,18 @@ module.exports =  function(app){
 	    })
 
 
-
-
-
+	    socket.on('clearUnreadCount',async function(data,fn){
+	    	try{
+	    		let body = await Chat.clearUnreadCount(data);
+	    		fn&&fn(null,body)
+	    	}catch(err){
+	    		console.log(err)
+	    		fn&&fn({
+	    			code:0,
+	    			message:'错误'
+	    		})
+	    	}
+	    })
 
 
 

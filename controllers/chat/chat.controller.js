@@ -7,13 +7,13 @@ import _ from 'underscore'
 import assert from 'assert'
 import jwt  from  "jsonwebtoken"
 import validator from 'validator'
-import {UserModel,MessageModel,SocketModel} from '../../models/'
+import {UserModel,MessageModel,SocketModel,ConversationModel} from '../../models/'
 import * as RongIMLib from '../../services/RongIMLib.service'
 import config from '../../config/config'
 
 const secret = config.secret;
 const EachFetchMessagesCount = 30;
-
+var fetchPage = 0;
 
 function formatMessages(messages,from){
 	let list = messages.map(function(message){
@@ -120,6 +120,27 @@ export default class Chat {
                 type,
                 content: messageContent,
         	})
+            
+            let conversationFrom = await ConversationModel.find({from:socket.user});
+            let conversationTo = await ConversationModel.find({from:to});
+            if(!conversationFrom.length){
+                ConversationModel.create({
+                    from:socket.user,
+                    links:[to]
+                })
+            }else{
+                await ConversationModel.update({from:socket.user},{'$addToSet': { 'links': to }});
+            }
+
+            if(!conversationTo.length){
+                ConversationModel.create({
+                    from:to,
+                    links:[socket.user]
+                })
+            }else{
+                await ConversationModel.update({from:to},{'$addToSet': { 'links':socket.user }});
+            }
+
             messageData = {
                 _id: newMessage._id,
                 type,
@@ -150,40 +171,90 @@ export default class Chat {
         return messageData;
 	}
 
+
+    //获取会话列表
+    async getConversationList(){
+        const socket = this.socket;
+        let conversationList = []
+        try{
+            let conversation = await ConversationModel.findOne({from:socket.user}).populate('links','username avatar')
+            // let lastMessage = await MessageModel.find()
+            let pro = conversation.links.map(function(item){
+                return new Promise(async function(resolve,reject){
+                    let unreadMessageCount = await MessageModel.find({from:item._id,to:socket.user,readStatus:0}).count();
+                    let latestMessages = await MessageModel.find({from:item._id,to:socket.user}).sort({'createTime':-1})
+                                            .limit(1).populate('from', { username: 1, avatar: 1 });
+                    resolve({
+                        userId:item._id,
+                        username:item.username,
+                        avatar:item.avatar,
+                        _id:item._id,
+                        latestMessage:formatMessages(latestMessages,item._id)[0],
+                        unreadMessageCount
+                    })
+                })
+            });
+            conversationList = await Promise.all(pro)
+        }catch(err){
+            throw err;
+        }
+        return conversationList;
+    }
+
+
+
+
+    //清除消息会话未读数
+    async clearUnreadCount(data){
+        const {targetId} = data;
+        const socket = this.socket;
+        try{
+            await MessageModel.update({from:targetId,to:socket.user},{readStatus:1},{ multi: true })
+        }catch(err){
+            throw err;
+        }
+        return true;
+    }
+
+
+
+
+
+
+
+
 	//获取与某一用户的历史消息记录
-	async getHistoryMessagesByTarget(data) {
-        const {type, targetId, limit=20,timestrap } = data;
+	async getPrivateHistoryMessages(data) {
+        const {type, targetId,page=1, limit=20,timestrap } = data;
         const socket = this.socket;
         const from = socket.user;
-
+        let hasMore = true;
         let messages;
-        let messages1;
-        let messages2;
         try{
-        	messages1 = await MessageModel
+           messages = await MessageModel
             .find(
-                { to: targetId,from:from },
+                { to: {'$in':[targetId,from]},from:{'$in':[targetId,from]} },
                 { type: 1, content: 1, from: 1, createTime: 1 },
-                { sort: { createTime: 1 }},
-            )
+                { sort: { createTime: -1 }},
+            ).skip((Number(page)-1)*limit).limit(limit)
             .populate('from', { username: 1, avatar: 1 });
-
-            messages2 = await MessageModel
-            .find(
-                { to: from,from:targetId },
-                { type: 1, content: 1, from: 1, createTime: 1 },
-                { sort: { createTime: 1 }},
-            )
-            .populate('from', { username: 1, avatar: 1 });
-            messages = [...messages1,...messages2]
+            if(!messages.length){
+                hasMore = false;
+            }else{
+                hasMore = true;
+            }
         }catch(err){
         	throw err;
         }
         const result = _.sortBy(formatMessages(messages,from), function(item) {
           return item.createTime;
         });
-       
-        return result;
+        
+        console.log(result,hasMore)
+        return {
+            hasMore,
+            list:result
+        };
     }
 
 
