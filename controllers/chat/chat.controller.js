@@ -12,7 +12,12 @@ import * as RongIMLib from '../../services/RongIMLib.service'
 import config from '../../config/config'
 
 const secret = config.secret;
-var fetchPage = 0;
+
+const ConversationType = {
+    PRIVATE:1,      //私聊
+    GROUP:2    //群组
+};
+
 
 function formatMessages(messages,from){
 	let list = messages.map(function(message){
@@ -61,10 +66,7 @@ export default class Chat {
     }
    
 
-
-
-
-
+    //token 登录
 	async loginByToken(data){
         var onlineUsers = this.onlineUsers;
 		const {
@@ -119,8 +121,6 @@ export default class Chat {
         })
     }
 
-
-
     //用户离线
     async offline(){
         const socket = this.socket;
@@ -139,7 +139,7 @@ export default class Chat {
 
 	//发送消息
 	async sendMessage(data){
-		const { to, type, content,conversationType = 'private' } = data;
+		const { to, type, content,conversationType = 1 } = data;
         const socket = this.socket;
 		let messageContent = content;
 		assert(to,'to参数不得为空')
@@ -154,7 +154,7 @@ export default class Chat {
         let messageData;
         try{
         	socketUser = await UserModel.findById(socket.user).select('username avatar');
-            if(conversationType == 'private'){           //私聊
+            if(conversationType == ConversationType.PRIVATE){           //私聊
                 user = await UserModel.findById(to).select('username avatar');
                 newMessage = await MessageModel.create({
                     from: socket.user,
@@ -210,7 +210,7 @@ export default class Chat {
                     });
                 });
 
-            }else if(conversationType == 'group'){
+            }else if(conversationType == ConversationType.GROUP){
                 assert(validator.isMongoId(to),'群组ID参数错误')
                 let group = await GroupModel.findOne({ _id: to });
                 assert(group, '群组不存在');
@@ -299,25 +299,26 @@ export default class Chat {
 
 	//获取历史消息记录
 	async getHistoryMessages(data) {
-        const {type, targetId,page=1,conversationType="private", limit=20,timestrap } = data;
+        const {type, targetId,page=1,conversationType=1, limit=20,timestrap } = data;
         const socket = this.socket;
         const from = socket.user;
         let hasMore = true;
         let messages;
         try{
             let query = {};
-            if(conversationType=='private'){
+            if(conversationType==ConversationType.PRIVATE){
                 query = { to: {'$in':[targetId,from]},from:{'$in':[targetId,from]} }
                
-            }else if(conversationType=='group'){
+            }else if(conversationType==ConversationType.GROUP){
                 query = { to: targetId}
             }
+            let count = await MessageModel.count(query);
             messages = await MessageModel.find(query,
                             { type: 1, content: 1, from: 1, createTime: 1 },
                             { sort: { createTime: -1 }},
                         ).skip((Number(page)-1)*limit).limit(limit).populate('from', { username: 1, avatar: 1 });
 
-            if(!messages.length){
+            if(count<(Number(page)*limit)){
                 hasMore = false;
             }else{
                 hasMore = true;

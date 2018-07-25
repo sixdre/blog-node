@@ -153,8 +153,8 @@ export default class UserObj extends UploadComponent{
 	}
 
 	async getList(req,res,next){
-		let {skip=0,limit=0} = req.query;
-		skip = parseInt(skip);
+		let {page=1,limit=20} = req.query;
+		let skip = parseInt(Number(page-1)*limit);
 		limit = parseInt(limit);
 		try{
 			const total = await	UserModel.count();
