@@ -8,7 +8,7 @@ import ChatController  from './controllers/chat/chat.controller'
 module.exports =  function(app){
 	global.io = socketIo(app);
 
-	var onlineUsers = [];
+	var onlineUsers = {};
 
 	var hashName = {};
 	
@@ -32,16 +32,26 @@ module.exports =  function(app){
 
 	io.on('connection', function (socket) {
 	    console.log('connection succed!');
-	    broadcast();
+
+	    var refresh_online = function () {
+			var n = [];
+			for (var i in onlineUsers){
+				n.push(i);
+			}
+			socket.broadcast.emit('online list', n);
+			// socket.emit('online list', n);
+		}
 
 
-	    const Chat = new ChatController(socket)
+
+	    const Chat = new ChatController(socket,onlineUsers)
 
 	 	Chat.createSocket({})
 
 	    socket.on('login',async function(data,fn){
 	    	try{
 	    		let body = await Chat.loginByToken(data);
+	    				await Chat.online();
 	    		fn(null,body)
 	    	}catch(err){
 	    		console.log(err)
@@ -138,6 +148,8 @@ module.exports =  function(app){
 	    socket.on('disconnect', function () {
 	        console.log('connection is disconnect!');
 
+	        Chat.offline();
+	        
 	        Chat.removeSocket({})
 	    });
 	});

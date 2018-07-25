@@ -38,9 +38,11 @@ function formatMessages(messages,from){
 
 
 
+
 export default class Chat {
-    constructor(socket) {
+    constructor(socket,onlineUsers) {
         this.socket = socket
+        this.onlineUsers = onlineUsers
     }
 
 
@@ -64,6 +66,7 @@ export default class Chat {
 
 
 	async loginByToken(data){
+        var onlineUsers = this.onlineUsers;
 		const {
             token, os, browser, environment,
         } = data;
@@ -77,7 +80,7 @@ export default class Chat {
         assert(Date.now()/1000 < payload.exp, 'token已过期');
         const user = await UserModel.findOne({ _id: payload._id }, { _id: 1, avatar: 1, username: 1 });
         assert(user, '用户不存在');
-        this.socket.user = user._id;
+        this.socket.user = String(user._id);
 
         await SocketModel.update({ id: this.socket.id }, {
             user: user._id,
@@ -93,6 +96,46 @@ export default class Chat {
             friends:[],
         };
 	}
+
+
+    //用户在线
+    async online(){
+        var onlineUsers = this.onlineUsers;
+        const socket = this.socket;
+        onlineUsers[socket.user] = socket.id;
+
+        let conversations = await ConversationModel.find({ 'links': { '$in': [socket.user] }});
+        conversations.forEach(function(con){
+            let socketId = onlineUsers[String(con.from)];
+            if(socketId){
+                global.io.to(socketId).emit('online',socket.user);
+            }
+        })
+    }
+
+
+
+    //用户离线
+    async offline(){
+        const socket = this.socket;
+        var onlineUsers = this.onlineUsers;
+
+        let conversations = await ConversationModel.find({ 'links': { '$in': [socket.user] }});
+        conversations.forEach(function(con){
+            let socketId = onlineUsers[String(con.from)];
+            if(socketId){
+                global.io.to(socketId).emit('offline',socket.user);
+            }
+        })
+        delete onlineUsers[socket.user];
+    }
+
+
+
+
+
+
+
 
 
 	//发送消息
@@ -155,9 +198,14 @@ export default class Chat {
                 messageDirection:1,
                 content:messageContent
             };
-            const sockets = await SocketModel.find({ user: user._id });
+            var sockets = []
+            for(var key in this.onlineUsers){
+                if(key==String(user._id)){
+                    sockets.push(this.onlineUsers[key])
+                }
+            }
             sockets.forEach((item) => {
-                global.io.to(item.id).emit('receiveMessage',{
+                global.io.to(item).emit('receiveMessage',{
                     ...messageData,
                     messageDirection:2
                 });
@@ -198,9 +246,9 @@ export default class Chat {
                 })
             });
             conversationList = await Promise.all(pro)
-            conversationList = _.sortBy(conversationList,function(con){
-                return -con.online; 
-            });
+            // conversationList = _.sortBy(conversationList,function(con){
+            //     return -con.online; 
+            // });
         }catch(err){
             throw err;
         }
