@@ -15,10 +15,16 @@ import Banner from './banner.model'
 import Message from './chat/message.model'
 import Socket from './chat/socket.model'
 import Conversation from './chat/conversation.model'
+import Group from './chat/group.model'
+
 
 export const MessageModel = Message;
 export const SocketModel = Socket;
 export const ConversationModel = Conversation;
+export const GroupModel = Group;
+
+
+
 
 export const ArticleModel = Article;
 export const BannerModel = Banner;

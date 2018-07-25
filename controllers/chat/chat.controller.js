@@ -7,7 +7,7 @@ import _ from 'underscore'
 import assert from 'assert'
 import jwt  from  "jsonwebtoken"
 import validator from 'validator'
-import {UserModel,MessageModel,SocketModel,ConversationModel} from '../../models/'
+import {UserModel,MessageModel,SocketModel,ConversationModel,GroupModel} from '../../models/'
 import * as RongIMLib from '../../services/RongIMLib.service'
 import config from '../../config/config'
 
@@ -82,6 +82,12 @@ export default class Chat {
         assert(user, '用户不存在');
         this.socket.user = String(user._id);
 
+        const groups = await GroupModel.find({ members: user }, { _id: 1, name: 1, avatar: 1, creator: 1, createTime: 1 });
+        groups.forEach((group) => {
+            this.socket.join(group._id);
+            return group;
+        });
+
         await SocketModel.update({ id: this.socket.id }, {
             user: user._id,
             os,
@@ -131,16 +137,9 @@ export default class Chat {
     }
 
 
-
-
-
-
-
-
-
 	//发送消息
 	async sendMessage(data){
-		const { to, type, content } = data;
+		const { to, type, content,conversationType = 'private' } = data;
         const socket = this.socket;
 		let messageContent = content;
 		assert(to,'to参数不得为空')
@@ -148,68 +147,99 @@ export default class Chat {
         if (type === 'Text') {
         	assert(messageContent.length <= 2048,'消息长度过长')
         }
+
         let newMessage;
         let user;
         let socketUser;
         let messageData;
         try{
         	socketUser = await UserModel.findById(socket.user).select('username avatar');
-        	user = await UserModel.findById(to).select('username avatar');
-        	newMessage = await MessageModel.create({
-        		from: socket.user,
-                to,
-                type,
-                content: messageContent,
-        	})
-            
-            let conversationFrom = await ConversationModel.find({from:socket.user});
-            let conversationTo = await ConversationModel.find({from:to});
-            if(!conversationFrom.length){
-                ConversationModel.create({
-                    from:socket.user,
-                    links:[to]
+            if(conversationType == 'private'){           //私聊
+                user = await UserModel.findById(to).select('username avatar');
+                newMessage = await MessageModel.create({
+                    from: socket.user,
+                    to,
+                    type,
+                    content: messageContent,
                 })
-            }else{
-                await ConversationModel.update({from:socket.user},{'$addToSet': { 'links': to }});
-            }
-
-            if(!conversationTo.length){
-                ConversationModel.create({
-                    from:to,
-                    links:[socket.user]
-                })
-            }else{
-                await ConversationModel.update({from:to},{'$addToSet': { 'links':socket.user }});
-            }
-
-            messageData = {
-                _id: newMessage._id,
-                type,
-                sendTime:moment(newMessage.createTime).format('YYYY-MM-DD HH:mm:ss'),
-                senderUserId:socket.user,
-                sender:{
-                    username:socketUser.username,
-                    avatar:socketUser.avatar
-                },
-                target:{
-                    username:user.username,
-                    avatar:user.avatar
-                },
-                messageDirection:1,
-                content:messageContent
-            };
-            var sockets = []
-            for(var key in this.onlineUsers){
-                if(key==String(user._id)){
-                    sockets.push(this.onlineUsers[key])
+                
+                let conversationFrom = await ConversationModel.find({from:socket.user});
+                let conversationTo = await ConversationModel.find({from:to});
+                if(!conversationFrom.length){
+                    ConversationModel.create({
+                        from:socket.user,
+                        links:[to]
+                    })
+                }else{
+                    await ConversationModel.update({from:socket.user},{'$addToSet': { 'links': to }});
                 }
-            }
-            sockets.forEach((item) => {
-                global.io.to(item).emit('receiveMessage',{
+
+                if(!conversationTo.length){
+                    ConversationModel.create({
+                        from:to,
+                        links:[socket.user]
+                    })
+                }else{
+                    await ConversationModel.update({from:to},{'$addToSet': { 'links':socket.user }});
+                }
+
+                messageData =  {
+                    _id: newMessage._id,
+                    createTime:newMessage.createTime,
+                    type,
+                    sendTime:moment(newMessage.createTime).format('YYYY-MM-DD HH:mm:ss'),
+                    senderUserId:socket.user,
+                    sender:{
+                        username:socketUser.username,
+                        avatar:socketUser.avatar
+                    },
+                    target:to,
+                    messageDirection:1,
+                    content:messageContent
+                };
+                var sockets = []
+                for(var key in this.onlineUsers){
+                    if(key==String(user._id)){
+                        sockets.push(this.onlineUsers[key])
+                    }
+                }
+                sockets.forEach((item) => {
+                    global.io.to(item).emit('receiveMessage',{
+                        ...messageData,
+                        messageDirection:2
+                    });
+                });
+
+            }else if(conversationType == 'group'){
+                assert(validator.isMongoId(to),'群组ID参数错误')
+                let group = await GroupModel.findOne({ _id: to });
+                assert(group, '群组不存在');
+                newMessage = await MessageModel.create({
+                    from: socket.user,
+                    to,
+                    type,
+                    content: messageContent,
+                })
+                messageData = {
+                    _id: newMessage._id,
+                    createTime:newMessage.createTime,
+                    type,
+                    sendTime:moment(newMessage.createTime).format('YYYY-MM-DD HH:mm:ss'),
+                    senderUserId:socket.user,
+                    sender:{
+                        username:socketUser.username,
+                        avatar:socketUser.avatar
+                    },
+                    target:to,
+                    messageDirection:1,
+                    content:messageContent
+                };
+                socket.to(to).emit('receiveMessage', {
                     ...messageData,
                     messageDirection:2
                 });
-            });
+            }
+
         }catch(err){
         	throw err;
         }
@@ -267,21 +297,26 @@ export default class Chat {
         return true;
     }
 
-	//获取与某一用户的历史消息记录
-	async getPrivateHistoryMessages(data) {
-        const {type, targetId,page=1, limit=20,timestrap } = data;
+	//获取历史消息记录
+	async getHistoryMessages(data) {
+        const {type, targetId,page=1,conversationType="private", limit=20,timestrap } = data;
         const socket = this.socket;
         const from = socket.user;
         let hasMore = true;
         let messages;
         try{
-           messages = await MessageModel
-            .find(
-                { to: {'$in':[targetId,from]},from:{'$in':[targetId,from]} },
-                { type: 1, content: 1, from: 1, createTime: 1 },
-                { sort: { createTime: -1 }},
-            ).skip((Number(page)-1)*limit).limit(limit)
-            .populate('from', { username: 1, avatar: 1 });
+            let query = {};
+            if(conversationType=='private'){
+                query = { to: {'$in':[targetId,from]},from:{'$in':[targetId,from]} }
+               
+            }else if(conversationType=='group'){
+                query = { to: targetId}
+            }
+            messages = await MessageModel.find(query,
+                            { type: 1, content: 1, from: 1, createTime: 1 },
+                            { sort: { createTime: -1 }},
+                        ).skip((Number(page)-1)*limit).limit(limit).populate('from', { username: 1, avatar: 1 });
+
             if(!messages.length){
                 hasMore = false;
             }else{
@@ -291,7 +326,7 @@ export default class Chat {
         	throw err;
         }
         const result = _.sortBy(formatMessages(messages,from), function(item) {
-          return item.createTime;
+            return item.createTime;
         });
         return {
             hasMore,

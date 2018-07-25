@@ -78,7 +78,7 @@ module.exports =  function(app){
 
 	    socket.on('getHistoryMessages',async function(data,fn){
 	    	try{
-	    		let body = await Chat.getPrivateHistoryMessages(data);
+	    		let body = await Chat.getHistoryMessages(data);
 	    		fn(null,body)
 	    	}catch(err){
 	    		console.log(err)
