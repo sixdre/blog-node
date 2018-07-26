@@ -142,6 +142,8 @@ export default class Chat {
 		const { to, type, content,conversationType = 1 } = data;
         const socket = this.socket;
 		let messageContent = content;
+
+        assert((String(to)!=String(socket.user)),'您不能与自己对话');
 		assert(to,'to参数不得为空')
 		
         if (type === 'Text') {
@@ -304,6 +306,9 @@ export default class Chat {
         const from = socket.user;
         let hasMore = true;
         let messages;
+
+        
+
         try{
             let query = {};
             if(conversationType==ConversationType.PRIVATE){
