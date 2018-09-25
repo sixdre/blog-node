@@ -1,4 +1,4 @@
-mport mongoose from 'mongoose'
+import mongoose from 'mongoose'
 import bcrypt from 'bcrypt'
 import validator from 'validator'
 import userData from '../../InitData/user'
