@@ -76,9 +76,13 @@ export default class ArticleObj extends UploadComponent {
                 endTime = new Date(endTime)
                 queryParams['create_time'] = { $gte: startTime, $lte: endTime }
             }
-            let results = await ArticleModel.getListToPage(queryParams, page, limit)
+            let results = await ArticleModel.getListToPage(queryParams, page, limit);
+            let topArticles = []
+            if(page==1){
+                topArticles = await ArticleModel.getList({...queryParams,'top':true}).sort({ "create_time": -1});
+            }
             res.retSuccess({
-                data: results.data,
+                data: [...topArticles,...results.data],
                 total: results.total,
                 limit: results.pageSize,
                 page: results.page

@@ -169,7 +169,8 @@ ArticleSchema.statics.getList = function(queryobj){
 ArticleSchema.statics.getListToPage = function(queryobj,page=1,pageSize=10){
 	let baseQuery = {
 		'is_private':false,	//非私有文章
-		'status':2	//有效的文章
+		'status':2,	//有效的文章
+		'top':'false'
 	}
 	if(queryobj.status&&queryobj.status==3){		//查询全部
         delete queryobj.status;
@@ -189,6 +190,7 @@ ArticleSchema.statics.getListToPage = function(queryobj,page=1,pageSize=10){
 			let data = await this.getList(params)
 							.skip(pageSize * (page-1)).limit(pageSize)
 							.sort({ "create_time": -1});
+							
 			resolve({
 				data,
 				total,
