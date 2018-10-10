@@ -21,7 +21,7 @@ export default class Chart{
 		
 		results.userCount = await UserModel.count(); //用户总数
 		results.commentCount = await CommentModel.count(); //评论总数
-		results.articleCount = await ArticleModel.count(); //文章总数
+		results.articleCount = await ArticleModel.count({'status':2}); //文章总数
 		
 		
 		res.json({
