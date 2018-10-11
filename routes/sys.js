@@ -34,6 +34,10 @@ router.get('/users/search',UserCtrl.serachUser);
 
 
 
+
+
+router.get('/files/graph',Auth.checkToken,Auth.checkAdmin, FileCtrl.graph);
+
 //上传文件
 router.post('/upload',Auth.checkToken,upload.any(),FileCtrl.uploadFile);
 

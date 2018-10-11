@@ -19,14 +19,53 @@ export default class FileObj extends UploadComponent{
 		this.uploadFile = this.uploadFile.bind(this)
 	}
 	
+	//统计
+	async graph(req,res,next){
+		let docSize = await FileModel.aggregate([{ $match : { filetype:{'$regex': 'application|text'} } },{$group:{_id:null,total: { $sum: "$filesize" }}}])
+		let mediaSize = await FileModel.aggregate([{ $match : { filetype:{'$regex': 'video|audio'} } },{$group:{_id:null,total: { $sum: "$filesize" }}}])
+		let imageSize = await FileModel.aggregate([{ $match : { filetype:{'$regex': 'image'} } },{$group:{_id:null,total: { $sum: "$filesize" }}}])
+		res.json({
+			code:1,
+			data:{
+				docSize:docSize[0].total,
+				mediaSize:mediaSize[0].total,
+				imageSize:imageSize[0].total
+			}
+			
+		});
+	}
+
+
+
+
+
+
+	/* 获取列表 getList
+    	@param filetype (0or''为全部，1文档，2图片，3音/视频)
+     */
 	async getList(req,res,next){		
-		let { page = 1, limit = 10,filename} = req.query;
+		let { page = 1, limit = 10,filename,filetype=''} = req.query;
 		page = parseInt(page);
 		limit = parseInt(limit);
 		let query = {}
 		if(filename){
 			query.filename =  {
                 '$regex': filename
+            }
+		}
+		if(filetype==1){
+			query.filetype =  {
+                '$regex': 'application|text'
+            }
+		}
+		if(filetype==2){
+			query.filetype =  {
+                '$regex': 'image'
+            }
+		}
+		if(filetype==3){
+			query.filetype =  {
+                '$regex': 'video|audio'
             }
 		}
 		const total = await FileModel.count(query);

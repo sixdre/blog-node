@@ -93,6 +93,8 @@ export default class ArticleObj extends UploadComponent {
         }
     }
 
+    /* 获取当前登录用户的文章 getMeArticleById
+     */
     async getMeArticleById(req, res, next) {
         const userId = req.userInfo._id;
         const id = req.params['id'];
@@ -117,8 +119,6 @@ export default class ArticleObj extends UploadComponent {
             return next(err);
         }
     }
-
-
 
     /* 获取用户的文章 getArticlesByUserId
     	@param type (me 我发表的文章，collect收藏的文章，like喜欢的文章,comment 评论过的文章
@@ -235,8 +235,9 @@ export default class ArticleObj extends UploadComponent {
                     message: '文章不存在或已被删除'
                 },404)
             }
-
             let me = req.userInfo;
+
+            //如果是登录用户的话需要将改文章的收藏和关注、喜欢状态返回
             if (me) {
                 me = await UserModel.findById(me._id);
                 if (me.follows.indexOf(article.author._id) !== -1) {
