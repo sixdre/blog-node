@@ -27,11 +27,14 @@ export default class FileObj extends UploadComponent{
 		res.json({
 			code:1,
 			data:{
+				allSize:3*Math.pow(2,30),
 				docSize:docSize[0].total,
+				docTotal:1*Math.pow(2,30),
 				mediaSize:mediaSize[0].total,
-				imageSize:imageSize[0].total
+				mediaTotal:1*Math.pow(2,30),
+				imageSize:imageSize[0].total,
+				imageTotal:1*Math.pow(2,30)
 			}
-			
 		});
 	}
 

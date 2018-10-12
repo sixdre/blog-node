@@ -58,7 +58,7 @@ export default class ArticleObj extends UploadComponent {
                 let user = await UserModel.findOne({ username: author });
                 if (user) {
                     queryParams.author = user._id;
-                }else{
+                } else {
                     queryParams.author = null;
                 }
             }
@@ -77,12 +77,8 @@ export default class ArticleObj extends UploadComponent {
                 queryParams['create_time'] = { $gte: startTime, $lte: endTime }
             }
             let results = await ArticleModel.getListToPage(queryParams, page, limit);
-            let topArticles = []
-            if(page==1){
-                topArticles = await ArticleModel.getList({...queryParams,'top':true}).sort({ "create_time": -1});
-            }
             res.retSuccess({
-                data: [...topArticles,...results.data],
+                data: results.data,
                 total: results.total,
                 limit: results.pageSize,
                 page: results.page
@@ -93,6 +89,67 @@ export default class ArticleObj extends UploadComponent {
         }
     }
 
+
+    /* 获取文章列表 getListToAdmin 用于给管理员管理接口
+    	@param type ( 所有的文章，good精华文章)
+    	@param flag (0删除，1草稿，2有效，''所有)
+     */
+    async getListToAdmin(req, res, next) {
+        let { page = 1, limit = 20, title = "", categoryId, author, flag = 2, type, startTime, endTime } = req.query;
+        let queryParams = {}
+        try {
+            queryParams = {
+                status: flag ? parseInt(flag) : 3,
+                title: {
+                    '$regex': title
+                },
+                is_private: null,
+            }
+            if (type === "good") {
+                queryParams.good = true;
+            }
+            if (author) {
+                let user = await UserModel.findOne({ username: author });
+                if (user) {
+                    queryParams.author = user._id;
+                } else {
+                    queryParams.author = null;
+                }
+            }
+            if (categoryId && validator.isMongoId(categoryId)) {
+                queryParams.category = categoryId;
+            }
+            if (startTime && !endTime) {
+                startTime = new Date(startTime)
+                queryParams['create_time'] = { $gte: startTime }
+            } else if (!startTime && endTime) {
+                endTime = new Date(endTime)
+                queryParams['create_time'] = { $lte: endTime }
+            } else if (startTime && endTime) {
+                startTime = new Date(startTime)
+                endTime = new Date(endTime)
+                queryParams['create_time'] = { $gte: startTime, $lte: endTime }
+            }
+            let results = await ArticleModel.getListToPage(queryParams, page, limit);
+            res.retSuccess({
+                data: results.data,
+                total: results.total,
+                limit: results.pageSize,
+                page: results.page
+            })
+        } catch (err) {
+            console.log('获取文章列表出错:' + err);
+            return next(err);
+        }
+    }
+
+
+
+
+
+
+
+
     /* 获取当前登录用户的文章 getMeArticleById
      */
     async getMeArticleById(req, res, next) {
@@ -102,7 +159,7 @@ export default class ArticleObj extends UploadComponent {
             res.retError({
                 type: 'ERROR_PARAMS',
                 message: '文章ID参数错误'
-            },404)
+            }, 404)
             return
         }
         try {
@@ -110,7 +167,7 @@ export default class ArticleObj extends UploadComponent {
             if (!article) {
                 return res.retError({
                     message: '文章不存在'
-                },404)
+                }, 404)
             }
             res.retSuccess({
                 data: article
@@ -134,7 +191,7 @@ export default class ArticleObj extends UploadComponent {
             res.retError({
                 type: 'ERROR_PARAMS',
                 message: '用户ID参数错误'
-            },404)
+            }, 404)
             return
         }
         try {
@@ -143,7 +200,7 @@ export default class ArticleObj extends UploadComponent {
                 if (!user || user.setting.show_main === 2) {
                     res.retError({
                         message: '您要查找的用户不存在，或者该用户开启了私密设置'
-                    },404)
+                    }, 404)
                     return
                 }
             }
@@ -219,7 +276,7 @@ export default class ArticleObj extends UploadComponent {
             res.retError({
                 type: 'ERROR_PARAMS',
                 message: '文章ID参数错误'
-            },404)
+            }, 404)
             return
         }
         try {
@@ -233,7 +290,7 @@ export default class ArticleObj extends UploadComponent {
             if (!article) {
                 return res.retError({
                     message: '文章不存在或已被删除'
-                },404)
+                }, 404)
             }
             let me = req.userInfo;
 
@@ -273,7 +330,7 @@ export default class ArticleObj extends UploadComponent {
             res.retError({
                 type: 'ERROR_PARAMS',
                 message: '文章ID参数错误'
-            },404)
+            }, 404)
             return
         }
         try {
@@ -282,7 +339,7 @@ export default class ArticleObj extends UploadComponent {
                 return res.retError({
                     msg: 'The article is not found or is deleted',
                     message: '文章不存在或已被删除'
-                },404)
+                }, 404)
             }
             res.retSuccess({
                 data: article,
@@ -300,7 +357,7 @@ export default class ArticleObj extends UploadComponent {
             return res.retError({
                 type: 'ERROR_PARAMS',
                 message: '标签ID参数错误'
-            },404)
+            }, 404)
         }
         try {
             let queryParams = {
@@ -325,7 +382,7 @@ export default class ArticleObj extends UploadComponent {
             res.retError({
                 type: 'ERROR_PARAMS',
                 message: '类型ID参数错误'
-            },404);
+            }, 404);
             return
         }
         try {
@@ -382,7 +439,7 @@ export default class ArticleObj extends UploadComponent {
                     id: article.id,
                     time: moment(Date.now()).format('YYYY-MM-DD HH:mm:ss'),
                     has_draft: true,
-                    message:'保存成功'
+                    message: '保存成功'
                 });
             } else {
                 let art = await new ArticleModel({
@@ -423,7 +480,7 @@ export default class ArticleObj extends UploadComponent {
             console.log('参数出错', err.message);
             res.retError({
                 type: 'ERROR_PARAMS',
-                message:err.message
+                message: err.message
             });
             return
         }
@@ -444,7 +501,7 @@ export default class ArticleObj extends UploadComponent {
             //检查category
             let ncate = await CategoryModel.findOne({ name: article.categoryName });
             if (!ncate) {
-                return  res.retError('文章类型不存在');  
+                return res.retError('文章类型不存在');
             } else {
                 article.category = ncate._id;
             }
@@ -478,7 +535,7 @@ export default class ArticleObj extends UploadComponent {
                 let nameArray = req.file.originalname.split('.')
                 let type = nameArray[nameArray.length - 1];
                 if (!tool.checkUploadImg(type)) {
-                    return  res.retError('文章封面格式错误');  
+                    return res.retError('文章封面格式错误');
                 }
                 let imgurl = await this.upload(req.file);
                 article.img = imgurl;
