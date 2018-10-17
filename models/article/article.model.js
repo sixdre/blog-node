@@ -181,7 +181,8 @@ ArticleSchema.statics.getListToPage = function(queryobj, page = 1, pageSize = 10
         delete baseQuery.is_private;
     }
 
-    let params = Object.assign(baseQuery, queryobj);
+
+    let params = Object.assign({}, baseQuery, queryobj);
     page = parseInt(page);
     pageSize = parseInt(pageSize);
     return new Promise(async(resolve, reject) => {
@@ -212,7 +213,6 @@ ArticleSchema.statics.getOneById = function(id, queryobj) {
         if (queryobj && typeof queryobj === 'object') {
             query = Object.assign(query, queryobj);
         }
-        console.log(query)
         return this.findOne(query, { __v: 0 })
             .populate('author', 'username avatar')
             .populate('category', 'name')

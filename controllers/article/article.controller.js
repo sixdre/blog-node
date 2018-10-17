@@ -42,11 +42,10 @@ export default class ArticleObj extends UploadComponent {
     	@param flag (0删除，1草稿，2有效，''所有)
      */
     async getList(req, res, next) {
-        let { page = 1, limit = 20, title = "", categoryId, author, flag = 2, type, startTime, endTime } = req.query;
+        let { page = 1, limit = 20, title = "", categoryId, author, type, startTime, endTime } = req.query;
         let queryParams = {}
         try {
             queryParams = {
-                status: flag ? parseInt(flag) : 3,
                 title: {
                     '$regex': title
                 },
@@ -95,7 +94,7 @@ export default class ArticleObj extends UploadComponent {
     	@param flag (0删除，1草稿，2有效，''所有)
      */
     async getListToAdmin(req, res, next) {
-        let { page = 1, limit = 20, title = "", categoryId, author, flag = 2, type, startTime, endTime } = req.query;
+        let { page = 1, limit = 20, title = "", categoryId, author, flag = 3, type, startTime, endTime } = req.query;
         let queryParams = {}
         try {
             queryParams = {
