@@ -9,6 +9,7 @@ import validator from 'validator'
 import request from 'request'
 import MarkdownIt from 'markdown-it'
 import { ArticleModel, CategoryModel, CommentModel, TagModel, UserModel } from '../../models/'
+import ArticleService from '../../services/article.service'
 import UploadComponent from '../../prototype/upload'
 const tool = require('../../utility/tool');
 
@@ -43,39 +44,22 @@ export default class ArticleObj extends UploadComponent {
      */
     async getList(req, res, next) {
         let { page = 1, limit = 20, title = "", categoryId, author, type, startTime, endTime } = req.query;
-        let queryParams = {}
         try {
-            queryParams = {
-                title: {
-                    '$regex': title
-                },
-            }
-            if (type === "good") {
-                queryParams.good = true;
+            let queryParams = {
+                status: 2,
+                title,
+                type,
+                categoryId,
+                startTime,
+                endTime
             }
             if (author) {
                 let user = await UserModel.findOne({ username: author });
                 if (user) {
                     queryParams.author = user._id;
-                } else {
-                    queryParams.author = null;
                 }
             }
-            if (categoryId && validator.isMongoId(categoryId)) {
-                queryParams.category = categoryId;
-            }
-            if (startTime && !endTime) {
-                startTime = new Date(startTime)
-                queryParams['create_time'] = { $gte: startTime }
-            } else if (!startTime && endTime) {
-                endTime = new Date(endTime)
-                queryParams['create_time'] = { $lte: endTime }
-            } else if (startTime && endTime) {
-                startTime = new Date(startTime)
-                endTime = new Date(endTime)
-                queryParams['create_time'] = { $gte: startTime, $lte: endTime }
-            }
-            let results = await ArticleModel.getListToPage(queryParams, page, limit);
+            let results = await ArticleService.getListToPage(queryParams, page, limit);
             res.retSuccess({
                 data: results.data,
                 total: results.total,
@@ -94,42 +78,24 @@ export default class ArticleObj extends UploadComponent {
     	@param flag (0删除，1草稿，2有效，''所有)
      */
     async getListToAdmin(req, res, next) {
-        let { page = 1, limit = 20, title = "", categoryId, author, flag = 3, type, startTime, endTime } = req.query;
-        let queryParams = {}
+        let { page = 1, limit = 20, title = "", categoryId, author, status = 3, type, startTime, endTime } = req.query;
         try {
-            queryParams = {
-                status: flag ? parseInt(flag) : 3,
-                title: {
-                    '$regex': title
-                },
+            let queryParams = {
+                status,
+                title,
                 is_private: null,
-            }
-            if (type === "good") {
-                queryParams.good = true;
+                type,
+                categoryId,
+                startTime,
+                endTime
             }
             if (author) {
                 let user = await UserModel.findOne({ username: author });
                 if (user) {
                     queryParams.author = user._id;
-                } else {
-                    queryParams.author = null;
                 }
             }
-            if (categoryId && validator.isMongoId(categoryId)) {
-                queryParams.category = categoryId;
-            }
-            if (startTime && !endTime) {
-                startTime = new Date(startTime)
-                queryParams['create_time'] = { $gte: startTime }
-            } else if (!startTime && endTime) {
-                endTime = new Date(endTime)
-                queryParams['create_time'] = { $lte: endTime }
-            } else if (startTime && endTime) {
-                startTime = new Date(startTime)
-                endTime = new Date(endTime)
-                queryParams['create_time'] = { $gte: startTime, $lte: endTime }
-            }
-            let results = await ArticleModel.getListToPage(queryParams, page, limit);
+            let results = await ArticleService.getListToPage(queryParams, page, limit);
             res.retSuccess({
                 data: results.data,
                 total: results.total,
@@ -182,7 +148,12 @@ export default class ArticleObj extends UploadComponent {
      */
     async getArticlesByUserId(req, res, next) {
         let { page = 1, limit = 20, title = "", flag = 2, type = "me", startTime, endTime } = req.query;
-        let queryParams = {};
+        let queryParams = {
+            title,
+            status: 2,
+            startTime,
+            endTime
+        };
         const userId = req.params['id'];
         const meId = req.userInfo ? req.userInfo._id : null;
         const isMe = String(meId) === String(userId);
@@ -205,55 +176,21 @@ export default class ArticleObj extends UploadComponent {
             }
             if (type === "collect") {
                 let collectIds = user.collectArts;
-                queryParams = {
-                    'status': 2,
-                    'title': {
-                        '$regex': title
-                    },
-                    '_id': { "$in": collectIds }
-                }
+                queryParams.ids = collectIds;
             } else if (type === 'like') {
                 let likeIds = user.likeArts;
-                queryParams = {
-                    'status': 2,
-                    'title': {
-                        '$regex': title
-                    },
-                    '_id': { "$in": likeIds }
-                }
+                queryParams.ids = likeIds;
             } else if (type === 'comment') {
                 let cmts = await CommentModel.find({ from: userId }).select('articleId');
                 let artIds = cmts.map(item => item.articleId);
                 let uniqArtIds = _.uniq(artIds); //去重
-                queryParams = {
-                    'status': 2,
-                    'title': {
-                        '$regex': title
-                    },
-                    '_id': { "$in": uniqArtIds }
-                }
+                queryParams.ids = uniqArtIds;
             } else { //我自己的文章
-                queryParams = {
-                    'author': userId,
-                    'status': parseInt(flag),
-                    'title': {
-                        '$regex': title
-                    },
-                    'is_private': null
-                }
+                queryParams.author = userId;
+                queryParams.status = parseInt(flag);
+                queryParams.is_private = null;
             }
-            if (startTime && !endTime) {
-                startTime = new Date(startTime)
-                queryParams['create_time'] = { $gte: startTime }
-            } else if (!startTime && endTime) {
-                endTime = new Date(endTime)
-                queryParams['create_time'] = { $lte: endTime }
-            } else if (startTime && endTime) {
-                startTime = new Date(startTime)
-                endTime = new Date(endTime)
-                queryParams['create_time'] = { $gte: startTime, $lte: endTime }
-            }
-            let results = await ArticleModel.getListToPage(queryParams, page, limit)
+            let results = await ArticleService.getListToPage(queryParams, page, limit)
             res.retSuccess({
                 isMe,
                 data: results.data,
@@ -359,10 +296,9 @@ export default class ArticleObj extends UploadComponent {
             }, 404)
         }
         try {
-            let queryParams = {
-                'tags': { '$in': [tagId] }
-            }
-            let results = await ArticleModel.getListToPage(queryParams, page, pageSize);
+            let results = await ArticleService.getListToPage({
+                tagId
+            }, page, pageSize);
             res.retSuccess({
                 data: results.data,
                 total: results.total,
@@ -388,7 +324,9 @@ export default class ArticleObj extends UploadComponent {
             let queryParams = {
                 'category': { '$in': [cId] }
             }
-            let results = await ArticleModel.getListToPage(queryParams, page, pageSize);
+            let results = await ArticleService.getListToPage({
+                categoryId: cId
+            }, page, pageSize);
             res.retSuccess({
                 data: results.data,
                 total: results.total,

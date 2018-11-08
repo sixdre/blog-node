@@ -58,8 +58,8 @@ const ArticleSchema = new Schema({
         default: true
     },
     top: { // 置顶文章
-        type: Boolean,
-        default: false
+        type: Number,
+        default: 0
     },
     good: { // 精华文章
         type: Boolean,
