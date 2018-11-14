@@ -7,7 +7,7 @@ let mongodb = 'mongodb://127.0.0.1/blog';
 let allowOrigin = '*';
 if (process.env.NODE_ENV === 'production') {
     // mongodb = 'mongodb://root:123456@47.94.206.86:27017/blog?authSource=admin'
-    allowOrigin = 'http://47.94.206.86:3000';
+    allowOrigin = 'http://47.107.229.206:3000';
 }
 
 const config = {
@@ -29,8 +29,8 @@ const config = {
         bucket: 'myblog',
         origin: 'http://osf6cl53d.bkt.clouddn.com/'
     },
-    ryAppSecret:'ea155oOKnvvC2v',    //融云即时通讯appSecret,
-    ryAppKey:'qd46yzrfqibvf'    //融云即时通讯appKey,
-} 
+    ryAppSecret: 'ea155oOKnvvC2v', //融云即时通讯appSecret,
+    ryAppKey: 'qd46yzrfqibvf' //融云即时通讯appKey,
+}
 
 export default config;
