@@ -128,7 +128,7 @@ export default class ArticleObj extends UploadComponent {
             return
         }
         try {
-            let article = await ArticleModel.getOneById(id, { author: userId });
+            let article = await ArticleService.getById(id);
             if (!article) {
                 return res.retError({
                     message: '文章不存在'
@@ -222,8 +222,8 @@ export default class ArticleObj extends UploadComponent {
             var md = new MarkdownIt({
                 html: true //启用html标记转换
             });
-            let article = await ArticleModel.getOneById(id, { 'is_private': false, status: 2 });
-            if (!article) {
+            let article = await ArticleService.getById(id);
+            if (!article||article.is_private||article.status==2) {
                 return res.retError({
                     message: '文章不存在或已被删除'
                 }, 404)
@@ -270,8 +270,8 @@ export default class ArticleObj extends UploadComponent {
             return
         }
         try {
-            let article = await ArticleModel.getOneById(id, { 'is_private': false });
-            if (!article || article.status == 0) {
+            let article = await ArticleService.getById(id,);
+            if (!article || article.status == 0 || article.is_private) {
                 return res.retError({
                     msg: 'The article is not found or is deleted',
                     message: '文章不存在或已被删除'

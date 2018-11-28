@@ -2,13 +2,35 @@ import validator from 'validator'
 import { ArticleModel, CategoryModel, CommentModel, TagModel, UserModel } from '../models/'
 
 export class articleService {
-
+    /*
+    * 根据ID 获取文章信息
+    * @param {string} id 查询ID
+    * @return {Promise[Article]}
+    */
+    getById(id){
+        return ArticleModel.findOne({'_id':id}, { __v: 0 })
+            .populate('author', 'username avatar')
+            .populate('category', 'name')
+            .populate('tags', 'name')
+    }
+    /*
+    * 获取列表
+    * @param {Object} queryobj 查询对象
+    * @return {Promise[]} 列表的 Promise 对象
+    */
     getList(queryobj) {
         return ArticleModel.find(queryobj, { content: 0, __v: 0 })
             .populate('author', 'username avatar')
             .populate('category', 'name')
             .populate('tags', 'name')
     }
+    /*
+    * 分页获取列表
+    * @param {Object} queryobj 查询对象
+    * @param {Number} page 当前页数
+    * @param {Number}} pageSize 每页显示数量
+    * @return {Promise[]} 列表的 Promise 对象
+    */
     async getListToPage(queryobj, page = 1, pageSize = 10) {
         let { ids, title = "", status, tagId, categoryId, author, type, startTime, endTime } = queryobj;
         let baseQuery = {
